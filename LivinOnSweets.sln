@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LivinOnSweets.Desktop", "LivinOnSweets\LivinOnSweets.Desktop\LivinOnSweets.Desktop.csproj", "{2D5FD8EB-6236-4BA5-993C-61B42AC6D72F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LivinOnSweets.Game", "LivinOnSweets\LivinOnSweets.Game\LivinOnSweets.Game.csproj", "{19A547C6-E34C-472B-8456-80048B55BFDB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LivinOnSweets.Game.Tests", "LivinOnSweets\LivinOnSweets.Game.Tests\LivinOnSweets.Game.Tests.csproj", "{9ACCDD9F-7D31-4407-94F0-760ABBD9EBD5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LivinOnSweets.iOS", "LivinOnSweets\LivinOnSweets.iOS\LivinOnSweets.iOS.csproj", "{DA9BA91E-6C6A-416F-BA61-3A0BCB8ACA6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LivinOnSweets.Resources", "LivinOnSweets\LivinOnSweets.Resources\LivinOnSweets.Resources.csproj", "{169F3E0F-56DF-4CF4-A06A-AF407FCD8EB2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2D5FD8EB-6236-4BA5-993C-61B42AC6D72F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D5FD8EB-6236-4BA5-993C-61B42AC6D72F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D5FD8EB-6236-4BA5-993C-61B42AC6D72F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D5FD8EB-6236-4BA5-993C-61B42AC6D72F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19A547C6-E34C-472B-8456-80048B55BFDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19A547C6-E34C-472B-8456-80048B55BFDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19A547C6-E34C-472B-8456-80048B55BFDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19A547C6-E34C-472B-8456-80048B55BFDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9ACCDD9F-7D31-4407-94F0-760ABBD9EBD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9ACCDD9F-7D31-4407-94F0-760ABBD9EBD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9ACCDD9F-7D31-4407-94F0-760ABBD9EBD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9ACCDD9F-7D31-4407-94F0-760ABBD9EBD5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA9BA91E-6C6A-416F-BA61-3A0BCB8ACA6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA9BA91E-6C6A-416F-BA61-3A0BCB8ACA6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA9BA91E-6C6A-416F-BA61-3A0BCB8ACA6C}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{DA9BA91E-6C6A-416F-BA61-3A0BCB8ACA6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA9BA91E-6C6A-416F-BA61-3A0BCB8ACA6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA9BA91E-6C6A-416F-BA61-3A0BCB8ACA6C}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{169F3E0F-56DF-4CF4-A06A-AF407FCD8EB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{169F3E0F-56DF-4CF4-A06A-AF407FCD8EB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{169F3E0F-56DF-4CF4-A06A-AF407FCD8EB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{169F3E0F-56DF-4CF4-A06A-AF407FCD8EB2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0F2ADCB2-4670-458A-8B9F-9B03F301D620}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,11 @@
+﻿{
+  "solution": {
+    "path": "LivinOnSweets.sln",
+    "projects": [
+      "LivinOnSweets.Desktop\\LivinOnSweets.Desktop.csproj",
+      "LivinOnSweets.Game\\LivinOnSweets.Game.csproj",
+      "LivinOnSweets.Game.Tests\\LivinOnSweets.Game.Tests.csproj",
+      "LivinOnSweets.Resources\\LivinOnSweets.Resources.csproj"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "solution": {
+    "path": "LivinOnSweets.sln",
+    "projects": [
+      "LivinOnSweets.Game\\LivinOnSweets.Game.csproj",
+      "LivinOnSweets.Resources\\LivinOnSweets.Resources.csproj",
+      "LivinOnSweets.iOS\\LivinOnSweets.iOS.csproj"
+    ]
+  }
+}
