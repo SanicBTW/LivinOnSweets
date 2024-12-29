@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>Livin' On Sweets API</Title>
+    <Description>The API library for the Livin' On Sweets Rhythm Game Port from Blue Archive</Description>
+    <Copyright>sanco</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ppy.osu.Framework" Version="2024.1220.0" />
+  </ItemGroup>
+
+</Project>

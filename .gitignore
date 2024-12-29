@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Figuring out licensing and permissions to share resources - sanco 21/12/24
+/LivinOnSweets/LivinOnSweets.Resources
