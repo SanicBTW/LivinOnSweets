@@ -1,4 +1,5 @@
-﻿using LivinOnSweets.API.Components;
+﻿using System;
+using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Container;
 using LivinOnSweets.API.Enum;
 using LivinOnSweets.API.Input;
@@ -20,7 +21,7 @@ using osuTK;
 namespace LivinOnSweets.Game.Screens
 {
     // TODO: Make the texture store scale be like 4 or 6?
-    // TODO: Horrible variable naming, clean up
+    // TODO: Horrible variable naming, clean up / Incorrect variable naming and usage
     // TODO: Fix being allowed to press enter again even if the banners anre not present yet
     // TODO: Afaik, target scale values for the game container are 0.4, 0.4 (i have to position it properly), so how do I get them based off the master container (SweetScrollContainer)
     public partial class StartupScreen : SweetScreen, IKeyBindingHandler<ManiaAction>
@@ -28,7 +29,10 @@ namespace LivinOnSweets.Game.Screens
         [Resolved]
         private GameStateManager stateManager { get; set; }
 
-        protected SweetScrollContainer Container;
+        protected ZoomeableContainer ZoomeableContainer;
+        protected BindableFloat GameZoom = new(1);
+
+        protected SweetScrollContainer ScrollContainer;
         protected BindableFloat ContainerScale = new(1);
         protected ClosePopup CloseModal;
 
@@ -60,14 +64,20 @@ namespace LivinOnSweets.Game.Screens
                         RelativeSizeAxes = Axes.Both,
                         Colour = Colour4.FromHex("#e1ddd7")
                     },
-                    Container = new SweetScrollContainer(startBlocked: true)
+                    ZoomeableContainer = new ZoomeableContainer()
                     {
-                        Alpha = 0f,
                         RelativeSizeAxes = Axes.Both,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        ClampExtension = 40,
-                        ScrollBarMaxAlpha = new BindableFloat(),
+                        Child = ScrollContainer = new SweetScrollContainer(startBlocked: true)
+                        {
+                            Alpha = 0f,
+                            RelativeSizeAxes = Axes.Both,
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            ClampExtension = 40,
+                            ScrollBarMaxAlpha = new BindableFloat(),
+                        },
                     },
                     CloseModal = new ClosePopup()
                     {
@@ -75,22 +85,28 @@ namespace LivinOnSweets.Game.Screens
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Alpha = 0f,
+                    },
+                    new Box()
+                    {
+                        Size = new Vector2(4),
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Colour = Colour4.Black,
                     }
                 ];
 
-            ContainerScale.BindValueChanged((ev) =>
-            {
-                Vector2 newScale = new Vector2(ev.NewValue);
-                Container.Scale = newScale;
-                // GameContainer.Scale = Vector2.Divide(new Vector2(ContainerScale.Value), Vector2.Divide(Container.DrawSize, GameContainer.GameSize));
-            });
+            ZoomeableContainer.ClipAnchor(Anchor.Centre);
+            ZoomeableContainer.ClipOrigin(Anchor.Centre);
+
+            GameZoom.BindValueChanged((ev) => GameContainer!.Zoom = Math.Min(1, 2 / ev.NewValue));
+            ContainerScale.BindValueChanged((ev) => ZoomeableContainer.Zoom = ev.NewValue);
         }
 
         [BackgroundDependencyLoader]
         private void load(TextureStore textures, PixelArtTextureStore pixArtStore, LargeTextureStore largeStore)
         {
             // CD
-            Container.Add(new DrawSizePreservingFillContainer()
+            ScrollContainer.Add(new DrawSizePreservingFillContainer()
             {
                 TargetDrawSize = new Vector2(898, 898), // Texture Size (859x858)
                 Y = -4,
@@ -99,7 +115,7 @@ namespace LivinOnSweets.Game.Screens
 
             // Main
             Vector2 containerSize = new Vector2(1280, 905); // Debugger reported this size, so that's what I'm using rn, hours later: I added some extra (835 + 70) to account for the footer and margin of it
-            Container.Add(CentralContainer = new()
+            ScrollContainer.Add(CentralContainer = new()
             {
                 RelativeSizeAxes = Axes.None,
                 TargetDrawSize = containerSize,
@@ -194,7 +210,7 @@ namespace LivinOnSweets.Game.Screens
             });
 
             // Branding
-            Container.Add(new Sprite()
+            ScrollContainer.Add(new Sprite()
             {
                 Origin = Anchor.TopLeft,
                 Anchor = Anchor.TopLeft,
@@ -237,7 +253,7 @@ namespace LivinOnSweets.Game.Screens
             base.Update();
 
             // ehhhhh
-            if (!Footer.IsPresent && Container.Current >= minScrollShow)
+            if (!Footer.IsPresent && ScrollContainer.Current >= minScrollShow)
                 ShowFooter();
         }
 
@@ -253,7 +269,7 @@ namespace LivinOnSweets.Game.Screens
 
         protected virtual void AnimateCentral()
         {
-            Container.FadeIn(850);
+            ScrollContainer.FadeIn(850);
             CentralContainer.FadeTo(0); // cancel the fade animation from its parent container (Container)
 
             Scheduler.AddDelayed(() =>
@@ -290,10 +306,10 @@ namespace LivinOnSweets.Game.Screens
         {
             CD.Slide();
 
-            Container.ScrollBarMaxAlpha.Default = 0.75f;
-            Container.ScrollBarMaxAlpha.SetDefault();
-            Container.AllowScroll();
-            Container.ScrollBy(0.1f); // trigger the scroll event to show that you can now scroll
+            ScrollContainer.ScrollBarMaxAlpha.Default = 0.75f;
+            ScrollContainer.ScrollBarMaxAlpha.SetDefault();
+            ScrollContainer.AllowScroll();
+            ScrollContainer.ScrollBy(0.1f); // trigger the scroll event to show that you can now scroll
 
             stateManager.ProgressionBlock.Value = false;
             stateManager.RTState.BindValueChanged(ProcessRTState); // dont trigger since the banners are already mid animation prob
@@ -301,19 +317,25 @@ namespace LivinOnSweets.Game.Screens
 
         protected virtual void ResizeGameContainer(bool transIn = true)
         {
+            double duration = transIn ? gameContainerDelay / 2 : gameContainerDelay;
+            float targetZoom = transIn ? 1f : 4f;
+
             if (!transIn)
             {
-                lastScrollPos = Container.Current;
-                Container.BlockScroll();
-                Container.TransformBindableTo(Container.ScrollBarAlpha, 0, Container.AlphaDuration);
+                lastScrollPos = ScrollContainer.Current;
+                ScrollContainer.BlockScroll();
+                ScrollContainer.TransformBindableTo(ScrollContainer.ScrollBarAlpha, 0, ScrollContainer.AlphaDuration);
 
                 bool notInit = stateManager.GPState.Value == GameplayState.UNINITIALIZED;
-                Container.ScrollTo(notInit ? GameBgContainer[2] : GameBgContainer[1]); // because we dont change the depth of the sprite anymore, we have to properly index the target
+                ScrollContainer.ScrollTo(notInit ? GameBgContainer[2] : GameBgContainer[1]); // because we dont change the depth of the sprite anymore, we have to properly index the target
 
-                Container.Delay(500D)
-                    .TransformBindableTo(ContainerScale, 4f, gameContainerDelay, Easing.OutQuint)
-                    .Schedule(() => GameContainer.GameMargin.Value = new MarginPadding(0))
-                    .Schedule(() => GameContainer.Scale = new Vector2(0.4f))
+                ScrollContainer.Delay(500D)
+                    .TransformBindableTo(ContainerScale, targetZoom, duration, Easing.OutQuint)
+                    .Schedule(() => GameContainer.GameMargin.Value = new MarginPadding()
+                    {
+                        Bottom = 44
+                    })
+                    .TransformBindableTo(GameZoom, targetZoom * 2, duration, Easing.OutQuint) // ends at 0.25f
                     .OnComplete((_) =>
                 {
                     // Since the screens are part of the game and not the API package we pass a type reference to the next screen that will be created thru activator
@@ -325,12 +347,15 @@ namespace LivinOnSweets.Game.Screens
             }
             else
             {
-                Container.TransformBindableTo(ContainerScale, 1f, gameContainerDelay / 2, Easing.OutQuint).OnComplete((_) =>
-                {
-                    Container.TransformBindableTo(Container.ScrollBarAlpha, 1, Container.AlphaDuration);
-                    Container.ScrollTo(lastScrollPos);
-                    Container.AllowScroll();
-                });
+                ScrollContainer
+                    .TransformBindableTo(ContainerScale, targetZoom, duration, Easing.OutQuint)
+                    .OnComplete((_) =>
+                    {
+                        GameZoom.Value = targetZoom;
+                        ScrollContainer.TransformBindableTo(ScrollContainer.ScrollBarAlpha, 1, ScrollContainer.AlphaDuration);
+                        ScrollContainer.ScrollTo(lastScrollPos);
+                        ScrollContainer.AllowScroll();
+                    });
             }
         }
 
@@ -370,6 +395,7 @@ namespace LivinOnSweets.Game.Screens
         public void SwapGameCtx(GameContainer game)
         {
             // Reset the properties
+            game.Scale = Vector2.One;
             game.RelativeSizeAxes = Axes.None;
             game.Size = game.GameSize;
             GameBgContainer.Add(GameContainer = game);

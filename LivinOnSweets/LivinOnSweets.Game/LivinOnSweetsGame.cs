@@ -2,6 +2,7 @@
 using LivinOnSweets.Game.Screens;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Screens;
 
 namespace LivinOnSweets.Game
@@ -16,9 +17,17 @@ namespace LivinOnSweets.Game
         [BackgroundDependencyLoader]
         private void load()
         {
-            ActionContainer.Add(screenStack = new ScreenStack()
+            ActionContainer.AddRange(new Drawable[]
             {
-                RelativeSizeAxes = Axes.Both
+                new Box()
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Colour = Colour4.FromHex("#3a3a3a") // color of the game container
+                },
+                screenStack = new ScreenStack()
+                {
+                    RelativeSizeAxes = Axes.Both
+                }
             });
         }
 

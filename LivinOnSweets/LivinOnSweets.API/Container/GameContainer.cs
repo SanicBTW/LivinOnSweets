@@ -78,7 +78,7 @@ namespace LivinOnSweets.API.Container
                         if (nextScreen == null)
                         {
                             enableBacking();
-                            // background.FadeOut(1000D, Easing.OutQuint);
+                            background.FadeOut(1000D, Easing.OutQuint);
                             stateManager.UpdateRuntimeState(true, true);
                             return;
                         }

@@ -25,6 +25,7 @@ namespace LivinOnSweets.Game.Screens
             Schedule(() =>
             {
                 disposeAction(container, false);
+                container.Zoom *= 2.75f;
                 AddInternal(container);
             });
 
@@ -35,8 +36,8 @@ namespace LivinOnSweets.Game.Screens
         {
             base.OnEntering(e);
 
-            boundContainer.Zoom = 1f;
-            boundContainer.Scale = Vector2.One;
+            boundContainer.TransformTo("Zoom", 1f, 1000D, Easing.OutQuint);
+            boundContainer.GameMargin.Value = new MarginPadding(0);
             boundContainer.Size = Vector2.Zero;
             boundContainer.RelativeSizeAxes = Axes.Both;
         }
