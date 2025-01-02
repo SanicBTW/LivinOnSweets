@@ -55,21 +55,13 @@ namespace LivinOnSweets.API.Container
             GameMargin.BindValueChanged((ev) => Margin = ev.NewValue);
         }
 
-        protected override void UpdateAfterChildren()
-        {
-            base.UpdateAfterChildren();
-
-            if (stateManager.RTState.Value == RuntimeState.STARTUP && stateManager.GPState.Value == GameplayState.INITIALIZED)
-                rescale();
-        }
-
         public void EnterGame([CanBeNull] Type nextScreen = null, Action onLoad = null)
         {
             switch (stateManager.GPState.Value)
             {
                 case GameplayState.INITIALIZED:
                     onLoad?.Invoke();
-                    Schedule(enableBacking);
+                    ScheduleAfterChildren(enableBacking);
                     break;
 
                 case GameplayState.UNINITIALIZED:
@@ -105,11 +97,6 @@ namespace LivinOnSweets.API.Container
         {
             stateManager.ProgressionBlock.SetDefault();
             stateManager.CanBack.SetDefault();
-        }
-
-        private void rescale()
-        {
-            //Scale = Vector2.Divide(Vector2.One, Vector2.Divide(Parent!.DrawRectangle.Size, GameSize));
         }
     }
 }

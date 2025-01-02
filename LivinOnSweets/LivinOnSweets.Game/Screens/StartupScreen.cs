@@ -22,18 +22,16 @@ namespace LivinOnSweets.Game.Screens
 {
     // TODO: Make the texture store scale be like 4 or 6?
     // TODO: Horrible variable naming, clean up / Incorrect variable naming and usage
-    // TODO: Fix being allowed to press enter again even if the banners anre not present yet
-    // TODO: Afaik, target scale values for the game container are 0.4, 0.4 (i have to position it properly), so how do I get them based off the master container (SweetScrollContainer)
+    // TODO: When spamming enter/esc (BACK, CONFIRM) the scroll pos gets set to the container position (because it didn't have time to scroll to the old position), make it wait for a bit to save the new one
+    // TODO: First press might lag a little bit, I don't know what's causing it
     public partial class StartupScreen : SweetScreen, IKeyBindingHandler<ManiaAction>
     {
         [Resolved]
         private GameStateManager stateManager { get; set; }
 
-        protected ZoomeableContainer ZoomeableContainer;
-        protected BindableFloat GameZoom = new(1);
-
         protected SweetScrollContainer ScrollContainer;
         protected BindableFloat ContainerScale = new(1);
+        protected Box TransitionBackground;
         protected ClosePopup CloseModal;
 
         protected SpinningCD CD;
@@ -64,20 +62,20 @@ namespace LivinOnSweets.Game.Screens
                         RelativeSizeAxes = Axes.Both,
                         Colour = Colour4.FromHex("#e1ddd7")
                     },
-                    ZoomeableContainer = new ZoomeableContainer()
+                    ScrollContainer = new SweetScrollContainer(startBlocked: true)
                     {
+                        Alpha = 0f,
                         RelativeSizeAxes = Axes.Both,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Child = ScrollContainer = new SweetScrollContainer(startBlocked: true)
-                        {
-                            Alpha = 0f,
-                            RelativeSizeAxes = Axes.Both,
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                            ClampExtension = 40,
-                            ScrollBarMaxAlpha = new BindableFloat(),
-                        },
+                        ClampExtension = 40,
+                        ScrollBarMaxAlpha = new BindableFloat(),
+                    },
+                    TransitionBackground = new Box()
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Colour4.Black,
+                        Alpha = 0,
                     },
                     CloseModal = new ClosePopup()
                     {
@@ -85,21 +83,10 @@ namespace LivinOnSweets.Game.Screens
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Alpha = 0f,
-                    },
-                    new Box()
-                    {
-                        Size = new Vector2(4),
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        Colour = Colour4.Black,
                     }
                 ];
 
-            ZoomeableContainer.ClipAnchor(Anchor.Centre);
-            ZoomeableContainer.ClipOrigin(Anchor.Centre);
-
-            GameZoom.BindValueChanged((ev) => GameContainer!.Zoom = Math.Min(1, 2 / ev.NewValue));
-            ContainerScale.BindValueChanged((ev) => ZoomeableContainer.Zoom = ev.NewValue);
+            ContainerScale.BindValueChanged((ev) => ScrollContainer.Scale = new Vector2(ev.NewValue));
         }
 
         [BackgroundDependencyLoader]
@@ -239,9 +226,12 @@ namespace LivinOnSweets.Game.Screens
         public override void OnResuming(ScreenTransitionEvent e)
         {
             if (e.Last != null && e.Last is SGameScreen)
+            {
                 GameContainer.GameMargin.SetDefault();
+                stateManager.CanBack.SetDefault(); // #1 probably everything is finished, can back again | #2 wont be able to back until progression block is set to false
+            }
 
-            ResizeGameContainer();
+            AnimateGameContainer();
             SlideBanners(gameContainerDelay / gameContainerDelayFactor, gameContainerDelayFactor);
             CD.Slide();
 
@@ -311,14 +301,13 @@ namespace LivinOnSweets.Game.Screens
             ScrollContainer.AllowScroll();
             ScrollContainer.ScrollBy(0.1f); // trigger the scroll event to show that you can now scroll
 
-            stateManager.ProgressionBlock.Value = false;
+            stateManager.ProgressionBlock.SetDefault();
             stateManager.RTState.BindValueChanged(ProcessRTState); // dont trigger since the banners are already mid animation prob
         }
 
-        protected virtual void ResizeGameContainer(bool transIn = true)
+        protected virtual void AnimateGameContainer(bool transIn = true)
         {
-            double duration = transIn ? gameContainerDelay / 2 : gameContainerDelay;
-            float targetZoom = transIn ? 1f : 4f;
+            double duration = gameContainerDelay / 2;
 
             if (!transIn)
             {
@@ -329,13 +318,8 @@ namespace LivinOnSweets.Game.Screens
                 bool notInit = stateManager.GPState.Value == GameplayState.UNINITIALIZED;
                 ScrollContainer.ScrollTo(notInit ? GameBgContainer[2] : GameBgContainer[1]); // because we dont change the depth of the sprite anymore, we have to properly index the target
 
-                ScrollContainer.Delay(500D)
-                    .TransformBindableTo(ContainerScale, targetZoom, duration, Easing.OutQuint)
-                    .Schedule(() => GameContainer.GameMargin.Value = new MarginPadding()
-                    {
-                        Bottom = 44
-                    })
-                    .TransformBindableTo(GameZoom, targetZoom * 2, duration, Easing.OutQuint) // ends at 0.25f
+                TransitionBackground.Delay(500D)
+                    .FadeInFromZero(duration, Easing.OutQuint)
                     .OnComplete((_) =>
                 {
                     // Since the screens are part of the game and not the API package we pass a type reference to the next screen that will be created thru activator
@@ -347,11 +331,11 @@ namespace LivinOnSweets.Game.Screens
             }
             else
             {
-                ScrollContainer
-                    .TransformBindableTo(ContainerScale, targetZoom, duration, Easing.OutQuint)
+                TransitionBackground.Delay(500D)
+                    .FadeOutFromOne(duration, Easing.OutQuint)
                     .OnComplete((_) =>
                     {
-                        GameZoom.Value = targetZoom;
+                        stateManager.ProgressionBlock.SetDefault(); // #1 probably everything is finished, can progress again
                         ScrollContainer.TransformBindableTo(ScrollContainer.ScrollBarAlpha, 1, ScrollContainer.AlphaDuration);
                         ScrollContainer.ScrollTo(lastScrollPos);
                         ScrollContainer.AllowScroll();
@@ -386,7 +370,7 @@ namespace LivinOnSweets.Game.Screens
                     stateManager.ProgressionBlock.Value = true; // Block any possible progression
                     SlideBanners(gameContainerDelay / gameContainerDelayFactor, gameContainerDelayFactor, false);
                     CD.Slide(false);
-                    ResizeGameContainer(false);
+                    AnimateGameContainer(false);
                     break;
             }
         }
@@ -395,7 +379,6 @@ namespace LivinOnSweets.Game.Screens
         public void SwapGameCtx(GameContainer game)
         {
             // Reset the properties
-            game.Scale = Vector2.One;
             game.RelativeSizeAxes = Axes.None;
             game.Size = game.GameSize;
             GameBgContainer.Add(GameContainer = game);
@@ -418,22 +401,6 @@ namespace LivinOnSweets.Game.Screens
                     ScreenStack.Push(new StartupScreen());
                     break;
 
-                case ManiaAction.UI_UP:
-                    GameContainer.Scale += new Vector2(0, 0.1f);
-                    break;
-
-                case ManiaAction.UI_DOWN:
-                    GameContainer.Scale -= new Vector2(0, 0.1f);
-                    break;
-
-                case ManiaAction.UI_RIGHT:
-                    GameContainer.Scale += new Vector2(0.1f, 0);
-                    break;
-
-                case ManiaAction.UI_LEFT:
-                    GameContainer.Scale -= new Vector2(0.1f, 0);
-                    break;
-
                 case ManiaAction.CONFIRM:
                     stateManager.UpdateRuntimeState();
                     break;
@@ -447,6 +414,5 @@ namespace LivinOnSweets.Game.Screens
         }
 
         public void OnReleased(KeyBindingReleaseEvent<ManiaAction> e) { }
-
     }
 }

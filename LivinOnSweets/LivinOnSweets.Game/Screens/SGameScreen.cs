@@ -4,6 +4,7 @@ using LivinOnSweets.API.Container;
 using LivinOnSweets.API.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Screens;
@@ -11,13 +12,17 @@ using osuTK;
 
 namespace LivinOnSweets.Game.Screens
 {
+    // The Game Container handles the backing control
     public partial class SGameScreen : SweetScreen, IKeyBindingHandler<ManiaAction>
     {
         [Resolved]
         private GameStateManager stateManager { get; set; }
 
-        private GameContainer boundContainer;
-        public GameContainer BoundContainer => boundContainer;
+        public double TransitionDuration = 625; // 1250 / 2
+
+        public GameContainer BoundContainer { get; }
+        public Box TransitionBackground { get; protected set; } // Independant of StartupScreen or GameContainer
+        public bool Transitioning { get; protected set; } = false;
 
         public SGameScreen(Func<Drawable, bool, bool> disposeAction, GameContainer container)
         {
@@ -25,47 +30,61 @@ namespace LivinOnSweets.Game.Screens
             Schedule(() =>
             {
                 disposeAction(container, false);
-                container.Zoom *= 2.75f;
                 AddInternal(container);
+                ChangeInternalChildDepth(TransitionBackground, -1); // change the depth so the transition background is displayed over the newly added container
             });
 
-            boundContainer = container;
+            AddInternal(TransitionBackground = new Box()
+            {
+                RelativeSizeAxes = Axes.Both,
+                Colour = Colour4.Black,
+            });
+
+            BoundContainer = container;
         }
 
         public override void OnEntering(ScreenTransitionEvent e)
         {
             base.OnEntering(e);
 
-            boundContainer.TransformTo("Zoom", 1f, 1000D, Easing.OutQuint);
-            boundContainer.GameMargin.Value = new MarginPadding(0);
-            boundContainer.Size = Vector2.Zero;
-            boundContainer.RelativeSizeAxes = Axes.Both;
+            TransitionBackground.FadeOutFromOne(TransitionDuration, Easing.OutQuint);
+            BoundContainer.GameMargin.Value = new MarginPadding(0);
+            BoundContainer.Size = Vector2.Zero;
+            BoundContainer.RelativeSizeAxes = Axes.Both;
         }
 
         public override bool OnExiting(ScreenExitEvent e)
         {
             // Startup screen handled this but because the transition is making the code shit itself, im managing the swap in here
             if (e.Destination is StartupScreen startScreen)
-                startScreen.SwapGameCtx(boundContainer);
+                startScreen.SwapGameCtx(BoundContainer);
 
+            stateManager.CanBack.Value = false; // #1 block the back button since its in the middle of transition
+            stateManager.ProgressionBlock.Value = true; // block the progression until set back in startup screen
             return false;
         }
 
         public bool OnPressed(KeyBindingPressEvent<ManiaAction> e)
         {
-            switch (e.Action)
+            bool handled = false;
+            if (!Transitioning && e.Action == ManiaAction.BACK)
             {
-                case ManiaAction.BACK:
-                    RemoveInternal(boundContainer, false);
-                    stateManager.UpdateRuntimeState(true, true);
-                    ScreenStack.Exit();
-                    return true;
-
-                default:
-                    return false;
+                handled = true;
+                Transitioning = true;
+                // Half the default duration because when resuming the previous screen (startup screen) it also makes a fade
+                TransitionBackground.FadeInFromZero(TransitionDuration / 2, Easing.OutQuint).OnComplete((_) => GoBack());
             }
+
+            return handled;
         }
 
         public void OnReleased(KeyBindingReleaseEvent<ManiaAction> e) { }
+
+        protected virtual void GoBack()
+        {
+            RemoveInternal(BoundContainer, false);
+            stateManager.UpdateRuntimeState(true, true);
+            ScreenStack.Exit();
+        }
     }
 }
