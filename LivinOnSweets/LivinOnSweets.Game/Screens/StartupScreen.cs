@@ -209,6 +209,9 @@ namespace LivinOnSweets.Game.Screens
                 Scale = new Vector2(1.7f),
                 Texture = textures.Get("Startup/UI/Branding.png")
             });
+
+            // I was applying the accent when the banners finished loading, which would result on a few secs with the default color then changing to the accent
+            ScrollContainer.ApplyAccent(Banners[^1]);
         }
 
         // Screen loaded, entering in view (PUSH)
@@ -296,7 +299,9 @@ namespace LivinOnSweets.Game.Screens
         {
             CD.Slide();
 
-            ScrollContainer.ScrollBarMaxAlpha.Default = 0.75f;
+            // Because we are applying an accent color to the scroll bar now, the color can be bright and blend with the banner
+            // so to avoid that, we set the alpha to a somewhat opaque value
+            ScrollContainer.ScrollBarMaxAlpha.Default = 0.9f;
             ScrollContainer.ScrollBarMaxAlpha.SetDefault();
             ScrollContainer.AllowScroll();
             ScrollContainer.ScrollBy(0.1f); // trigger the scroll event to show that you can now scroll

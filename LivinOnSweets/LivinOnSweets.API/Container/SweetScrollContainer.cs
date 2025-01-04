@@ -1,4 +1,7 @@
-﻿using osuTK;
+﻿using LivinOnSweets.API.StartupObjects;
+using LivinOnSweets.API.Stores;
+using osuTK;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
@@ -19,6 +22,9 @@ namespace LivinOnSweets.API.Container
     public partial class SweetScrollContainer<T> : ScrollContainer<T>
         where T : Drawable
     {
+        [Resolved]
+        private AccentStore accentStore { get; set; }
+
         public BindableColour4 ScrollBarColour = new(Colour4.Black);
         public BindableFloat ScrollBarAlpha = new(1f);
         public BindableFloat ScrollBarMaxAlpha = new(1f);
@@ -38,6 +44,21 @@ namespace LivinOnSweets.API.Container
         public void BlockScroll() => ScrollBlocked = true;
 
         public void AllowScroll() => ScrollBlocked = false;
+
+        public void ApplyAccent(StudentBanner banner)
+        {
+            // Please check the student banner accent tests and the accent store comments, to avoid blocking we have to do it this way
+            Task.Run(() =>
+            {
+                Colour4 accentColour = accentStore.GetDominantColor(banner.ImageName);
+
+                // Schedule the sprite mutation operation to the update thread of the framework, since in this context, we are running in a foreign thread
+                Schedule(() =>
+                {
+                    this.TransformBindableTo(ScrollBarColour, accentColour, 1200D, Easing.OutQuint);
+                });
+            });
+        }
 
         protected override void OnUserScroll(float value, bool animated = true, double? distanceDecay = null)
         {

@@ -48,6 +48,9 @@ namespace LivinOnSweets.Game
             // Used to save states and react to them on some parts of the game
             container.CacheAs(new GameStateManager());
 
+            // Used to pass an accent store through the dp container
+            container.CacheAs(new AccentStore(Resources));
+
             IResourceStore<TextureUpload> texUpload = Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, "Textures"));
 
             LargeTextureStore largeTS = new(Host.Renderer, texUpload);
