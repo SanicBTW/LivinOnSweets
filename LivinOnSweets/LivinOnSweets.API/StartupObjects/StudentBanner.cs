@@ -18,6 +18,7 @@ namespace LivinOnSweets.API.StartupObjects
         protected bool IsLeft;
         protected Students Student;
         public Vector2 AnimOffset { get; protected set; } = Vector2.Zero;
+        public string ImageName { get; protected set; }
 
         public StudentBanner(Students target = Students.RANDOM, bool isLeft = false)
         {
@@ -50,7 +51,7 @@ namespace LivinOnSweets.API.StartupObjects
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Texture = textures.Get($"Startup/Banners/{image}"),
+                Texture = textures.Get(ImageName = $"Startup/Banners/{image}"),
             };
         }
 

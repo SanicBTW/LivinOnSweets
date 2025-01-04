@@ -7,6 +7,7 @@ using OContainer = osu.Framework.Graphics.Containers.Container;
 
 namespace LivinOnSweets.API.StartupObjects
 {
+    // TODO: Finish the design of this screen
     public partial class ClosePopup : OverlayContainer
     {
         private OContainer content;
