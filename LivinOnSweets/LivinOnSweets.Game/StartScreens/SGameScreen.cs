@@ -10,9 +10,12 @@ using osu.Framework.Input.Events;
 using osu.Framework.Screens;
 using osuTK;
 
-namespace LivinOnSweets.Game.Screens
+namespace LivinOnSweets.Game.StartScreens
 {
     // The Game Container handles the backing control
+    // This screen is a middleware between the game state, in startup you cannot control the game at all, only display the content inside of it
+    // in this screen you will be able to control the game, while the game container also manages the behaviour for the runtime state
+    // which handles the screening on the startup screen
     public partial class SGameScreen : SweetScreen, IKeyBindingHandler<ManiaAction>
     {
         [Resolved]

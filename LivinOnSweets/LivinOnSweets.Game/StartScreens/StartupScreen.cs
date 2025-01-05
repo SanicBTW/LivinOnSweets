@@ -1,14 +1,16 @@
 ﻿using System;
+using JetBrains.Annotations;
 using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Container;
+using LivinOnSweets.API.Data;
 using LivinOnSweets.API.Enum;
 using LivinOnSweets.API.Input;
 using LivinOnSweets.API.StartupObjects;
 using LivinOnSweets.API.Stores;
+using LivinOnSweets.Game.GameScreens;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -18,9 +20,8 @@ using osu.Framework.Input.Events;
 using osu.Framework.Screens;
 using osuTK;
 
-namespace LivinOnSweets.Game.Screens
+namespace LivinOnSweets.Game.StartScreens
 {
-    // TODO: Make the texture store scale be like 4 or 6?
     // TODO: Horrible variable naming, clean up / Incorrect variable naming and usage
     // TODO: When spamming enter/esc (BACK, CONFIRM) the scroll pos gets set to the container position (because it didn't have time to scroll to the old position), make it wait for a bit to save the new one
     // TODO: First press might lag a little bit, I don't know what's causing it
@@ -30,7 +31,6 @@ namespace LivinOnSweets.Game.Screens
         private GameStateManager stateManager { get; set; }
 
         protected SweetScrollContainer ScrollContainer;
-        protected BindableFloat ContainerScale = new(1);
         protected Box TransitionBackground;
         protected ClosePopup CloseModal;
 
@@ -85,8 +85,6 @@ namespace LivinOnSweets.Game.Screens
                         Alpha = 0f,
                     }
                 ];
-
-            ContainerScale.BindValueChanged((ev) => ScrollContainer.Scale = new Vector2(ev.NewValue));
         }
 
         [BackgroundDependencyLoader]
@@ -226,9 +224,9 @@ namespace LivinOnSweets.Game.Screens
         }
 
         // Previous screen exited, resuming this screen (EXIT)
-        public override void OnResuming(ScreenTransitionEvent e)
+        public override void OnResuming([CanBeNull] ScreenTransitionEvent e)
         {
-            if (e.Last != null && e.Last is SGameScreen)
+            if (e != null && e.Last != null && e.Last is SGameScreen)
             {
                 GameContainer.GameMargin.SetDefault();
                 stateManager.CanBack.SetDefault(); // #1 probably everything is finished, can back again | #2 wont be able to back until progression block is set to false
@@ -300,14 +298,14 @@ namespace LivinOnSweets.Game.Screens
             CD.Slide();
 
             // Because we are applying an accent color to the scroll bar now, the color can be bright and blend with the banner
-            // so to avoid that, we set the alpha to a somewhat opaque value
-            ScrollContainer.ScrollBarMaxAlpha.Default = 0.9f;
+            // so to avoid that, we set the alpha to an opaque value
+            ScrollContainer.ScrollBarMaxAlpha.Default = 1f;
             ScrollContainer.ScrollBarMaxAlpha.SetDefault();
             ScrollContainer.AllowScroll();
             ScrollContainer.ScrollBy(0.1f); // trigger the scroll event to show that you can now scroll
 
             stateManager.ProgressionBlock.SetDefault();
-            stateManager.RTState.BindValueChanged(ProcessRTState); // dont trigger since the banners are already mid animation prob
+            stateManager.RTState.BindValueChanged(ProcessRtState); // dont trigger since the banners are already mid animation prob
         }
 
         protected virtual void AnimateGameContainer(bool transIn = true)
@@ -329,9 +327,13 @@ namespace LivinOnSweets.Game.Screens
                 {
                     // Since the screens are part of the game and not the API package we pass a type reference to the next screen that will be created thru activator
                     // When entering the game, let the game load first then after its done loading, change the current screen
-                    GameContainer.EnterGame(notInit
-                        ? typeof(TestScreen)
-                        : null, () => ScreenStack.Push(new SGameScreen(GameBgContainer.Remove, GameContainer)));
+                    Type screenType = notInit
+                        ? typeof(LoadingScreen)
+                        : null;
+                    Action onLoad = () => ScreenStack.Push(new SGameScreen(GameBgContainer.Remove, GameContainer));
+                    Action onError = () => OnResuming(null); // when failing to create the next screen, call on resume to act like if we came back from another screen, resuming this context
+
+                    GameContainer.EnterGame(new GameScreenData(screenType, onLoad: onLoad, onError: onError));
                 });
             }
             else
@@ -348,7 +350,7 @@ namespace LivinOnSweets.Game.Screens
             }
         }
 
-        protected virtual void ProcessRTState(ValueChangedEvent<RuntimeState> ev)
+        protected virtual void ProcessRtState(ValueChangedEvent<RuntimeState> ev)
         {
             RuntimeState newState = ev.NewValue;
             RuntimeState oldState = ev.OldValue;

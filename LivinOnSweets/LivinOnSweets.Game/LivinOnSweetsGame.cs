@@ -1,5 +1,5 @@
 ﻿using LivinOnSweets.API.Input;
-using LivinOnSweets.Game.Screens;
+using LivinOnSweets.Game.StartScreens;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
