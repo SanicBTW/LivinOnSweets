@@ -90,17 +90,26 @@ namespace LivinOnSweets.API.Input
             {
                 ManiaAction action = (ManiaAction)kb.Action;
 
+                // try to retrieve an existing save, if not then..
                 if (!dict.TryGetValue(action, out object value))
                 {
+                    // cast the keybinding object keys to an array of it
                     InputKey[] keys = [.. kb.KeyCombination.Keys];
+                    // then make a new keyDict object that saves up the keys (another cast to a list) and save its a combination object
+                    // to check if a keybinding object its a combination entry, the amount of keys must be more than ONE
+                    // since the alt system resembles on repeating the ACTION with another key, combinations target one ACTION and has 2 keys or more
                     value = new KeyDict([.. keys], keys.Length > 1);
                 }
 
-                // casting and spread operator yessir we love that here
+                // if we retrieved an existing value, cast it to its proper type
                 KeyDict castedSave = (KeyDict)value;
+                // check if the saved keys have the combination keys, it will do its thing
                 List<InputKey> castedVal = CheckKey(castedSave.Keys, kb.KeyCombination);
 
-                dict[action] = new KeyDict(castedVal, kb.KeyCombination.Keys.Length > 1);
+                // save the key dict object into the action entry and save if its a combination,
+                // use the previous isCombination since we already checked the keys length for the action
+                // when the object didn't exist on the dictionary, so no need to check the length again
+                dict[action] = new KeyDict(castedVal, castedSave.IsCombination);
             }
 
             return dict;

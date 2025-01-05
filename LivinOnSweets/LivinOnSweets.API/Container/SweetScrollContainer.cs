@@ -10,7 +10,6 @@ using OContainer = osu.Framework.Graphics.Containers.Container;
 
 namespace LivinOnSweets.API.Container
 {
-    // TODO: Take the color of a texture?
     public partial class SweetScrollContainer : SweetScrollContainer<Drawable>
     {
         public SweetScrollContainer(Direction scrollDirection = Direction.Vertical, bool startBlocked = false)
