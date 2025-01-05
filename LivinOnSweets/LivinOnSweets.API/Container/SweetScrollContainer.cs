@@ -138,8 +138,11 @@ namespace LivinOnSweets.API.Container
                         break;
 
                     case false:
-                        Child.FadeOut(Parent.AlphaDuration);
-                        transitioning = false;
+                        if (Child.Alpha >= defaultBarAlpha && transitioning)
+                        {
+                            Child.FadeOut(Parent.AlphaDuration);
+                            transitioning = false;
+                        }
                         lastScrollTime = max_idle_time;
                         break;
                 }
