@@ -332,7 +332,6 @@ namespace LivinOnSweets.Game.StartScreens
                         : null;
                     Action onLoad = () => ScreenStack.Push(new SGameScreen(GameBgContainer.Remove, GameContainer));
                     Action onError = () => OnResuming(null); // when failing to create the next screen, call on resume to act like if we came back from another screen, resuming this context
-
                     GameContainer.EnterGame(new GameScreenData(screenType, onLoad: onLoad, onError: onError));
                 });
             }
