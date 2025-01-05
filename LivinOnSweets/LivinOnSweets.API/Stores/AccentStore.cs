@@ -7,7 +7,9 @@ using SixLabors.ImageSharp.PixelFormats;
 namespace LivinOnSweets.API.Stores
 {
     // Store made to process accents from textures creating an image object with image sharp and processing it
-    // TODO! Thread blocking operations, should be fixed sometime, only fix possible rn its to run the get calls under another thread, potentially making it asynchronous
+    // Just noticed that when doing an amount of 1, the provided color doesnt match the accents given by an amount of 3, this is probably caused by centroids being sensitive to the amount of clusters provided, should be fixed by now
+    // sanco here, a day later, uhhh i dont believe it improved that much nor fixed the original issue but whatever
+    // TODO! Thread blocking operations, should be fixed sometime, only fix possible rn its to run the get calls under another thread, potentially making it asynchronous (please look at the tests)
     public class AccentStore(IResourceStore<byte[]> store) : ResourceStore<byte[]>(store)
     {
         public Colour4 GetDominantColor(string name, bool random = false) => GetDominantColors(name, 1, random).First();
@@ -18,8 +20,18 @@ namespace LivinOnSweets.API.Stores
             if (stream == null)
                 return Enumerable.Repeat(Colour4.Black, amount).ToArray();
 
+            List<Rgba32> pixels = extractPixels(stream);
+            // skip kmeans if the amount of clusters is 1, still doesnt match the first color when using 3 clusters
+            if (amount == 1 && !random)
+            {
+                return new[]
+                {
+                    Rgba32ToColour4(avgCluster(pixels))
+                };
+            }
+
             // Not necessary to run Take since it already returns K colors (amount)
-            return kMeans(extractPixels(stream), amount, random: random).Select(pixel => Rgba32ToColour4(pixel)).ToArray();
+            return kMeans(pixels, amount, random: random).Select(pixel => Rgba32ToColour4(pixel)).ToArray();
         }
 
         private List<Rgba32> extractPixels(Stream imgStream)
@@ -63,12 +75,7 @@ namespace LivinOnSweets.API.Stores
                         return pixels[randomIndex];
                     }
 
-                    return new Rgba32(
-                        (byte)cluster.Average(p => p.R),
-                        (byte)cluster.Average(p => p.G),
-                        (byte)cluster.Average(p => p.B),
-                        255 // opaque color
-                    );
+                    return avgCluster(cluster);
                 }).ToList();
 
                 if (centroids.SequenceEqual(newCentroids))
@@ -91,10 +98,13 @@ namespace LivinOnSweets.API.Stores
             }
             else
             {
+                // Add the average color as the first centroid
+                centroids.Add(avgCluster(pixels));
+
                 List<Rgba32> sortedPixels = pixels.OrderBy(pixel => pixel.R + pixel.G + pixel.B + pixel.A).ToList();
 
-                int step = sortedPixels.Count / k;
-                for (int i = 0; i < k; i++)
+                int step = sortedPixels.Count / (k - 1);
+                for (int i = 1; i < k; i++)
                 {
                     centroids.Add(sortedPixels[i * step]);
                 }
@@ -126,6 +136,13 @@ namespace LivinOnSweets.API.Stores
             MathF.Pow(pixel.R - centroid.R, 2) +
             MathF.Pow(pixel.G - centroid.G, 2) +
             MathF.Pow(pixel.B - centroid.B, 2)
+        );
+
+        private Rgba32 avgCluster(List<Rgba32> cluster) => new(
+            (byte)cluster.Average(p => p.R * (p.A / 255f)),
+            (byte)cluster.Average(p => p.G * (p.A / 255f)),
+            (byte)cluster.Average(p => p.B * (p.A / 255f)),
+            255 // fully opaque
         );
 
         public Colour4 Rgba32ToColour4(Rgba32 pixel) => new(pixel.R, pixel.G, pixel.B, pixel.A);

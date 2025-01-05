@@ -55,6 +55,8 @@ namespace LivinOnSweets.Game.Tests.Visual
             AddStep("set yoshimi", () => reloadBanner(Students.YOSHIMI));
             AddStep("get accent colors (constant)", getAccentColorsConstant);
             AddStep("get accent colors (random)", getAccentColorsRandom);
+            AddStep("get single accent color (constant)", getAccentSingleConstant);
+            AddStep("get single accent color (random)", getAccentSingleRandom);
         }
 
         private void reloadBanner(Students student)
@@ -73,20 +75,36 @@ namespace LivinOnSweets.Game.Tests.Visual
 
         private void getAccentColorsConstant()
         {
+            resetBoxes();
             resetToken();
-            wrapBlockingCall(() => callStore());
+            wrapBlockingCall(() => callStore(false, bannerAccents.Count));
         }
 
         private void getAccentColorsRandom()
         {
+            resetBoxes();
             resetToken();
-            wrapBlockingCall(() => callStore(true));
+            wrapBlockingCall(() => callStore(true, bannerAccents.Count));
         }
 
-        private void callStore(bool random = false)
+        private void getAccentSingleConstant()
+        {
+            resetBoxes();
+            resetToken();
+            wrapBlockingCall(() => callStore(false, 1));
+        }
+
+        private void getAccentSingleRandom()
+        {
+            resetBoxes();
+            resetToken();
+            wrapBlockingCall(() => callStore(true, 1));
+        }
+
+        private void callStore(bool random = false, int amount = 1)
         {
             // It will most likely match the length of the boxes available
-            Colour4[] colors = accentStore.GetDominantColors(banner.ImageName, bannerAccents.Count, random);
+            Colour4[] colors = accentStore.GetDominantColors(banner.ImageName, amount, random);
 
             // Have to schedule the mutation of sprites inside the update thread, in this context, we are in a foreign thread
             Schedule(() =>
@@ -119,6 +137,14 @@ namespace LivinOnSweets.Game.Tests.Visual
                 task();
                 finished = true;
             }, cancellationTokenSource.Token);
+        }
+
+        private void resetBoxes()
+        {
+            foreach (Box box in bannerAccents)
+            {
+                box.Colour = Colour4.White;
+            }
         }
     }
 }
