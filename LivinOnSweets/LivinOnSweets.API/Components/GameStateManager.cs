@@ -58,7 +58,9 @@ namespace LivinOnSweets.API.Components
                     RTState.Value = gameplayState switch
                     {
                         // Its in the main menu, not story mode, options or song selection
-                        GameplayState.INITIALIZED => RuntimeState.STARTUP,
+                        // sanco 1/5/25 - i noticed that the uninitialized state was missing in here, this was causing a blockage inside
+                        // the game container preventing it from setting the rt state and blocking the exit from it if it failed to load
+                        GameplayState.INITIALIZED or GameplayState.UNINITIALIZED => RuntimeState.STARTUP,
                         _ => RTState.Value
                     };
                     break;

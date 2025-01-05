@@ -1,5 +1,6 @@
 ﻿using JetBrains.Annotations;
 using LivinOnSweets.API.Components;
+using LivinOnSweets.API.Data;
 using LivinOnSweets.API.Enum;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -15,9 +16,6 @@ namespace LivinOnSweets.API.Container
     {
         [Resolved]
         private GameStateManager stateManager { get; set; }
-
-        [Resolved]
-        private ResizeHandler resizeHandler { get; set; }
 
         public Vector2 GameSize = new(820, 461);
 
@@ -55,23 +53,26 @@ namespace LivinOnSweets.API.Container
             GameMargin.BindValueChanged((ev) => Margin = ev.NewValue);
         }
 
-        public void EnterGame([CanBeNull] Type nextScreen = null, Action onLoad = null)
+        public void EnterGame(GameScreenData screenData)
         {
             switch (stateManager.GPState.Value)
             {
                 case GameplayState.INITIALIZED:
-                    onLoad?.Invoke();
+                    screenData.OnLoad?.Invoke();
                     ScheduleAfterChildren(enableBacking);
                     break;
 
                 case GameplayState.UNINITIALIZED:
-                    background.FadeTo(0.5f, 1000D, Easing.OutQuint).OnComplete((_) =>
+                    background.FadeIn(1000D, Easing.OutQuint).OnComplete((_) =>
                     {
+                        SweetScreen nextScreen = screenData.CreateScreen();
                         if (nextScreen == null)
                         {
                             enableBacking();
-                            background.FadeOut(1000D, Easing.OutQuint);
+                            background.FadeOut(500D, Easing.OutQuint);
+                            // since we are not yet into the SGameScreen (middleware) we have to update the runtime state by ourselves and call on error which is the resume call from StartupScreen
                             stateManager.UpdateRuntimeState(true, true);
+                            screenData.OnError?.Invoke();
                             return;
                         }
 
@@ -83,10 +84,11 @@ namespace LivinOnSweets.API.Container
                         }, stack =>
                         {
                             Add(screenStack);
-                            screenStack.Push((SweetScreen)Activator.CreateInstance(nextScreen));
+                            screenStack.Push(nextScreen);
+
                             stateManager.GPState.Value = GameplayState.INITIALIZED;
                             enableBacking();
-                            onLoad?.Invoke();
+                            screenData.OnLoad?.Invoke();
                         });
                     });
                     break;
