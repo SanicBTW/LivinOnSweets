@@ -89,7 +89,7 @@ namespace LivinOnSweets.API.Container
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
                             RelativeSizeAxes = Axes.Both,
-                        }, stack =>
+                        }, _ =>
                         {
                             content.Add(screenStack);
                             screenStack.Push(nextScreen);

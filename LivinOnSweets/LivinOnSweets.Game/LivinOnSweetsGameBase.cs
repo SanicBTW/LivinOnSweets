@@ -31,6 +31,7 @@ namespace LivinOnSweets.Game
         {
             Resources.AddStore(new DllResourceStore(LivinOnSweetsResources.ResourceAssembly));
             SetupDependencies(gameDependencies);
+            SetupFonts();
 
             resizeHandler.UpdateSize(Window.ClientSize);
             Window.Resized += () => resizeHandler.UpdateSize(Window.ClientSize);
@@ -72,6 +73,14 @@ namespace LivinOnSweets.Game
             ManiaActionContainer actionContainer = [];
             container.CacheAs(actionContainer);
             Content.Add(actionContainer);
+        }
+
+        protected virtual void SetupFonts()
+        {
+            AddFont(Resources, "Fonts/Gyeonggi Title/Gyeonggi Title");
+            AddFont(Resources, "Fonts/Gyeonggi Title/Gyeonggi Title-Bold");
+            AddFont(Resources, "Fonts/Prompt/Prompt");
+            AddFont(Resources, "Fonts/DNFBitBit/DNFBitBit");
         }
 
         // this might be insecure af but we balling with it anyways trust

@@ -1,16 +1,17 @@
 ﻿using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Enum;
 using LivinOnSweets.API.Input;
+using LivinOnSweets.API.Stores;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Platform;
-using osuTK;
 using OContainer = osu.Framework.Graphics.Containers.Container;
 
 namespace LivinOnSweets.API.Overlays
@@ -45,35 +46,41 @@ namespace LivinOnSweets.API.Overlays
                 {
                     Masking = true,
                     CornerRadius = 15,
-                    Size = new Vector2(452, 240),
+                    // auto sized because the bg already sets the size
+                    //Size = new Vector2(452, 240),
+                    AutoSizeAxes = Axes.Both,
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    Children = new Drawable[]
-                    {
-                        new Box()
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                            Colour = Colour4.FromHex("#5b527e"),
-                        },
-                        new OContainer()
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Anchor = Anchor.TopCentre,
-                            Origin = Anchor.TopCentre,
-                            Padding = new MarginPadding(16),
-                            Children = new Drawable[]
-                            {
-                                new SpriteText()
-                                {
-                                    Text = "Are you sure you want to quit the game?"
-                                }
-                            }
-                        }
-                    },
                 }
             });
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(PixelArtTextureStore pixArt)
+        {
+            // Since the pixel art store has a scale adjust of 2, we need to set the texture to 1
+            Texture texture = pixArt.Get("Startup/UI/ClosePopup.png");
+            texture.ScaleAdjust = 1;
+
+            content.Children = new Drawable[]
+            {
+                new Sprite()
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Texture = texture
+                },
+                new SpriteText()
+                {
+                    Font = new FontUsage(family: "DNFBitBit", size: 40F),
+                    Text = "CLOSING",
+                    Margin = new MarginPadding()
+                    {
+                        Left = 52,
+                        Top = 4
+                    }
+                }
+            };
         }
 
         protected override void LoadComplete()
