@@ -1,4 +1,4 @@
-﻿using LivinOnSweets.API.StartupObjects;
+﻿using LivinOnSweets.API.Sprites;
 using LivinOnSweets.API.Stores;
 using osuTK;
 using osu.Framework.Allocation;

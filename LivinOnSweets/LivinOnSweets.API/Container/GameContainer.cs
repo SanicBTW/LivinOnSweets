@@ -4,13 +4,15 @@ using LivinOnSweets.API.Enum;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Screens;
 using osuTK;
+using OContainer = osu.Framework.Graphics.Containers.Container;
 
 namespace LivinOnSweets.API.Container
 {
-    public partial class GameContainer : ZoomeableContainer
+    public partial class GameContainer : OContainer
     {
         [Resolved]
         private GameStateManager stateManager { get; set; }
@@ -23,6 +25,7 @@ namespace LivinOnSweets.API.Container
             Top = 100
         });
 
+        private DrawSizePreservingFillContainer content;
         private Box background;
         private ScreenStack screenStack;
 
@@ -30,13 +33,12 @@ namespace LivinOnSweets.API.Container
         {
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
-            ClipAnchor(Anchor);
-            ClipOrigin(Origin);
 
             RelativeSizeAxes = Axes.None;
             Size = GameSize;
 
             Margin = GameMargin.Default;
+            Masking = true;
 
             Children = new Drawable[]
             {
@@ -46,6 +48,14 @@ namespace LivinOnSweets.API.Container
                     Colour = Colour4.FromHex("#3a3a3a"), // color of the game container,
                     Alpha = 0f,
                 },
+                // All of the content will be sized as 1280x720, to avoid issues with positioning and scaling artifacts
+                content = new DrawSizePreservingFillContainer()
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    RelativeSizeAxes = Axes.Both,
+                    TargetDrawSize = new Vector2(1280, 720) // OMFG THIS SAVED MY LIFE, I LOVE YOU DRAW SIZE PRESERVING FILL CONTAINER
+                }
             };
 
             GameMargin.BindValueChanged((ev) => Margin = ev.NewValue);
@@ -81,7 +91,7 @@ namespace LivinOnSweets.API.Container
                             RelativeSizeAxes = Axes.Both,
                         }, stack =>
                         {
-                            Add(screenStack);
+                            content.Add(screenStack);
                             screenStack.Push(nextScreen);
 
                             stateManager.GPState.Value = GameplayState.INITIALIZED;

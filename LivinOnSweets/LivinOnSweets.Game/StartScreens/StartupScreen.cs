@@ -5,7 +5,8 @@ using LivinOnSweets.API.Container;
 using LivinOnSweets.API.Data;
 using LivinOnSweets.API.Enum;
 using LivinOnSweets.API.Input;
-using LivinOnSweets.API.StartupObjects;
+using LivinOnSweets.API.Overlays;
+using LivinOnSweets.API.Sprites;
 using LivinOnSweets.API.Stores;
 using LivinOnSweets.Game.GameScreens;
 using osu.Framework.Allocation;
@@ -209,7 +210,8 @@ namespace LivinOnSweets.Game.StartScreens
             });
 
             // I was applying the accent when the banners finished loading, which would result on a few secs with the default color then changing to the accent
-            ScrollContainer.ApplyAccent(Banners[^1]);
+            // sanco here, i decided to use the left banner accent rather than the right one, since the color can blend in a lot, making the scrollbar kind of hard to see
+            ScrollContainer.ApplyAccent(Banners[0]);
         }
 
         // Screen loaded, entering in view (PUSH)

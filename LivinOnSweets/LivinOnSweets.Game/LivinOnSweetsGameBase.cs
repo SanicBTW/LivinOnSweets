@@ -51,7 +51,10 @@ namespace LivinOnSweets.Game
             // Used to pass an accent store through the dp container
             container.CacheAs(new AccentStore(Resources));
 
-            IResourceStore<TextureUpload> texUpload = Host.CreateTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, "Textures"));
+            // Used to pass the main menu resources across the dp container
+            container.CacheAs(new MainMenuStore(Host.Renderer, Resources));
+
+            IResourceStore<TextureUpload> texUpload = Host.CreateTextureLoaderStore(Resources);
 
             LargeTextureStore largeTS = new(Host.Renderer, texUpload);
             container.CacheAs(largeTS);
@@ -60,7 +63,7 @@ namespace LivinOnSweets.Game
             PixelArtTextureStore pixArtTS = new(Host.Renderer, texUpload);
             container.CacheAs(pixArtTS);
 
-            Action<IResourceStore<TextureUpload>>[] texLookups = [largeTS.AddTextureSource, pixArtTS.AddTextureSource, Textures.AddTextureSource];
+            Action<IResourceStore<TextureUpload>>[] texLookups = [Textures.AddTextureSource, largeTS.AddTextureSource, pixArtTS.AddTextureSource];
 
             // Add the resource stores to the texture lookups
             container.CacheAs(AddToTextureLookup(new StoryModeStore(Resources), texLookups));

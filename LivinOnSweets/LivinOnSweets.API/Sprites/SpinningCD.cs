@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Transforms;
 // Because Container is used as a namespace here, we have to import it thru another way
 using OContainer = osu.Framework.Graphics.Containers.Container;
 
-namespace LivinOnSweets.API.StartupObjects
+namespace LivinOnSweets.API.Sprites
 {
     public partial class SpinningCD : CompositeDrawable
     {

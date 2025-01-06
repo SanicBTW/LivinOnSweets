@@ -1,4 +1,4 @@
-using LivinOnSweets.API.StartupObjects;
+using LivinOnSweets.API.Sprites;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Transforms;
 

@@ -5,7 +5,7 @@ using osu.Framework.Graphics.Sprites;
 using osuTK;
 using OContainer = osu.Framework.Graphics.Containers.Container;
 
-namespace LivinOnSweets.API.StartupObjects
+namespace LivinOnSweets.API.Overlays
 {
     // TODO: Finish the design of this screen
     public partial class ClosePopup : OverlayContainer

@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Transforms;
 using osu.Framework.Utils;
 using osuTK;
 
-namespace LivinOnSweets.API.StartupObjects
+namespace LivinOnSweets.API.Sprites
 {
     // TODO: Add a config entry to let the user manually select the student banner
     // TODO: Add JSON support for the positioning (margin, anchor, origin)
