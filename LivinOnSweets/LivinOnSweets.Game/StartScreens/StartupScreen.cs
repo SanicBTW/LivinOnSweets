@@ -353,26 +353,11 @@ namespace LivinOnSweets.Game.StartScreens
 
         protected virtual void ProcessRtState(ValueChangedEvent<RuntimeState> ev)
         {
+            // Moved the close behaviour to close popup
             RuntimeState newState = ev.NewValue;
-            RuntimeState oldState = ev.OldValue;
 
             switch (newState)
             {
-                // instead of fading the container, we make the close popup visible which has a bg that "fades" the whole container
-                // TODO! Make the popup handle the back action
-                case RuntimeState.CLOSE_PROMPT:
-                    CloseModal.ToggleVisibility();
-                    break;
-
-                case RuntimeState.STARTUP:
-                    switch (oldState)
-                    {
-                        case RuntimeState.CLOSE_PROMPT:
-                            CloseModal.ToggleVisibility();
-                            break;
-                    }
-                    break;
-
                 case RuntimeState.IN_GAME:
                     stateManager.CanBack.Value = false; // First run should wait for the container to fully load
                     stateManager.ProgressionBlock.Value = true; // Block any possible progression

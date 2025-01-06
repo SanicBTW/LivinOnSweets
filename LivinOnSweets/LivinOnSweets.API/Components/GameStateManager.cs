@@ -32,8 +32,7 @@ namespace LivinOnSweets.API.Components
                 case RuntimeState.CLOSE_PROMPT:
                     // pressing back will close the prompt
                     // pressing confirm will close the game
-                    // RTState.Value = backing ? RuntimeState.STARTUP : RuntimeState.CLOSING;
-                    RTState.Value = RuntimeState.STARTUP;
+                    RTState.Value = backing ? RuntimeState.STARTUP : RuntimeState.CLOSING;
                     break;
 
                 case RuntimeState.STARTUP:
