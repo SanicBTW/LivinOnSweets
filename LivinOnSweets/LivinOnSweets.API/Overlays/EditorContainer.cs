@@ -1,21 +1,21 @@
 ﻿using LivinOnSweets.API.Container;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input;
-using osu.Framework.Input.Events;
-using osuTK;
 using OContainer = osu.Framework.Graphics.Containers.Container;
 
 namespace LivinOnSweets.API.Overlays
 {
     public partial class EditorContainer : OverlayContainer
     {
-        private OContainer canvas;
+        // Will contain 6 colors, 3 for the left side (from the left banner) and 3 for the right side (from the right banner)
+        public BindableList<Colour4> AccentColors = new();
+
         private SlideContainer sideBar;
         private SlideContainer propertiesPanel;
         private FillFlowContainer palette;
@@ -32,21 +32,12 @@ namespace LivinOnSweets.API.Overlays
                     Colour = Colour4.Black,
                     Alpha = 0.1f
                 },
-                canvas = new OContainer()
-                {
-                    RelativeSizeAxes = Axes.Both,
-                },
                 sideBar = new SlideContainer()
                 {
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
                     RelativeSizeAxes = Axes.Y,
                     Width = 450,
-                    Child = new Box()
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = Colour4.Black
-                    }
                 },
                 propertiesPanel = new SlideContainer()
                 {
@@ -55,11 +46,6 @@ namespace LivinOnSweets.API.Overlays
                     RelativeSizeAxes = Axes.Y,
                     Width = 450,
                     LeftSide = false,
-                    Child = new Box()
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = Colour4.Black
-                    }
                 },
                 new CursorContainer()
                 /*
@@ -71,6 +57,79 @@ namespace LivinOnSweets.API.Overlays
                     Padding = new MarginPadding(10),
                 }*/
             };
+        }
+
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            Box sideBg;
+            SweetScrollContainer scroller;
+            sideBar.Children = new Drawable[]
+            {
+                sideBg = new Box()
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Colour = Colour4.Black,
+                },
+                scroller = new SweetScrollContainer()
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    ClampExtension = 20,
+                    Child = new EditorSideBar()
+                }
+            };
+
+            Box propsBg;
+            SpriteText wipText;
+            propertiesPanel.Child = new OContainer()
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                RelativeSizeAxes = Axes.Both,
+                Children = new Drawable[]
+                {
+                    propsBg = new Box()
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Colour4.Black
+                    },
+                    wipText = new SpriteText()
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Font = new FontUsage(family: "DNFBitBit", size: 48F),
+                        Text = "Work in progress"
+                    }
+                }
+            };
+
+            bool isLeft = true;
+            double colorChangeDuration = 1200D;
+            AccentColors.BindCollectionChanged((sender, args) =>
+            {
+                // First call will have the left banner colors, second call will have the right banner colors
+                List<Colour4> newColors = (List<Colour4>)AccentColors.SyncRoot;
+                int startingIndex = args.NewStartingIndex;
+
+                // Schedule the mutation since its done in another thread for the accent task
+                Schedule(() =>
+                {
+                    if (isLeft)
+                    {
+                        sideBg.FadeColour(newColors[startingIndex], colorChangeDuration, Easing.OutQuint);
+                        this.TransformBindableTo(scroller.ScrollBarColour, newColors[startingIndex + 1], colorChangeDuration, Easing.OutQuint);
+
+                        isLeft = false;
+                    }
+                    else
+                    {
+                        propsBg.FadeColour(newColors[startingIndex], colorChangeDuration, Easing.OutQuint);
+                        wipText.FadeColour(newColors[startingIndex + 2], colorChangeDuration, Easing.OutQuint);
+                    }
+                });
+            });
         }
 
         /*
@@ -110,8 +169,8 @@ namespace LivinOnSweets.API.Overlays
             };
         }
 
-        protected override void PopIn() => this.FadeIn(250D, Easing.OutQuint);
+        protected override void PopIn() => this.FadeIn(500D, Easing.OutQuint);
 
-        protected override void PopOut() => this.FadeOut(250D, Easing.OutQuint);
+        protected override void PopOut() => this.FadeOut(500D, Easing.OutQuint);
     }
 }

@@ -103,7 +103,7 @@ namespace LivinOnSweets.API.Stores
 
                 List<Rgba32> sortedPixels = pixels.OrderBy(pixel => pixel.R + pixel.G + pixel.B + pixel.A).ToList();
 
-                int step = sortedPixels.Count / (k - 1);
+                int step = sortedPixels.Count / k;
                 for (int i = 1; i < k; i++)
                 {
                     centroids.Add(sortedPixels[i * step]);

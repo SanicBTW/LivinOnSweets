@@ -23,6 +23,10 @@ namespace LivinOnSweets.API.Container
         private ScreenStack screenStackRef;
         private Stack<IScreen> screens;
 
+        // sanco here, 3:34am, just read that this attribute propagates the field
+        // to its children, so by doing this im propagating the editor container
+        // thru the dependency container of screen stack and to other screens, really good
+        [Cached]
         private EditorContainer editor;
 
         public DebugContainer(ScreenStack screenStack)

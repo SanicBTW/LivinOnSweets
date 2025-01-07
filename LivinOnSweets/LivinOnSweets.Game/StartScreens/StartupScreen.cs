@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Container;
@@ -90,7 +91,7 @@ namespace LivinOnSweets.Game.StartScreens
         }
 
         [BackgroundDependencyLoader]
-        private void load(TextureStore textures, PixelArtTextureStore pixArtStore, LargeTextureStore largeStore)
+        private void load(TextureStore textures, PixelArtTextureStore pixArtStore, LargeTextureStore largeStore, AccentStore accentStore, EditorContainer editor)
         {
             // CD
             ScrollContainer.Add(new DrawSizePreservingFillContainer()
@@ -213,6 +214,16 @@ namespace LivinOnSweets.Game.StartScreens
             // I was applying the accent when the banners finished loading, which would result on a few secs with the default color then changing to the accent
             // sanco here, i decided to use the left banner accent rather than the right one, since the color can blend in a lot, making the scrollbar kind of hard to see
             ScrollContainer.ApplyAccent(Banners[0]);
+
+            // kind of lame ngl, i should look for another way to do this thing
+            Task.Run(() =>
+            {
+                Colour4[] leftAccents = accentStore.GetDominantColors(Banners[0].ImageName);
+                Colour4[] rightAccents = accentStore.GetDominantColors(Banners[1].ImageName);
+
+                editor.AccentColors.AddRange(leftAccents);
+                editor.AccentColors.AddRange(rightAccents);
+            });
         }
 
         // Screen loaded, entering in view (PUSH)
