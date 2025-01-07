@@ -10,7 +10,10 @@
         // GLOBAL
         CONFIRM = 4,
         BACK,
-        REFRESH, // DEBUG
+        #if DEBUG
+        REFRESH,
+        EDITOR,
+        #endif
 
         // VOLUME
         VOLUME_UP,

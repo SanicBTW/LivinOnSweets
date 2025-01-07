@@ -6,7 +6,7 @@ namespace LivinOnSweets.API.Enum
         STARTUP, // First screen
         IN_GAME, // Inside game container
         ENGINE_SETTINGS, // Settings container
-        CLOSE_PROMPT, // Close popup, pending, TODO!
-        CLOSING, // Close confirmed, pending, TODO!
+        CLOSE_PROMPT, // Close popup
+        CLOSING, // Close confirmed
     }
 }

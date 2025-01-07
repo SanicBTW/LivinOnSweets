@@ -4,6 +4,7 @@ using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Container;
 using LivinOnSweets.API.Data;
 using LivinOnSweets.API.Enum;
+using LivinOnSweets.API.Extensions;
 using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Overlays;
 using LivinOnSweets.API.Sprites;
@@ -387,13 +388,6 @@ namespace LivinOnSweets.Game.StartScreens
 
             switch (e.Action)
             {
-                case ManiaAction.REFRESH:
-                    stateManager.Reset();
-
-                    ScreenStack.Exit();
-                    ScreenStack.Push(new StartupScreen());
-                    break;
-
                 case ManiaAction.CONFIRM:
                     stateManager.UpdateRuntimeState();
                     break;
@@ -403,7 +397,8 @@ namespace LivinOnSweets.Game.StartScreens
                     break;
             }
 
-            return runtimeState != RuntimeState.IN_GAME; // If the player player IS NOT in game, stop the propagation
+            // If the action isn't a debug action AND the player IS NOT in game, stop the propagation
+            return !e.Action.IsDebugAction() && runtimeState != RuntimeState.IN_GAME;
         }
 
         public void OnReleased(KeyBindingReleaseEvent<ManiaAction> e) { }

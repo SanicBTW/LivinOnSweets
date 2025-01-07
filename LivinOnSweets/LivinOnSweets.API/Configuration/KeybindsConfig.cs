@@ -14,7 +14,12 @@ namespace LivinOnSweets.API.Configuration
     // TODO: Properly implement defaults instead of throwing exceptions?
     public class KeybindsConfig : ConfigManager<ManiaAction>
     {
+        #if DEBUG
+        public const string FILENAME = "v2x_Keybinds.json";
+        #else
         public const string FILENAME = "v2_Keybinds.json";
+        #endif
+
         private readonly Storage storage;
 
         protected readonly IDictionary<ManiaAction, object> DefaultOverrides;
@@ -106,7 +111,13 @@ namespace LivinOnSweets.API.Configuration
 
                     List<ActionEntry> temp = [];
                     if (LoadedKeybinds != null)
-                        temp = (List<ActionEntry>)LoadedKeybinds;
+                    {
+                        // REVISE THIS BEHAVIOUR, I HAD A DUMB CAST BEFORE
+                        foreach (IKeyBinding kb in LoadedKeybinds)
+                        {
+                            temp.Add(new ActionEntry((ManiaAction)kb.Action, [.. kb.KeyCombination.Keys], kb.KeyCombination.Keys.Length > 1));
+                        }
+                    }
                     else
                     {
                         // default overrides CANT be null here
@@ -115,7 +126,7 @@ namespace LivinOnSweets.API.Configuration
                             // also this is way easier since we already converted the values before, so
                             // we have the values converted and joined properly, we only need to make the objects and save em
                             ManiaActionContainer.KeyDict value = (ManiaActionContainer.KeyDict)defEntry.Value;
-                            temp.Add(new(defEntry.Key, [.. value.Keys], value.IsCombination));
+                            temp.Add(new ActionEntry(defEntry.Key, [.. value.Keys], value.IsCombination));
                         }
                     }
 

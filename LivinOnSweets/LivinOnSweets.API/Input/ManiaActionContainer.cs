@@ -18,8 +18,11 @@ namespace LivinOnSweets.API.Input
             new KeyBinding(InputKey.Enter, ManiaAction.CONFIRM),
 
             new KeyBinding(InputKey.Escape, ManiaAction.BACK),
+            #if DEBUG
+            new KeyBinding(new KeyCombination([InputKey.LControl, InputKey.F4]), ManiaAction.EDITOR),
 
-            new KeyBinding(new KeyCombination([InputKey.LShift, InputKey.F5]), ManiaAction.REFRESH),
+            new KeyBinding(new KeyCombination([InputKey.LControl, InputKey.F5]), ManiaAction.REFRESH),
+            #endif
 
             // VOLUME
 

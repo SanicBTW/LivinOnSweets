@@ -1,4 +1,7 @@
-﻿using LivinOnSweets.API.Input;
+﻿#if DEBUG
+using LivinOnSweets.API.Container;
+#endif
+using LivinOnSweets.API.Input;
 using LivinOnSweets.Game.StartScreens;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -16,10 +19,16 @@ namespace LivinOnSweets.Game
         [BackgroundDependencyLoader]
         private void load()
         {
-            ActionContainer.Add(screenStack = new ScreenStack()
+            screenStack = new ScreenStack()
             {
                 RelativeSizeAxes = Axes.Both
-            });
+            };
+
+            #if DEBUG
+            ActionContainer.Add(new DebugContainer(screenStack));
+            #else
+            ActionContainer.Add(screenStack);
+            #endif
         }
 
         protected override void LoadComplete()

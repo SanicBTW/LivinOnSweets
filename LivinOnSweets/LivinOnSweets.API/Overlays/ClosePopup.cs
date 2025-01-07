@@ -33,7 +33,7 @@ namespace LivinOnSweets.API.Overlays
 
         public ClosePopup()
         {
-            Depth = -99; // Show up in front of everything
+            Depth = -98; // Show up in front of everything
             AddRangeInternal(new Drawable[]
             {
                 background = new Box()
