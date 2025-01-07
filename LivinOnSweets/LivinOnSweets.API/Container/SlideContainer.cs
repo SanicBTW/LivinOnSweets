@@ -16,7 +16,7 @@ namespace LivinOnSweets.API.Container
         protected OContainer NewContent;
         protected OContainer RoundedMask;
 
-        protected Nudge PanelNudge;
+        public Nudge PanelNudge { get; protected set; }
 
         protected MarginPadding BasePadding;
 

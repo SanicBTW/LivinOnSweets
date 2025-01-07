@@ -120,6 +120,8 @@ namespace LivinOnSweets.API.Overlays
                     {
                         sideBg.FadeColour(newColors[startingIndex], colorChangeDuration, Easing.OutQuint);
                         this.TransformBindableTo(scroller.ScrollBarColour, newColors[startingIndex + 1], colorChangeDuration, Easing.OutQuint);
+                        sideBar.PanelNudge.TransformBindableTo(sideBar.PanelNudge.NudgeColor,
+                            newColors[startingIndex + 2], colorChangeDuration, Easing.OutQuint);
 
                         isLeft = false;
                     }
@@ -127,6 +129,8 @@ namespace LivinOnSweets.API.Overlays
                     {
                         propsBg.FadeColour(newColors[startingIndex], colorChangeDuration, Easing.OutQuint);
                         wipText.FadeColour(newColors[startingIndex + 2], colorChangeDuration, Easing.OutQuint);
+                        propertiesPanel.PanelNudge.TransformBindableTo(propertiesPanel.PanelNudge.NudgeColor,
+                            newColors[startingIndex + 2], colorChangeDuration, Easing.OutQuint);
                     }
                 });
             });
