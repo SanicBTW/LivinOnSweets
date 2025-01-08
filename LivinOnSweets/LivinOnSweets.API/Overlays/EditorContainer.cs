@@ -64,6 +64,7 @@ namespace LivinOnSweets.API.Overlays
         {
             Box sideBg;
             SweetScrollContainer scroller;
+            EditorSideBar editorSide;
             sideBar.Children = new Drawable[]
             {
                 sideBg = new Box()
@@ -76,8 +77,8 @@ namespace LivinOnSweets.API.Overlays
                     RelativeSizeAxes = Axes.Both,
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    ClampExtension = 20,
-                    Child = new EditorSideBar()
+                    ClampExtension = 10,
+                    Child = editorSide = new EditorSideBar()
                 }
             };
 
@@ -105,6 +106,7 @@ namespace LivinOnSweets.API.Overlays
                 }
             };
 
+            // I kinda hate this
             bool isLeft = true;
             double colorChangeDuration = 1200D;
             AccentColors.BindCollectionChanged((sender, args) =>
@@ -119,6 +121,10 @@ namespace LivinOnSweets.API.Overlays
                     if (isLeft)
                     {
                         sideBg.FadeColour(newColors[startingIndex], colorChangeDuration, Easing.OutQuint);
+
+                        this.TransformBindableTo(editorSide.PrimaryColor, newColors[startingIndex + 1], colorChangeDuration, Easing.OutQuint);
+                        this.TransformBindableTo(editorSide.SecondaryColor, newColors[startingIndex + 2], colorChangeDuration, Easing.OutQuint);
+
                         this.TransformBindableTo(scroller.ScrollBarColour, newColors[startingIndex + 1], colorChangeDuration, Easing.OutQuint);
                         sideBar.PanelNudge.TransformBindableTo(sideBar.PanelNudge.NudgeColor,
                             newColors[startingIndex + 2], colorChangeDuration, Easing.OutQuint);
