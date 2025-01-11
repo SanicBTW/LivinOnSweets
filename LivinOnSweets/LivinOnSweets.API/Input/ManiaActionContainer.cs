@@ -87,7 +87,6 @@ namespace LivinOnSweets.API.Input
             List<IKeyBinding> kbs = DefaultKeyBindings.ToList();
             Dictionary<ManiaAction, object> dict = [];
 
-            // TODO: Finish documenting the whole process of conversion lol
             // We use the length of kb keycomb keys because it REALLY defines if its a combination, more than 2 keys are needed for one, so, if its only one then its probably some alt keybinds lol
             foreach (IKeyBinding kb in kbs)
             {

@@ -91,14 +91,14 @@ namespace LivinOnSweets.Game.StartScreens
         }
 
         [BackgroundDependencyLoader]
-        private void load(TextureStore textures, PixelArtTextureStore pixArtStore, LargeTextureStore largeStore, AccentStore accentStore, EditorContainer editor)
+        private void load(TextureStore textures, PixelArtTextureStore pixArtStore, LargeTextureStore largeStore, AccentStore accentStore)
         {
             // CD
             ScrollContainer.Add(new DrawSizePreservingFillContainer()
             {
                 TargetDrawSize = new Vector2(898, 898), // Texture Size (859x858)
                 Y = -4,
-                Child = CD = new()
+                Child = CD = new SpinningCD()
             });
 
             // Main
@@ -215,15 +215,9 @@ namespace LivinOnSweets.Game.StartScreens
             // sanco here, i decided to use the left banner accent rather than the right one, since the color can blend in a lot, making the scrollbar kind of hard to see
             ScrollContainer.ApplyAccent(Banners[0]);
 
-            // kind of lame ngl, i should look for another way to do this thing
-            Task.Run(() =>
-            {
-                Colour4[] leftAccents = accentStore.GetDominantColors(Banners[0].ImageName);
-                Colour4[] rightAccents = accentStore.GetDominantColors(Banners[1].ImageName);
-
-                editor.AccentColors.AddRange(leftAccents);
-                editor.AccentColors.AddRange(rightAccents);
-            });
+            // Kinda improved the accents population ig
+            EditorColours.PopulateColors(accentStore, Banners[0], EditorColours.PrimaryColors);
+            EditorColours.PopulateColors(accentStore, Banners[1], EditorColours.SecondaryColors);
         }
 
         // Screen loaded, entering in view (PUSH)

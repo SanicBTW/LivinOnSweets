@@ -13,6 +13,7 @@ using OContainer = osu.Framework.Graphics.Containers.Container;
 namespace LivinOnSweets.API.Container
 {
     // Container that handles debug actions like refreshing or opening the layout editor, which in fact, its inside of this one
+    // TODO: Make a refresh target menu
     public partial class DebugContainer : OContainer, IKeyBindingHandler<ManiaAction>
     {
         [Resolved]

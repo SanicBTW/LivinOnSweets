@@ -10,21 +10,31 @@ using OContainer = osu.Framework.Graphics.Containers.Container;
 namespace LivinOnSweets.API.Container
 {
     // Basic container that slides when hovered
+    // TODO: Increase the hover region
     public partial class SlideContainer : OContainer
     {
+        protected MarginPadding BasePadding;
+
         protected override OContainer Content => NewContent;
         protected OContainer NewContent;
         protected OContainer RoundedMask;
 
         public Nudge PanelNudge { get; protected set; }
 
-        protected MarginPadding BasePadding;
+        // quick access to the cached variable if access to this container is possible
+        public BindableBool SlideBlock => slideBlock;
+        // Propagate this bindable down to its children, in this case it should be able to be accessed on the editor side bar and properties side bar
+        [Cached]
+        private BindableBool slideBlock = new();
 
+        public float OutOfBoundsPosition { get; protected set; }
         public double SlideDuration = 500D;
-        public bool LeftSide = true;
+        public readonly bool LeftSide;
 
-        public SlideContainer()
+        public SlideContainer(bool leftSide)
         {
+            LeftSide = leftSide;
+
             NewContent = new OContainer()
             {
                 Name = "Slide Content",
@@ -73,21 +83,48 @@ namespace LivinOnSweets.API.Container
             base.LoadComplete();
 
             NewContent.Width = RoundedMask.DrawWidth;
+            X = OutOfBoundsPos();
+            OutOfBoundsPosition = OutOfBoundsPos();
         }
 
         protected override bool OnHover(HoverEvent e)
         {
-            this.MoveToX(0, SlideDuration, Easing.OutQuint);
+            if (IsHidden())
+                this.MoveToX(0, SlideDuration, Easing.OutQuint);
+
             return true;
         }
 
         protected override void OnHoverLost(HoverLostEvent e)
         {
-            float halfPad = (LeftSide ? BasePadding.Right : BasePadding.Left) / 2;
-            this.MoveToX(
-                LeftSide ? -NewContent.DrawWidth - halfPad : NewContent.DrawWidth + halfPad
-                , SlideDuration, Easing.OutQuint);
+            if (slideBlock.Value)
+                return;
+
+            this.MoveToX(OutOfBoundsPosition, SlideDuration, Easing.OutQuint);
         }
+
+        // WARNING, this could lead to potential unwanted behaviour BUT this is to avoid making the container hide when editor entry preview is clicked
+        // and blocks the slide out, when clicking on the whole slide container it can pass the event down to editor container making the container slide out
+        // which is essentially unwanted behaviour, so this fixes that thing
+        protected override bool OnMouseDown(MouseDownEvent e)
+        {
+            // a few minutes later: i decided to block the slide HERE rather than having to toggle it manually on the children
+            // its not really good tbh and having to propagate a bindable isnt my favourite thing either BUT ill have to
+            // keep it exposed just in case ya know, silly things happen on my side
+            slideBlock.Value = true;
+
+            return true;
+        }
+
+        protected virtual float OutOfBoundsPos()
+        {
+            float halfPad = (LeftSide ? BasePadding.Right : BasePadding.Left) / 2;
+            return LeftSide ? -NewContent.DrawWidth - halfPad : NewContent.DrawWidth + halfPad;
+        }
+
+        public bool IsHidden() => LeftSide ? X <= 0 : X >= 0;
+
+        public bool IsVisible() => LeftSide ? X >= OutOfBoundsPosition : X <= OutOfBoundsPosition;
 
         public partial class Nudge : CompositeDrawable
         {
