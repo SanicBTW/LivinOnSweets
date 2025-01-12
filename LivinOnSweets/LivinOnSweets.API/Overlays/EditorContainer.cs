@@ -19,9 +19,8 @@ namespace LivinOnSweets.API.Overlays
         private SlideContainer sideBar;
         private SlideContainer propertiesPanel;
         private FillFlowContainer palette;
-        private SlideContainer[] Sliders;
+        private SlideContainer[] sliders;
 
-        private bool isLeftPopulation = true;
         private double colorChangeDuration = 1200D;
 
         public EditorContainer()
@@ -60,7 +59,7 @@ namespace LivinOnSweets.API.Overlays
                 }*/
             };
 
-            Sliders = [sideBar, propertiesPanel];
+            sliders = [sideBar, propertiesPanel];
         }
 
         [BackgroundDependencyLoader]
@@ -113,11 +112,17 @@ namespace LivinOnSweets.API.Overlays
             // I should use the sender or args, whatever
             EditorColours.PrimaryColors.BindCollectionChanged((sender, args) =>
             {
+                if (args.Action == NotifyCollectionChangedAction.Remove)
+                    return;
+
                 ApplyColors((List<Colour4>)EditorColours.PrimaryColors.SyncRoot, sideBg, editorSide, scroller, sideBar.PanelNudge);
             });
 
             EditorColours.SecondaryColors.BindCollectionChanged((sender, args) =>
             {
+                if (args.Action == NotifyCollectionChangedAction.Remove)
+                    return;
+
                 ApplyColors((List<Colour4>)EditorColours.SecondaryColors.SyncRoot, propsBg, wipText, propertiesPanel.PanelNudge);
             });
         }
@@ -170,7 +175,10 @@ namespace LivinOnSweets.API.Overlays
 
                 background.FadeColour(newColors[0], colorChangeDuration, Easing.OutQuint);
 
-                if (isLeftPopulation)
+                // bruh, i have to do this to know which side we changing the colour to, since this instance doesnt get
+                // recreated anytime, the previous variable wouldnt reset at all and keep its value from the first run
+                // so now we check if the array is equal to the exposed static class that holds the bindables
+                if (newColors.SequenceEqual(EditorColours.PrimaryColors))
                 {
                     EditorSideBar editorSide = targets[1];
                     SweetScrollContainer scroller = targets[2];
@@ -182,8 +190,6 @@ namespace LivinOnSweets.API.Overlays
 
                     this.TransformBindableTo(scroller.ScrollBarColour, newColors[1], colorChangeDuration, Easing.OutQuint);
                     this.TransformBindableTo(panelNudge.NudgeColor, newColors[2], colorChangeDuration, Easing.OutQuint);
-
-                    isLeftPopulation = false;
                 }
                 else
                 {
@@ -203,7 +209,7 @@ namespace LivinOnSweets.API.Overlays
         // Resets the slide blocks when clicked outside
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            foreach (SlideContainer slider in Sliders)
+            foreach (SlideContainer slider in sliders)
             {
                 if (slider.IsVisible() && slider.SlideBlock.Value)
                 {

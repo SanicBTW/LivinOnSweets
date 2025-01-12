@@ -5,13 +5,20 @@ using osu.Framework.Graphics;
 
 namespace LivinOnSweets.API.Data
 {
+    // Kinda lame I know lol, I shouldn't use static bs
     public static class EditorColours
     {
         // Left Banner Accent Colors
-        public static BindableList<Colour4> PrimaryColors = new();
+        public static BindableList<Colour4> PrimaryColors = [];
 
         // Right Banner Accent Colors
-        public static BindableList<Colour4> SecondaryColors = new();
+        public static BindableList<Colour4> SecondaryColors = [];
+
+        public static void Reset()
+        {
+            PrimaryColors.Clear();
+            SecondaryColors.Clear();
+        }
 
         public static void PopulateColors(AccentStore accentStore, StudentBanner banner, BindableList<Colour4> target)
         {
