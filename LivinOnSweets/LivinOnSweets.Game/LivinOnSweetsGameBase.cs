@@ -77,8 +77,8 @@ namespace LivinOnSweets.Game
 
         protected virtual void SetupFonts()
         {
-            AddFont(Resources, "Fonts/Gyeonggi Title/Gyeonggi Title");
-            AddFont(Resources, "Fonts/Gyeonggi Title/Gyeonggi Title-Bold");
+            AddFont(Resources, "Fonts/GyeonggiTitle/GyeonggiTitle");
+            AddFont(Resources, "Fonts/GyeonggiTitle/GyeonggiTitle-Bold");
             AddFont(Resources, "Fonts/Prompt/Prompt");
             AddFont(Resources, "Fonts/DNFBitBit/DNFBitBit");
         }

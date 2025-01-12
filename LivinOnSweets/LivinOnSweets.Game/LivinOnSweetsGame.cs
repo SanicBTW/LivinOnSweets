@@ -34,7 +34,7 @@ namespace LivinOnSweets.Game
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            screenStack.Push(new StartupScreen());
+            screenStack.Push(new PreloaderScreen());
         }
     }
 }
