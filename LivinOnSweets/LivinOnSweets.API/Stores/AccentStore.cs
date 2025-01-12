@@ -1,4 +1,5 @@
-﻿using osu.Framework.Graphics;
+﻿using System.Collections.Concurrent;
+using osu.Framework.Graphics;
 using osu.Framework.IO.Stores;
 using osu.Framework.Utils;
 using SixLabors.ImageSharp;
@@ -10,8 +11,11 @@ namespace LivinOnSweets.API.Stores
     // Just noticed that when doing an amount of 1, the provided color doesnt match the accents given by an amount of 3, this is probably caused by centroids being sensitive to the amount of clusters provided, should be fixed by now
     // sanco here, a day later, uhhh i dont believe it improved that much nor fixed the original issue but whatever
     // TODO! Thread blocking operations, should be fixed sometime, only fix possible rn its to run the get calls under another thread, potentially making it asynchronous (please look at the tests)
+    // TODO! Check the new caching feature
     public class AccentStore(IResourceStore<byte[]> store) : ResourceStore<byte[]>(store)
     {
+        private ConcurrentDictionary<string, Colour4[]> accentCache = new();
+
         public Colour4 GetDominantColor(string name, bool random = false) => GetDominantColors(name, 1, random).First();
 
         public Colour4[] GetDominantColors(string name, int amount = 3, bool random = false)
@@ -20,18 +24,29 @@ namespace LivinOnSweets.API.Stores
             if (stream == null)
                 return Enumerable.Repeat(Colour4.Black, amount).ToArray();
 
+            bool skipKMeans = amount == 1 && !random;
+            if (skipKMeans)
+                name += "-single";
+
+            // if not random, use the cache, if the cache lookup is true return the cache, if not run the whole process
+            Colour4[] ret;
+            if (!random && accentCache.TryGetValue(name, out ret))
+                return ret;
+
             List<Rgba32> pixels = extractPixels(stream);
             // skip kmeans if the amount of clusters is 1, still doesnt match the first color when using 3 clusters
-            if (amount == 1 && !random)
+            if (skipKMeans)
+                ret = [ Rgba32ToColour4(avgCluster(pixels)) ];
+            else
             {
-                return new[]
-                {
-                    Rgba32ToColour4(avgCluster(pixels))
-                };
+                // Not necessary to run Take since it already returns K colors (amount)
+                ret = kMeans(pixels, amount, random: random).Select(Rgba32ToColour4).ToArray();
             }
 
-            // Not necessary to run Take since it already returns K colors (amount)
-            return kMeans(pixels, amount, random: random).Select(pixel => Rgba32ToColour4(pixel)).ToArray();
+            // uhhh yeahh
+            accentCache.AddOrUpdate(name, ret, (key, oldVal) => ret);
+
+            return ret;
         }
 
         private List<Rgba32> extractPixels(Stream imgStream)
