@@ -113,6 +113,8 @@ namespace LivinOnSweets.API.Configuration
                     if (LoadedKeybinds != null)
                     {
                         // REVISE THIS BEHAVIOUR, I HAD A DUMB CAST BEFORE
+                        // 12/1 sanco: added this thing just in case this goes under the hood, i cant really check this rn so ill have to check this on a later point of the development
+                        throw new NotImplementedException();
                         foreach (IKeyBinding kb in LoadedKeybinds)
                         {
                             temp.Add(new ActionEntry((ManiaAction)kb.Action, [.. kb.KeyCombination.Keys], kb.KeyCombination.Keys.Length > 1));

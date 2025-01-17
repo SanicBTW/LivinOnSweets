@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-using LivinOnSweets.API.Sprites;
+using LivinOnSweets.API.Sprites.Editor;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -17,11 +17,16 @@ namespace LivinOnSweets.API.Container
     {
         private const string namespace_target_folder = "EditorComponents";
 
+        [Cached]
+        private SlideContainer slideContainer;
+
         public BindableColour4 PrimaryColor = new();
         public BindableColour4 SecondaryColor = new();
 
-        public EditorSideBar()
+        public EditorSideBar(SlideContainer slideContainer)
         {
+            this.slideContainer = slideContainer;
+
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
             Direction = FillDirection.Vertical;

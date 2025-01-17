@@ -2,10 +2,8 @@
 using LivinOnSweets.API.Container;
 using LivinOnSweets.API.Data;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
@@ -16,10 +14,13 @@ namespace LivinOnSweets.API.Overlays
 {
     public partial class EditorContainer : OverlayContainer
     {
+        // propagate this into the children to be able to add more sliders into the editor
+        [Cached]
+        public readonly Container<SlideContainer> Sliders;
+
         private SlideContainer sideBar;
         private SlideContainer propertiesPanel;
-        private FillFlowContainer palette;
-        private SlideContainer[] sliders;
+        // private FillFlowContainer palette;
 
         private double colorChangeDuration = 1200D;
 
@@ -35,19 +36,26 @@ namespace LivinOnSweets.API.Overlays
                     Colour = Colour4.Black,
                     Alpha = 0.1f
                 },
-                sideBar = new SlideContainer(true)
+                Sliders = new Container<SlideContainer>()
                 {
-                    Anchor = Anchor.CentreLeft,
-                    Origin = Anchor.CentreLeft,
-                    RelativeSizeAxes = Axes.Y,
-                    Width = 450,
-                },
-                propertiesPanel = new SlideContainer(false)
-                {
-                    Anchor = Anchor.CentreRight,
-                    Origin = Anchor.CentreRight,
-                    RelativeSizeAxes = Axes.Y,
-                    Width = 450,
+                    RelativeSizeAxes = Axes.Both,
+                    Children =
+                    [
+                        sideBar = new SlideContainer(true)
+                        {
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            RelativeSizeAxes = Axes.Y,
+                            Width = 450,
+                        },
+                        propertiesPanel = new SlideContainer(false)
+                        {
+                            Anchor = Anchor.CentreRight,
+                            Origin = Anchor.CentreRight,
+                            RelativeSizeAxes = Axes.Y,
+                            Width = 450,
+                        },
+                    ]
                 },
                 /*
                 palette = new FillFlowContainer()
@@ -58,8 +66,6 @@ namespace LivinOnSweets.API.Overlays
                     Padding = new MarginPadding(10),
                 }*/
             };
-
-            sliders = [sideBar, propertiesPanel];
         }
 
         [BackgroundDependencyLoader]
@@ -81,7 +87,7 @@ namespace LivinOnSweets.API.Overlays
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     ClampExtension = 10,
-                    Child = editorSide = new EditorSideBar()
+                    Child = editorSide = new EditorSideBar(sideBar)
                 }
             };
 
@@ -209,9 +215,13 @@ namespace LivinOnSweets.API.Overlays
         // Resets the slide blocks when clicked outside
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            foreach (SlideContainer slider in sliders)
+            foreach (SlideContainer slider in Sliders)
             {
-                if (slider.IsVisible() && slider.SlideBlock.Value)
+                /*
+                IEnumerable<ISlideContainerCloseBlock> blockedSliders =
+                    slider.ChildrenOfType<ISlideContainerCloseBlock>();*/
+
+                if (slider.ClickOutClosesContainer && slider.IsVisible() && slider.SlideBlock.Value)
                 {
                     slider.SlideBlock.Value = false;
                     slider.MoveToX(slider.OutOfBoundsPosition, slider.SlideDuration, Easing.OutQuint);

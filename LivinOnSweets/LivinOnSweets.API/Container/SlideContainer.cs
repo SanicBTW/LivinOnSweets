@@ -1,4 +1,5 @@
-﻿using osu.Framework.Allocation;
+﻿using LivinOnSweets.API.Interfaces;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -11,7 +12,7 @@ namespace LivinOnSweets.API.Container
 {
     // Basic container that slides when hovered
     // TODO: Increase the hover region
-    public partial class SlideContainer : OContainer
+    public partial class SlideContainer : OContainer, ISlideContainerCloseBlock
     {
         protected MarginPadding BasePadding;
 
@@ -21,15 +22,13 @@ namespace LivinOnSweets.API.Container
 
         public Nudge PanelNudge { get; protected set; }
 
-        // quick access to the cached variable if access to this container is possible
-        public BindableBool SlideBlock => slideBlock;
-        // Propagate this bindable down to its children, in this case it should be able to be accessed on the editor side bar and properties side bar
-        [Cached]
-        private BindableBool slideBlock = new();
+        public BindableBool SlideBlock = new();
 
         public float OutOfBoundsPosition { get; protected set; }
         public double SlideDuration = 500D;
         public readonly bool LeftSide;
+
+        public bool ClickOutClosesContainer { get; set; } = true;
 
         public SlideContainer(bool leftSide)
         {
@@ -83,8 +82,8 @@ namespace LivinOnSweets.API.Container
             base.LoadComplete();
 
             NewContent.Width = RoundedMask.DrawWidth;
-            X = OutOfBoundsPos();
             OutOfBoundsPosition = OutOfBoundsPos();
+            X = OutOfBoundsPos();
         }
 
         protected override bool OnHover(HoverEvent e)
@@ -97,7 +96,7 @@ namespace LivinOnSweets.API.Container
 
         protected override void OnHoverLost(HoverLostEvent e)
         {
-            if (slideBlock.Value)
+            if (SlideBlock.Value)
                 return;
 
             this.MoveToX(OutOfBoundsPosition, SlideDuration, Easing.OutQuint);
@@ -109,9 +108,8 @@ namespace LivinOnSweets.API.Container
         protected override bool OnMouseDown(MouseDownEvent e)
         {
             // a few minutes later: i decided to block the slide HERE rather than having to toggle it manually on the children
-            // its not really good tbh and having to propagate a bindable isnt my favourite thing either BUT ill have to
-            // keep it exposed just in case ya know, silly things happen on my side
-            slideBlock.Value = true;
+            // its not really good tbh and having to propagate a bindable isnt my favourite thing either
+            SlideBlock.Value = true;
 
             return true;
         }
