@@ -1,25 +1,25 @@
-﻿using LivinOnSweets.API.Container;
+﻿using LivinOnSweets.API.Containers.Editor;
 using LivinOnSweets.API.Enum;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osuTK;
-using OContainer = osu.Framework.Graphics.Containers.Container;
 
 namespace LivinOnSweets.API.Sprites.Editor
 {
     // TODO: Fix design having issues with mouse events (they get fired even if its out of bounds, probably due to the padding)
     // TODO (Children): Bind the scrollbar colour to the parent of the controller which is indeed, a scroll container
     // Controller as the variable name for EditorSideBar is kinda misleading ngl
-    public partial class EditorEntry : OContainer
+    public partial class EditorEntry : Container
     {
         public readonly string Category;
         public readonly EditorEntryContentAnimation ContentAnimation;
         public double ColorFadeDuration = 500D;
         public float BaseHeight = 150;
 
-        protected OContainer RoundedMask; // The parent container of all the content inside this entry
+        protected Container RoundedMask; // The parent container of all the content inside this entry
         protected EditorSideBar Controller;
 
         internal EntryHeader Entryheader;
@@ -38,7 +38,7 @@ namespace LivinOnSweets.API.Sprites.Editor
             Size = new Vector2(400, BaseHeight);
             Padding = new MarginPadding(6);
 
-            InternalChild = RoundedMask = new OContainer()
+            InternalChild = RoundedMask = new Container()
             {
                 Masking = true,
                 CornerRadius = 6f,

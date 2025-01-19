@@ -1,15 +1,15 @@
-﻿using LivinOnSweets.API.Container;
+﻿using LivinOnSweets.API.Containers.Editor;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osuTK;
-using OContainer = osu.Framework.Graphics.Containers.Container;
 
 namespace LivinOnSweets.API.Sprites.Editor
 {
     internal partial class EditorSlider
     {
-        internal partial class EditorSliderHeader : OContainer
+        internal partial class EditorSliderHeader : Container
         {
             protected EditorSideBar Controller;
 
@@ -26,7 +26,7 @@ namespace LivinOnSweets.API.Sprites.Editor
                 Box background;
                 SpriteText text;
                 SpriteIcon icon;
-                InternalChild = new OContainer()
+                InternalChild = new Container()
                 {
                     Masking = true,
                     CornerRadius = 6f,

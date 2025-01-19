@@ -25,7 +25,7 @@ namespace LivinOnSweets.API.Sprites
             IsLeft = isLeft;
             Student = target;
 
-            Scale = new osuTK.Vector2(1.6f);
+            Scale = new Vector2(1.6f);
             AutoSizeAxes = Axes.Both;
         }
 

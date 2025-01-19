@@ -3,7 +3,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osuTK;
-using OContainer = osu.Framework.Graphics.Containers.Container;
 
 namespace LivinOnSweets.API.Sprites.UI
 {
@@ -16,7 +15,7 @@ namespace LivinOnSweets.API.Sprites.UI
 
         protected override bool StartHidden => true;
 
-        protected OContainer MainContents;
+        protected Container MainContents;
         private readonly SpriteIcon spinner;
 
         public LoadingSpinner(bool withBox = false, bool inverted = false)
@@ -26,7 +25,7 @@ namespace LivinOnSweets.API.Sprites.UI
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
 
-            Child = MainContents = new OContainer
+            Child = MainContents = new Container
             {
                 RelativeSizeAxes = Axes.Both,
                 Masking = true,

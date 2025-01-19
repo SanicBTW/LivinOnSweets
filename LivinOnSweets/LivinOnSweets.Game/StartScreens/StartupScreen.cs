@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
 using LivinOnSweets.API.Components;
-using LivinOnSweets.API.Container;
+using LivinOnSweets.API.Containers;
 using LivinOnSweets.API.Data;
 using LivinOnSweets.API.Enum;
 using LivinOnSweets.API.Extensions;
@@ -54,7 +53,7 @@ namespace LivinOnSweets.Game.StartScreens
         private float animOffset = 150;
         private float minScrollShow = 140; // the minimum value the scroll container has to reach to show or animate sprites that are out of bounds
 
-        private float lastScrollPos = 0;
+        private float lastScrollPos;
 
         public StartupScreen()
         {
@@ -243,8 +242,6 @@ namespace LivinOnSweets.Game.StartScreens
             AnimateGameContainer();
             SlideBanners(gameContainerDelay / gameContainerDelayFactor, gameContainerDelayFactor);
             CD.Slide();
-
-            base.OnResuming(e);
         }
 
         protected override void Update()

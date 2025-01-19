@@ -6,19 +6,18 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osuTK;
-using OContainer = osu.Framework.Graphics.Containers.Container;
 
-namespace LivinOnSweets.API.Container
+namespace LivinOnSweets.API.Containers
 {
     // Basic container that slides when hovered
     // TODO: Increase the hover region
-    public partial class SlideContainer : OContainer, ISlideContainerCloseBlock
+    public partial class SlideContainer : Container, ISlideContainerCloseBlock
     {
         protected MarginPadding BasePadding;
 
-        protected override OContainer Content => NewContent;
-        protected OContainer NewContent;
-        protected OContainer RoundedMask;
+        protected override Container Content => NewContent;
+        protected Container NewContent;
+        protected Container RoundedMask;
 
         public Nudge PanelNudge { get; protected set; }
 
@@ -34,7 +33,7 @@ namespace LivinOnSweets.API.Container
         {
             LeftSide = leftSide;
 
-            NewContent = new OContainer()
+            NewContent = new Container()
             {
                 Name = "Slide Content",
                 RelativeSizeAxes = Axes.Y
@@ -53,7 +52,7 @@ namespace LivinOnSweets.API.Container
 
             AddRangeInternal(new Drawable[]
             {
-                new OContainer()
+                new Container()
                 {
                     Anchor = LeftSide ? Anchor.CentreRight : Anchor.CentreLeft,
                     Origin = LeftSide ? Anchor.CentreRight : Anchor.CentreLeft,
@@ -61,7 +60,7 @@ namespace LivinOnSweets.API.Container
                     Name = "Slide Padding",
                     RelativeSizeAxes = Axes.Both,
                     Padding = BasePadding,
-                    Child = RoundedMask = new OContainer()
+                    Child = RoundedMask = new Container()
                     {
                         Name = "Slide Rounded Mask",
                         Masking = true,
@@ -135,7 +134,7 @@ namespace LivinOnSweets.API.Container
                 Origin = isLeft ? Anchor.CentreRight : Anchor.CentreLeft;
 
                 Box sprite;
-                InternalChild = new OContainer()
+                InternalChild = new Container()
                 {
                     RelativeSizeAxes = Axes.Both,
                     Masking = true,

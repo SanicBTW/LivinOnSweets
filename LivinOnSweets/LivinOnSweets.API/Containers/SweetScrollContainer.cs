@@ -1,14 +1,13 @@
 ﻿using LivinOnSweets.API.Sprites;
 using LivinOnSweets.API.Stores;
-using osuTK;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Containers;
-using OContainer = osu.Framework.Graphics.Containers.Container;
+using osu.Framework.Graphics.Shapes;
+using osuTK;
 
-namespace LivinOnSweets.API.Container
+namespace LivinOnSweets.API.Containers
 {
     public partial class SweetScrollContainer : SweetScrollContainer<Drawable>
     {
@@ -29,7 +28,7 @@ namespace LivinOnSweets.API.Container
         public BindableFloat ScrollBarMaxAlpha = new(1f);
         public double AlphaDuration = 200;
 
-        public bool ScrollBlocked { get; protected set; } = false;
+        public bool ScrollBlocked { get; protected set; }
 
         public SweetScrollContainer(Direction scrollDirection = Direction.Vertical, bool startBlocked = false)
             : base(scrollDirection)
@@ -80,17 +79,17 @@ namespace LivinOnSweets.API.Container
             // used to fade the scroll bar after being inactive for too long
             private const double max_idle_time = 1000;
 
-            private double lastScrollTime = 0;
-            private double lastScrollPos = 0; // we track the Y position, if it has changed then we scrolling, if not its idle
+            private double lastScrollTime;
+            private double lastScrollPos; // we track the Y position, if it has changed then we scrolling, if not its idle
 
             private float defaultBarAlpha = 1f;
-            private bool transitioning = false;
+            private bool transitioning;
 
             public SweetScrollbar(Direction direction)
                 : base(direction)
             {
 
-                Child = new OContainer()
+                Child = new Container()
                 {
                     Masking = true,
                     CornerRadius = 4,

@@ -1,7 +1,7 @@
 ﻿using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 
-namespace LivinOnSweets.API.Container
+namespace LivinOnSweets.API.Containers
 {
     // https://github.com/SanicBTW/FunkinSharp/blob/legacy/FunkinSharp/FunkinSharp.Game/Core/Containers/ClippedContainer.cs
 

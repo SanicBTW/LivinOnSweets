@@ -27,7 +27,7 @@ namespace LivinOnSweets.API.Configuration
         // setting it to null will throw an exception if it didnt load correctly, we keeping it with this behaviour just to avoid any edge case
         public IEnumerable<IKeyBinding> LoadedKeybinds;
 
-        protected bool LoadError = false; // add edge cases for first load
+        protected bool LoadError; // add edge cases for first load
 
         public KeybindsConfig(Storage storage, IDictionary<ManiaAction, object> defaultOverrides = null)
             : base(defaultOverrides)

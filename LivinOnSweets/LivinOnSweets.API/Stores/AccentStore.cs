@@ -44,7 +44,7 @@ namespace LivinOnSweets.API.Stores
             }
 
             // uhhh yeahh
-            accentCache.AddOrUpdate(name, ret, (key, oldVal) => ret);
+            accentCache.AddOrUpdate(name, ret, (_, _) => ret);
 
             return ret;
         }

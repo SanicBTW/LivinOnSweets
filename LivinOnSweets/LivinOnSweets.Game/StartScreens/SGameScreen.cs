@@ -1,6 +1,6 @@
 ﻿using System;
 using LivinOnSweets.API.Components;
-using LivinOnSweets.API.Container;
+using LivinOnSweets.API.Containers;
 using LivinOnSweets.API.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -25,7 +25,7 @@ namespace LivinOnSweets.Game.StartScreens
 
         public GameContainer BoundContainer { get; }
         public Box TransitionBackground { get; protected set; } // Independant of StartupScreen or GameContainer
-        public bool Transitioning { get; protected set; } = false;
+        public bool Transitioning { get; protected set; }
 
         public SGameScreen(Func<Drawable, bool, bool> disposeAction, GameContainer container)
         {

@@ -1,6 +1,6 @@
 ﻿using osu.Framework.Screens;
 
-namespace LivinOnSweets.API.Container
+namespace LivinOnSweets.API.Containers
 {
     public partial class SweetScreen : Screen
     {

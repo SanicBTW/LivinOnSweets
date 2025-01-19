@@ -6,7 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osuTK;
 
-namespace LivinOnSweets.API.Container
+namespace LivinOnSweets.API.Containers.Editor
 {
     // The sidebar of the editor, contains everything needed for the editor itself, selecting container, buttons etc
     // the reason this isnt inside editor container its because it would be really long and bad lookin lol

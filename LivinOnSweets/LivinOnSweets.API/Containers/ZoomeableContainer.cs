@@ -1,6 +1,6 @@
 ﻿using osuTK;
 
-namespace LivinOnSweets.API.Container
+namespace LivinOnSweets.API.Containers
 {
     // https://github.com/SanicBTW/FunkinSharp/blob/legacy/FunkinSharp/FunkinSharp.Game/Core/Containers/Camera.cs
     // Maybe it doesn't fit the old Camera code but it acts(?) like I want to:

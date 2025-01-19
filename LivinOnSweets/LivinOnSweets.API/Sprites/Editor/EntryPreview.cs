@@ -1,18 +1,18 @@
-﻿using LivinOnSweets.API.Container;
+﻿using LivinOnSweets.API.Containers;
+using LivinOnSweets.API.Containers.Editor;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
-using OContainer = osu.Framework.Graphics.Containers.Container;
 
 namespace LivinOnSweets.API.Sprites.Editor
 {
     // I dont really like the level of nesting im reaching but uhh you win some you lose some i guess
     public partial class EditorEntry
     {
-        public abstract partial class EntryPreview : OContainer
+        public abstract partial class EntryPreview : Container
         {
             [Resolved]
             private Container<SlideContainer> editorSliders { get; set; }
@@ -24,8 +24,8 @@ namespace LivinOnSweets.API.Sprites.Editor
 
             protected EditorSideBar Controller;
 
-            protected override Container<Drawable> Content => PreviewContent;
-            protected readonly Container<Drawable> PreviewContent;
+            protected override Container Content => PreviewContent;
+            protected readonly Container PreviewContent;
 
             protected SlideContainer EntrySlider;
 
@@ -41,7 +41,7 @@ namespace LivinOnSweets.API.Sprites.Editor
                 Height = 92;
                 Padding = new MarginPadding(8);
 
-                InternalChild = new OContainer()
+                InternalChild = new Container()
                 {
                     Masking = true,
                     CornerRadius = 6f,
@@ -53,7 +53,7 @@ namespace LivinOnSweets.API.Sprites.Editor
                             RelativeSizeAxes = Axes.Both,
                             Colour = Colour4.Gray,
                         },
-                        PreviewContent = new Container<Drawable>()
+                        PreviewContent = new Container()
                         {
                             RelativeSizeAxes = Axes.Both,
                         }
@@ -97,7 +97,7 @@ namespace LivinOnSweets.API.Sprites.Editor
                 return newContainer;
             }
 
-            protected abstract OContainer CreateSlideContent();
+            protected abstract Container CreateSlideContent();
         }
 
         internal partial class EntryPreviewPlaceholder(EditorSideBar controller) : EntryPreview(controller)
@@ -122,9 +122,9 @@ namespace LivinOnSweets.API.Sprites.Editor
                 });
             }
 
-            protected override OContainer CreateSlideContent()
+            protected override Container CreateSlideContent()
             {
-                return new OContainer()
+                return new Container()
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,

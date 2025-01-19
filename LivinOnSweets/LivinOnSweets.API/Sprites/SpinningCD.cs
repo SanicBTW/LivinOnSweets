@@ -3,18 +3,14 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Transforms;
-
-// Because Container is used as a namespace here, we have to import it thru another way
-using OContainer = osu.Framework.Graphics.Containers.Container;
 
 namespace LivinOnSweets.API.Sprites
 {
     public partial class SpinningCD : CompositeDrawable
     {
-        private OContainer box;
+        private Container box;
 
-        public bool IsSpinning { get; protected set; } = false;
+        public bool IsSpinning { get; protected set; }
         public bool ShouldPositionOnLoad = true; // flag indicating if the cd should position itself for a future start animation
 
         public SpinningCD()

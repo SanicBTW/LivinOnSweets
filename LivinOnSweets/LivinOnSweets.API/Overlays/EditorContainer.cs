@@ -1,5 +1,6 @@
 ﻿using System.Collections.Specialized;
-using LivinOnSweets.API.Container;
+using LivinOnSweets.API.Containers;
+using LivinOnSweets.API.Containers.Editor;
 using LivinOnSweets.API.Data;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -8,7 +9,6 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
-using OContainer = osu.Framework.Graphics.Containers.Container;
 
 namespace LivinOnSweets.API.Overlays
 {
@@ -34,7 +34,7 @@ namespace LivinOnSweets.API.Overlays
                 {
                     RelativeSizeAxes = Axes.Both,
                     Colour = Colour4.Black,
-                    Alpha = 0.1f
+                    Alpha = 0.35f
                 },
                 Sliders = new Container<SlideContainer>()
                 {
@@ -93,7 +93,7 @@ namespace LivinOnSweets.API.Overlays
 
             Box propsBg;
             SpriteText wipText;
-            propertiesPanel.Child = new OContainer()
+            propertiesPanel.Child = new Container()
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -116,7 +116,7 @@ namespace LivinOnSweets.API.Overlays
             };
 
             // I should use the sender or args, whatever
-            EditorColours.PrimaryColors.BindCollectionChanged((sender, args) =>
+            EditorColours.PrimaryColors.BindCollectionChanged((_, args) =>
             {
                 if (args.Action == NotifyCollectionChangedAction.Remove)
                     return;
@@ -124,7 +124,7 @@ namespace LivinOnSweets.API.Overlays
                 ApplyColors((List<Colour4>)EditorColours.PrimaryColors.SyncRoot, sideBg, editorSide, scroller, sideBar.PanelNudge);
             });
 
-            EditorColours.SecondaryColors.BindCollectionChanged((sender, args) =>
+            EditorColours.SecondaryColors.BindCollectionChanged((_, args) =>
             {
                 if (args.Action == NotifyCollectionChangedAction.Remove)
                     return;
@@ -157,7 +157,7 @@ namespace LivinOnSweets.API.Overlays
                     });
                 })
             };
-        }*/
+        }
 
         private BasicButton createPaletteButton(string label, Action onClick)
         {
@@ -168,7 +168,7 @@ namespace LivinOnSweets.API.Overlays
                 Text = label,
                 Action = onClick
             };
-        }
+        }*/
 
         protected virtual void ApplyColors(List<Colour4> newColors, params dynamic[] targets)
         {

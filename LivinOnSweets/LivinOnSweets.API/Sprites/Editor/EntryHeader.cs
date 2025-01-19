@@ -1,14 +1,14 @@
-﻿using LivinOnSweets.API.Container;
+﻿using LivinOnSweets.API.Containers.Editor;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using OContainer = osu.Framework.Graphics.Containers.Container;
 
 namespace LivinOnSweets.API.Sprites.Editor
 {
     public partial class EditorEntry
     {
-        public partial class EntryHeader : OContainer
+        public partial class EntryHeader : Container
         {
             public EntryHeader(string category, EditorSideBar controller)
             {
@@ -20,7 +20,7 @@ namespace LivinOnSweets.API.Sprites.Editor
 
                 Box background;
                 SpriteText text;
-                InternalChild = new OContainer()
+                InternalChild = new Container()
                 {
                     Masking = true,
                     CornerRadius = 6f,

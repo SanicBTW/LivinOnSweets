@@ -4,17 +4,17 @@ using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Overlays;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Logging;
 using osu.Framework.Screens;
-using OContainer = osu.Framework.Graphics.Containers.Container;
 
-namespace LivinOnSweets.API.Container
+namespace LivinOnSweets.API.Containers.Editor
 {
     // Container that handles debug actions like refreshing or opening the layout editor, which in fact, its inside of this one
     // TODO: Make a refresh target menu
-    public partial class DebugContainer : OContainer, IKeyBindingHandler<ManiaAction>
+    public partial class DebugContainer : Container, IKeyBindingHandler<ManiaAction>
     {
         [Resolved]
         private GameStateManager stateManager { get; set; }
@@ -24,10 +24,6 @@ namespace LivinOnSweets.API.Container
         private ScreenStack screenStackRef;
         private Stack<IScreen> screens;
 
-        // sanco here, 3:34am, just read that this attribute propagates the field
-        // to its children, so by doing this im propagating the editor container
-        // thru the dependency container of screen stack and to other screens, really good
-        [Cached]
         private EditorContainer editor;
 
         public DebugContainer(ScreenStack screenStack)

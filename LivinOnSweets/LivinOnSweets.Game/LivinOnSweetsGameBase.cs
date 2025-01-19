@@ -16,7 +16,6 @@ namespace LivinOnSweets.Game
     {
         protected override Container<Drawable> Content { get; }
         private DependencyContainer gameDependencies;
-        private ResizeHandler resizeHandler = new ResizeHandler();
 
         protected LivinOnSweetsGameBase()
         {
@@ -32,9 +31,6 @@ namespace LivinOnSweets.Game
             Resources.AddStore(new DllResourceStore(LivinOnSweetsResources.ResourceAssembly));
             SetupDependencies(gameDependencies);
             SetupFonts();
-
-            resizeHandler.UpdateSize(Window.ClientSize);
-            Window.Resized += () => resizeHandler.UpdateSize(Window.ClientSize);
         }
 
         protected virtual void SetupDependencies(DependencyContainer container)
@@ -42,9 +38,6 @@ namespace LivinOnSweets.Game
             // Cache the storage variable from the host since it will be used inside the configuration managers
             // And make it accessible across the tree
             container.CacheAs(Host.Storage);
-
-            // Used to handle resizes on some parts of the game, passed down through a container for better usability
-            container.CacheAs(resizeHandler);
 
             // Used to save states and react to them on some parts of the game
             container.CacheAs(new GameStateManager());

@@ -8,11 +8,10 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Screens;
 using osuTK;
-using OContainer = osu.Framework.Graphics.Containers.Container;
 
-namespace LivinOnSweets.API.Container
+namespace LivinOnSweets.API.Containers
 {
-    public partial class GameContainer : OContainer
+    public partial class GameContainer : Container
     {
         [Resolved]
         private GameStateManager stateManager { get; set; }

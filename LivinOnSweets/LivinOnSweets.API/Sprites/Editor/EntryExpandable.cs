@@ -1,21 +1,21 @@
-﻿using LivinOnSweets.API.Container;
+﻿using LivinOnSweets.API.Containers;
+using LivinOnSweets.API.Containers.Editor;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
-using OContainer = osu.Framework.Graphics.Containers.Container;
 
 namespace LivinOnSweets.API.Sprites.Editor
 {
-    public partial class EntryExpandable : OContainer
+    public partial class EntryExpandable : Container
     {
         public const float BASE_HEIGHT = 92;
         public const int EXPAND_MULT = 2;
 
-        protected override Container<Drawable> Content => ExpandedContent;
-        protected readonly Container<Drawable> ExpandedContent;
+        protected override Container Content => ExpandedContent;
+        protected readonly Container ExpandedContent;
 
         protected EditorEntry Entry;
         protected EditorSideBar Controller;
@@ -37,7 +37,7 @@ namespace LivinOnSweets.API.Sprites.Editor
             Y = entry.Entryheader.Height - entry.Entryheader.Padding.Bottom; // dont take the bottom padding into account since the top of THIS padding will act like it between these 2
 
             Box background;
-            InternalChild = new OContainer()
+            InternalChild = new Container()
             {
                 Masking = true,
                 CornerRadius = 6f,
@@ -53,7 +53,7 @@ namespace LivinOnSweets.API.Sprites.Editor
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         RelativeSizeAxes = Axes.Both,
-                        Child = ExpandedContent = new Container<Drawable>()
+                        Child = ExpandedContent = new Container()
                         {
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,

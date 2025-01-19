@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using LivinOnSweets.API.Enum;
-using LivinOnSweets.API.StartupObjects;
+using LivinOnSweets.API.Sprites;
 using LivinOnSweets.API.Stores;
 using NUnit.Framework;
 using osu.Framework.Allocation;
@@ -24,7 +24,7 @@ namespace LivinOnSweets.Game.Tests.Visual
         private StudentBanner banner;
         private FillFlowContainer<Box> bannerAccents;
         private CancellationTokenSource cancellationTokenSource = new();
-        private bool finished = false;
+        private bool finished;
 
         public TestSceneBannerAccent()
         {
@@ -91,14 +91,14 @@ namespace LivinOnSweets.Game.Tests.Visual
         {
             resetBoxes();
             resetToken();
-            wrapBlockingCall(() => callStore(false, 1));
+            wrapBlockingCall(() => callStore());
         }
 
         private void getAccentSingleRandom()
         {
             resetBoxes();
             resetToken();
-            wrapBlockingCall(() => callStore(true, 1));
+            wrapBlockingCall(() => callStore(true));
         }
 
         private void callStore(bool random = false, int amount = 1)

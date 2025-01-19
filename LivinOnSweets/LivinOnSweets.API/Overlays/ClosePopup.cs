@@ -12,7 +12,6 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Platform;
-using OContainer = osu.Framework.Graphics.Containers.Container;
 
 namespace LivinOnSweets.API.Overlays
 {
@@ -26,7 +25,7 @@ namespace LivinOnSweets.API.Overlays
         private GameHost host { get; set; }
 
         private Box background;
-        private OContainer content;
+        private Container content;
 
         public double FadeInDuration = 1300D;
         public double SlideYDuration = 1200D;
@@ -42,7 +41,7 @@ namespace LivinOnSweets.API.Overlays
                     Colour = Colour4.Black,
                     Alpha = 0.5f
                 },
-                content = new OContainer()
+                content = new Container()
                 {
                     Masking = true,
                     CornerRadius = 15,
