@@ -1,8 +1,10 @@
-﻿using LivinOnSweets.API.Containers.Editor;
+﻿using LivinOnSweets.API.Containers;
+using LivinOnSweets.API.Containers.Editor;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input.Events;
 using osuTK;
 
 namespace LivinOnSweets.API.Sprites.Editor
@@ -11,10 +13,12 @@ namespace LivinOnSweets.API.Sprites.Editor
     {
         internal partial class EditorSliderHeader : Container
         {
+            protected EditorSlider ParentSlider;
             protected EditorSideBar Controller;
 
-            public EditorSliderHeader(EditorSideBar controller)
+            public EditorSliderHeader(EditorSlider parentSlider, EditorSideBar controller)
             {
+                ParentSlider = parentSlider;
                 Controller = controller;
 
                 Anchor = Anchor.TopCentre;
@@ -37,6 +41,7 @@ namespace LivinOnSweets.API.Sprites.Editor
                         {
                             RelativeSizeAxes = Axes.Both,
                         },
+                        // should i make it pixelated?
                         icon = new SpriteIcon()
                         {
                             Icon = FontAwesome.Solid.ArrowLeft,
@@ -67,6 +72,23 @@ namespace LivinOnSweets.API.Sprites.Editor
                     text.Colour = ev.NewValue;
                 }, true);
             }
+
+            protected override bool OnMouseDown(MouseDownEvent e)
+            {
+                Container<SlideContainer> parent = (Container<SlideContainer>)ParentSlider.Parent;
+                ParentSlider.MoveToX(ParentSlider.OutOfBoundsPosition, ParentSlider.SlideDuration, Easing.OutQuint)
+                    .FadeOut(500D, Easing.OutQuint)
+                    .OnComplete(
+                    (_) =>
+                    {
+                        // have to manually call dispose after removing it from the parent container
+                        parent!.Remove(ParentSlider, false);
+                        ParentSlider.Dispose();
+                    });
+
+                return true;
+            }
+
         }
     }
 }

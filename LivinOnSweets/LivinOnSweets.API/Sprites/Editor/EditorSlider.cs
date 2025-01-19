@@ -32,7 +32,7 @@ namespace LivinOnSweets.API.Sprites.Editor
             Children =
             [
                 ContainerBackground,
-                Header = new EditorSliderHeader(controller),
+                Header = new EditorSliderHeader(this, controller),
                 ScrollContent
             ];
         }
