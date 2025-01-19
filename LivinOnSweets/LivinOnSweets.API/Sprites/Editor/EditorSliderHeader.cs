@@ -13,6 +13,10 @@ namespace LivinOnSweets.API.Sprites.Editor
     {
         internal partial class EditorSliderHeader : Container
         {
+            public double ColorFadeDuration = 500D;
+
+            protected Box Background;
+
             protected EditorSlider ParentSlider;
             protected EditorSideBar Controller;
 
@@ -27,7 +31,6 @@ namespace LivinOnSweets.API.Sprites.Editor
                 Height = 52;
                 Padding = new MarginPadding(8);
 
-                Box background;
                 SpriteText text;
                 SpriteIcon icon;
                 InternalChild = new Container()
@@ -37,7 +40,7 @@ namespace LivinOnSweets.API.Sprites.Editor
                     RelativeSizeAxes = Axes.Both,
                     Children =
                     [
-                        background = new Box()
+                        Background = new Box()
                         {
                             RelativeSizeAxes = Axes.Both,
                         },
@@ -63,7 +66,7 @@ namespace LivinOnSweets.API.Sprites.Editor
 
                 Controller.SecondaryColor.BindValueChanged((ev) =>
                 {
-                    background.Colour = ev.NewValue;
+                    Background.Colour = ev.NewValue;
                 }, true);
 
                 Controller.PrimaryColor.BindValueChanged((ev) =>
@@ -73,8 +76,20 @@ namespace LivinOnSweets.API.Sprites.Editor
                 }, true);
             }
 
+            protected override bool OnHover(HoverEvent e)
+            {
+                Background.FadeColour(Controller.SecondaryColor.Value.Darken(0.15f), ColorFadeDuration, Easing.OutQuint);
+                return true;
+            }
+
+            protected override void OnHoverLost(HoverLostEvent e)
+            {
+                Background.FadeColour(Controller.SecondaryColor.Value, ColorFadeDuration, Easing.OutQuint);
+            }
+
             protected override bool OnMouseDown(MouseDownEvent e)
             {
+                ParentSlider.Closing = true;
                 Container<SlideContainer> parent = (Container<SlideContainer>)ParentSlider.Parent;
                 ParentSlider.MoveToX(ParentSlider.OutOfBoundsPosition, ParentSlider.SlideDuration, Easing.OutQuint)
                     .FadeOut(500D, Easing.OutQuint)
@@ -88,7 +103,6 @@ namespace LivinOnSweets.API.Sprites.Editor
 
                 return true;
             }
-
         }
     }
 }

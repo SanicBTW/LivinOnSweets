@@ -3,6 +3,7 @@ using LivinOnSweets.API.Containers.Editor;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input.Events;
 
 namespace LivinOnSweets.API.Sprites.Editor
 {
@@ -23,6 +24,8 @@ namespace LivinOnSweets.API.Sprites.Editor
         protected SlideContainer ParentSlider;
         protected EditorSliderHeader Header;
         protected EditorSideBar Controller;
+
+        internal bool Closing = false;
 
         public EditorSlider(bool leftSide, SlideContainer parentSlider, EditorSideBar controller) : base(leftSide)
         {
@@ -70,6 +73,24 @@ namespace LivinOnSweets.API.Sprites.Editor
 
             ScrollContent.Height = newRelativeSize;
             ScrollContent.Y = headerHeight;
+        }
+
+        // Overriden base hover methods to add a quick flag to avoid triggering animations which would cause on the
+        // container transitioning to X = 0 again and thus cancelling the previous transform, in this case being the close animation
+        protected override bool OnHover(HoverEvent e)
+        {
+            if (Closing)
+                return true;
+
+            return base.OnHover(e);
+        }
+
+        protected override void OnHoverLost(HoverLostEvent e)
+        {
+            if (Closing)
+                return;
+
+            base.OnHoverLost(e);
         }
     }
 }
