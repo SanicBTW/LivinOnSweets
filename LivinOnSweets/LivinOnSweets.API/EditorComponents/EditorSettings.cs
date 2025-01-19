@@ -5,8 +5,8 @@ using LivinOnSweets.API.Sprites.Editor;
 
 namespace LivinOnSweets.API.EditorComponents
 {
-    [EditorImportOrder(1)]
-    public partial class Watch(EditorSideBar controller) : EditorEntry(controller, "watch", EditorEntryContentAnimation.EXPANDABLE)
+    [EditorImportOrder(3)]
+    public partial class EditorSettings(EditorSideBar controller) : EditorEntry(controller, "settings", EditorEntryContentAnimation.EXPANDABLE)
     {
 
     }

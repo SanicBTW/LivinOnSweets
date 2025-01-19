@@ -1,4 +1,5 @@
-﻿using LivinOnSweets.API.Containers.Editor;
+﻿using LivinOnSweets.API.Attributes;
+using LivinOnSweets.API.Containers.Editor;
 using LivinOnSweets.API.Enum;
 using LivinOnSweets.API.Sprites.Editor;
 using osu.Framework.Allocation;
@@ -8,6 +9,7 @@ using osu.Framework.Graphics.Sprites;
 
 namespace LivinOnSweets.API.EditorComponents
 {
+    [EditorImportOrder(0)]
     public partial class TreeHierarchy(EditorSideBar controller) : EditorEntry(controller, "tree hierarchy", EditorEntryContentAnimation.ANOTHER_VIEW)
     {
         protected override EntryPreview CreatePreview() => new TreePreview(Controller);

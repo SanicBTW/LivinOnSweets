@@ -27,8 +27,6 @@ namespace LivinOnSweets.API.Sprites.Editor
             protected override Container Content => PreviewContent;
             protected readonly Container PreviewContent;
 
-            protected SlideContainer EntrySlider;
-
             private Box background;
 
             public EntryPreview(EditorSideBar controller)
@@ -85,7 +83,7 @@ namespace LivinOnSweets.API.Sprites.Editor
                     parentSlider.SlideBlock.Value = true;
 
                 parentSlider.ClickOutClosesContainer = false;
-                editorSliders.Add(EntrySlider = CreateSlideContainer());
+                editorSliders.Add(CreateSlideContainer());
 
                 return true;
             }

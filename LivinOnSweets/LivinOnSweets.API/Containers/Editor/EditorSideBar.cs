@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using LivinOnSweets.API.Attributes;
 using LivinOnSweets.API.Sprites.Editor;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -39,20 +40,26 @@ namespace LivinOnSweets.API.Containers.Editor
         {
             // Regarding the comment above the class definition, this is probably one of the
             // dynamic ways to load up entries without having to break my brain too much
-            Assembly curAssembly = Assembly.GetExecutingAssembly();
-
-            IEnumerable<TypeInfo> types = curAssembly.DefinedTypes;
             Type entryType = typeof(EditorEntry);
+            Type attrType = typeof(EditorImportOrder);
+
+            Assembly curAssembly = Assembly.GetExecutingAssembly();
+            TypeInfo[] types = curAssembly.DefinedTypes
+                .Where(ti => ti.BaseType == entryType &&
+                                ti.Namespace!.Contains(namespace_target_folder)).ToArray();
+
+            EditorEntry[] orderedImports = new EditorEntry[types.Length];
             foreach (TypeInfo type in types)
             {
-                if (type.BaseType != entryType)
-                    continue;
+                EditorEntry instance = (EditorEntry)Activator.CreateInstance(type, this);
+                EditorImportOrder importIndex = (EditorImportOrder)type.GetCustomAttributes(attrType).FirstOrDefault();
+                if (importIndex is null)
+                    throw new ArgumentNullException($"{instance!.GetType()} is missing the attribute {attrType}");
 
-                if (!type.Namespace!.Contains(namespace_target_folder))
-                    continue;
-
-                AddInternal((EditorEntry)Activator.CreateInstance(type, this));
+                orderedImports[importIndex.ImportPosition] = instance;
             }
+
+            AddRangeInternal(orderedImports);
         }
     }
 }
