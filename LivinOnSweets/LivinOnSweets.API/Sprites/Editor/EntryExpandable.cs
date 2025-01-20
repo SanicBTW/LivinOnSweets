@@ -1,6 +1,7 @@
 ﻿using LivinOnSweets.API.Containers;
 using LivinOnSweets.API.Containers.Editor;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -20,7 +21,7 @@ namespace LivinOnSweets.API.Sprites.Editor
         protected EditorEntry Entry;
         protected EditorSideBar Controller;
 
-        private bool locked;
+        private BindableBool locked = new();
 
         public double ResizeDuration = 750D;
 
@@ -37,7 +38,7 @@ namespace LivinOnSweets.API.Sprites.Editor
             Y = entry.Entryheader.Height - entry.Entryheader.Padding.Bottom; // dont take the bottom padding into account since the top of THIS padding will act like it between these 2
 
             Box background;
-            InternalChild = new Container()
+            InternalChild = new PositionallyLockedContainer(locked)
             {
                 Masking = true,
                 CornerRadius = 6f,
@@ -70,37 +71,49 @@ namespace LivinOnSweets.API.Sprites.Editor
             }, true);
         }
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            // bind the function here so the virtual function is fully applied if overriden
+            locked.BindValueChanged(HandleLockChange);
+        }
+
         protected override bool OnMouseDown(MouseDownEvent e)
         {
             // if blocked, do not set the locked toggle
             bool ret = base.OnMouseDown(e);
 
             if (!ret)
-                locked = !locked;
+                locked.Toggle();
 
             return ret;
-        }
-
-        protected override bool OnHover(HoverEvent e)
-        {
-            Entry.ResizeHeightTo(Entry.BaseHeight * EXPAND_MULT, ResizeDuration, Easing.OutQuart);
-            this.ResizeHeightTo(BASE_HEIGHT * (EXPAND_MULT + 0.65f), ResizeDuration, Easing.OutQuart);
-            return base.OnHover(e);
-        }
-
-        protected override void OnHoverLost(HoverLostEvent e)
-        {
-            if (locked)
-                return;
-
-            this.ResizeHeightTo(BASE_HEIGHT, ResizeDuration, Easing.OutQuart);
-            Entry.ResizeHeightTo(Entry.BaseHeight, ResizeDuration, Easing.OutQuart);
-            base.OnHoverLost(e);
         }
 
         public bool IsCollapsed() => Height <= BASE_HEIGHT;
 
         public bool IsExpanded() => Height > BASE_HEIGHT;
+
+        protected virtual void HandleLockChange(ValueChangedEvent<bool> ev)
+        {
+            if (ev.NewValue)
+            {
+                Entry.ResizeHeightTo(Entry.BaseHeight * EXPAND_MULT, ResizeDuration, Easing.OutQuart);
+                this.ResizeHeightTo(BASE_HEIGHT * (EXPAND_MULT + 0.65f), ResizeDuration, Easing.OutQuart);
+            }
+            else
+            {
+                this.ResizeHeightTo(BASE_HEIGHT, ResizeDuration, Easing.OutQuart);
+                Entry.ResizeHeightTo(Entry.BaseHeight, ResizeDuration, Easing.OutQuart);
+            }
+        }
+    }
+
+    // Basic container that overrides the propagation of the positional input through a bindable bool that acts like a lock for it
+    // Useful if the content inside the container should not be interacted with through mouse events until unlocked
+    internal partial class PositionallyLockedContainer(BindableBool lockBindable) : Container
+    {
+        public override bool PropagatePositionalInputSubTree => lockBindable.Value;
     }
 
     internal partial class EntryExpandablePlaceholder(EditorEntry entry, EditorSideBar controller) : EntryExpandable(entry, controller)
