@@ -43,12 +43,7 @@ namespace LivinOnSweets.Game.StartScreens
 
             LoadComponentAsync(nextScreen = CreateNextScreen());
 
-            LoadComponentAsync(spinner = new LoadingSpinner()
-            {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                // Margin = new MarginPadding(40)
-            }, _ =>
+            LoadComponentAsync(spinner = new LoadingSpinner(), _ =>
             {
                 AddInternal(spinner);
                 spinnerShow = Scheduler.AddDelayed(spinner.Show, 200);

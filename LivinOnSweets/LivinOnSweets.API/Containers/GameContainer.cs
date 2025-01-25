@@ -1,12 +1,15 @@
-﻿using LivinOnSweets.API.Components;
+﻿using JetBrains.Annotations;
+using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Data;
 using LivinOnSweets.API.Enum;
+using LivinOnSweets.API.Sprites.UI;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Screens;
+using osu.Framework.Threading;
 using osuTK;
 
 namespace LivinOnSweets.API.Containers
@@ -24,9 +27,11 @@ namespace LivinOnSweets.API.Containers
             Top = 100
         });
 
-        private DrawSizePreservingFillContainer content;
         private Box background;
         private ScreenStack screenStack;
+
+        private LoadingSpinner spinner;
+        private ScheduledDelegate spinnerShow;
 
         public GameContainer()
         {
@@ -47,8 +52,14 @@ namespace LivinOnSweets.API.Containers
                     Colour = Colour4.FromHex("#3a3a3a"), // color of the game container,
                     Alpha = 0f,
                 },
+                spinner = new LoadingSpinner(true, true)
+                {
+                    Anchor = Anchor.BottomRight,
+                    Origin = Anchor.BottomRight,
+                    Margin = new MarginPadding(40)
+                },
                 // All of the content will be sized as 1280x720, to avoid issues with positioning and scaling artifacts
-                content = new DrawSizePreservingFillContainer()
+                new DrawSizePreservingFillContainer()
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -59,6 +70,8 @@ namespace LivinOnSweets.API.Containers
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         RelativeSizeAxes = Axes.Both,
+                        Scale = new Vector2(0.8f),
+                        Alpha = 0,
                     }
                 }
             };
@@ -76,6 +89,9 @@ namespace LivinOnSweets.API.Containers
                     break;
 
                 case GameplayState.UNINITIALIZED:
+                    // Only show the spinner if the game is uninitialized
+                    spinnerShow = Scheduler.AddDelayed(spinner.Show, 100);
+
                     // i disabled most of the animations on first load since its blocked by the transition background on startup screen & sgame screen
                     SweetScreen nextScreen = screenData.CreateScreen();
                     if (nextScreen == null)
@@ -84,6 +100,7 @@ namespace LivinOnSweets.API.Containers
                         // since we are not yet into the SGameScreen (middleware) we have to update the runtime state by ourselves and call on error which is the resume call from StartupScreen
                         stateManager.UpdateRuntimeState(true, true);
                         screenData.OnError?.Invoke();
+                        checkSpinner(null);
                         return;
                     }
 
@@ -91,7 +108,7 @@ namespace LivinOnSweets.API.Containers
                     {
                         LoadComponentAsync(nextScreen, _ =>
                         {
-                            screenStack.Push(nextScreen);
+                            checkSpinner(nextScreen);
 
                             stateManager.GPState.Value = GameplayState.INITIALIZED;
                             enableBacking();
@@ -106,6 +123,29 @@ namespace LivinOnSweets.API.Containers
         {
             stateManager.ProgressionBlock.SetDefault();
             stateManager.CanBack.SetDefault();
+        }
+
+        private void checkSpinner([CanBeNull] SweetScreen nextScreen)
+        {
+            spinnerShow?.Cancel();
+
+            if (spinner.State.Value == Visibility.Visible)
+            {
+                spinner.Hide();
+
+                if (nextScreen != null)
+                {
+                    screenStack.Push(nextScreen);
+                    screenStack
+                        .FadeTo(1, LoadingSpinner.TRANSITION_DURATION / 2, Easing.OutQuint)
+                        .ScaleTo(1, LoadingSpinner.TRANSITION_DURATION, Easing.OutQuart);
+                }
+            }
+            else
+            {
+                if (nextScreen != null)
+                    screenStack.Push(nextScreen);
+            }
         }
     }
 }
