@@ -7,8 +7,8 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
+using osu.Framework.Screens;
 
 namespace LivinOnSweets.API.Overlays
 {
@@ -20,6 +20,7 @@ namespace LivinOnSweets.API.Overlays
 
         private SlideContainer sideBar;
         private SlideContainer propertiesPanel;
+        private EditorSideBar editorSide;
         // private FillFlowContainer palette;
 
         private double colorChangeDuration = 1200D;
@@ -73,7 +74,6 @@ namespace LivinOnSweets.API.Overlays
         {
             Box sideBg;
             SweetScrollContainer scroller;
-            EditorSideBar editorSide;
             sideBar.Children = new Drawable[]
             {
                 sideBg = new Box()
@@ -230,5 +230,7 @@ namespace LivinOnSweets.API.Overlays
 
             return base.OnMouseDown(e);
         }
+
+        internal void PropagateScreenCtxChange(ScreenStack newCtx) => editorSide.PropagateScreenCtxChange(newCtx);
     }
 }

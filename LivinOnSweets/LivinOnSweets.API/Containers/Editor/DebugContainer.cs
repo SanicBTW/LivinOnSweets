@@ -38,6 +38,7 @@ namespace LivinOnSweets.API.Containers.Editor
             };
 
             saveStackReference();
+            editor.PropagateScreenCtxChange(screenStackRef);
         }
 
         public bool OnPressed(KeyBindingPressEvent<ManiaAction> e)
@@ -67,6 +68,7 @@ namespace LivinOnSweets.API.Containers.Editor
                     Type screenType = firstScreen.GetType();
                     screenStackRef.Push((IScreen)Activator.CreateInstance(screenType));
                     saveStackReference();
+                    editor.PropagateScreenCtxChange(screenStackRef);
                     return true;
 
                 case ManiaAction.EDITOR:

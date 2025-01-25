@@ -5,6 +5,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Screens;
 using osuTK;
 
 namespace LivinOnSweets.API.Containers.Editor
@@ -60,6 +61,15 @@ namespace LivinOnSweets.API.Containers.Editor
             }
 
             AddRangeInternal(orderedImports);
+        }
+
+        internal void PropagateScreenCtxChange(ScreenStack newCtx)
+        {
+            foreach (Drawable drawable in InternalChildren)
+            {
+                EditorEntry entry = (EditorEntry)drawable;
+                entry.ChangeScreenCtx(newCtx);
+            }
         }
     }
 }
