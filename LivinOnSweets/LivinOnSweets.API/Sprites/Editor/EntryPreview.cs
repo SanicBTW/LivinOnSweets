@@ -11,6 +11,7 @@ namespace LivinOnSweets.API.Sprites.Editor
 {
     // I dont really like the level of nesting im reaching but uhh you win some you lose some i guess
     // TODO: When wanting to trigger Drag Event for the scroll container, this click can block the initialization of it and thus opening the bound container
+    // TODO: Add a loading spinner (for the DebugContainer only) to show if theres an asynchronous task in the background
     public partial class EditorEntry
     {
         public abstract partial class EntryPreview : Container
@@ -84,7 +85,7 @@ namespace LivinOnSweets.API.Sprites.Editor
                     parentSlider.SlideBlock.Value = true;
 
                 parentSlider.ClickOutClosesContainer = false;
-                editorSliders.Add(CreateSlideContainer());
+                LoadComponentAsync(CreateSlideContainer(), editorSliders.Add);
 
                 return true;
             }
