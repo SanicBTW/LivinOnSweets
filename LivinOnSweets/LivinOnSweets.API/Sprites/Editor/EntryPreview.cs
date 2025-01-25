@@ -10,6 +10,7 @@ using osu.Framework.Input.Events;
 namespace LivinOnSweets.API.Sprites.Editor
 {
     // I dont really like the level of nesting im reaching but uhh you win some you lose some i guess
+    // TODO: When wanting to trigger Drag Event for the scroll container, this click can block the initialization of it and thus opening the bound container
     public partial class EditorEntry
     {
         public abstract partial class EntryPreview : Container

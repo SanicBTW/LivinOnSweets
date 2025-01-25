@@ -10,6 +10,7 @@ using osu.Framework.Input.Events;
 
 namespace LivinOnSweets.API.Sprites.Editor
 {
+    // TODO: Fix when dragging the scroll container the expandable will act like it was a click and thus toggle the bindable
     public partial class EntryExpandable : Container
     {
         public const float BASE_HEIGHT = 92;

@@ -89,6 +89,9 @@ namespace LivinOnSweets.API.Sprites.Editor
 
             protected override bool OnMouseDown(MouseDownEvent e)
             {
+                // i forgot to set this lmao
+                ParentSlider.ParentSlider.ClickOutClosesContainer = true;
+
                 ParentSlider.Closing = true;
                 Container<SlideContainer> parent = (Container<SlideContainer>)ParentSlider.Parent;
                 ParentSlider.MoveToX(ParentSlider.OutOfBoundsPosition, ParentSlider.SlideDuration, Easing.OutQuint)
