@@ -53,7 +53,13 @@ namespace LivinOnSweets.API.Containers
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
-                    TargetDrawSize = new Vector2(1280, 720) // OMFG THIS SAVED MY LIFE, I LOVE YOU DRAW SIZE PRESERVING FILL CONTAINER
+                    TargetDrawSize = new Vector2(1280, 720), // OMFG THIS SAVED MY LIFE, I LOVE YOU DRAW SIZE PRESERVING FILL CONTAINER
+                    Child = screenStack = new ScreenStack()
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.Both,
+                    }
                 }
             };
 
@@ -83,14 +89,8 @@ namespace LivinOnSweets.API.Containers
 
                     background.FadeIn(1000D, Easing.OutQuint).OnComplete((_) =>
                     {
-                        LoadComponentAsync(screenStack = new ScreenStack()
+                        LoadComponentAsync(nextScreen, _ =>
                         {
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                            RelativeSizeAxes = Axes.Both,
-                        }, _ =>
-                        {
-                            content.Add(screenStack);
                             screenStack.Push(nextScreen);
 
                             stateManager.GPState.Value = GameplayState.INITIALIZED;
