@@ -5,7 +5,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
-using osu.Framework.Screens;
 using osuTK;
 
 namespace LivinOnSweets.API.Sprites.Editor
@@ -22,7 +21,6 @@ namespace LivinOnSweets.API.Sprites.Editor
 
         protected Container RoundedMask; // The parent container of all the content inside this entry
         protected EditorSideBar Controller;
-        protected ScreenStack TargetScreenStack;
 
         internal EntryHeader Entryheader;
 
@@ -94,7 +92,5 @@ namespace LivinOnSweets.API.Sprites.Editor
         protected virtual EntryPreview CreatePreview() => new EntryPreviewPlaceholder(Controller);
 
         protected virtual EntryExpandable CreateExpandable() => new EntryExpandablePlaceholder(this, Controller);
-
-        internal void ChangeScreenCtx(ScreenStack newCtx) => TargetScreenStack = newCtx;
     }
 }

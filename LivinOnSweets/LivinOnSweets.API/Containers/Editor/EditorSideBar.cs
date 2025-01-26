@@ -53,23 +53,11 @@ namespace LivinOnSweets.API.Containers.Editor
             foreach (TypeInfo type in types)
             {
                 EditorEntry instance = (EditorEntry)Activator.CreateInstance(type, this);
-                EditorImportOrder importIndex = (EditorImportOrder)type.GetCustomAttributes(attrType).FirstOrDefault();
-                if (importIndex is null)
-                    throw new ArgumentNullException($"{instance!.GetType()} is missing the attribute {attrType}");
-
+                EditorImportOrder importIndex = (EditorImportOrder)type.GetCustomAttributes(attrType).FirstOrDefault() ?? throw new ArgumentNullException($"{instance!.GetType()} is missing the attribute {attrType}");
                 orderedImports[importIndex.ImportPosition] = instance;
             }
 
             AddRangeInternal(orderedImports);
-        }
-
-        internal void PropagateScreenCtxChange(ScreenStack newCtx)
-        {
-            foreach (Drawable drawable in InternalChildren)
-            {
-                EditorEntry entry = (EditorEntry)drawable;
-                entry.ChangeScreenCtx(newCtx);
-            }
         }
     }
 }

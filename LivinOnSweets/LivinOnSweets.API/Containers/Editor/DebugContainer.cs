@@ -21,6 +21,9 @@ namespace LivinOnSweets.API.Containers.Editor
 
         private static Type screenStackType => typeof(ScreenStack);
 
+        // instead of having to fucking propagate the change call through every existing container
+        // inside the editor sidebar, just cache the variable
+        [Cached]
         private ScreenStack screenStackRef;
         private Stack<IScreen> screens;
 
@@ -38,7 +41,6 @@ namespace LivinOnSweets.API.Containers.Editor
             };
 
             saveStackReference();
-            editor.PropagateScreenCtxChange(screenStackRef);
         }
 
         public bool OnPressed(KeyBindingPressEvent<ManiaAction> e)
@@ -68,7 +70,6 @@ namespace LivinOnSweets.API.Containers.Editor
                     Type screenType = firstScreen.GetType();
                     screenStackRef.Push((IScreen)Activator.CreateInstance(screenType));
                     saveStackReference();
-                    editor.PropagateScreenCtxChange(screenStackRef);
                     return true;
 
                 case ManiaAction.EDITOR:
