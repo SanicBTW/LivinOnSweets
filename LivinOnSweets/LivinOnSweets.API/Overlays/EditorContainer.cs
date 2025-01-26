@@ -8,19 +8,21 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
-using osu.Framework.Screens;
 
 namespace LivinOnSweets.API.Overlays
 {
-    public partial class EditorContainer : OverlayContainer
+    [Cached]
+    internal partial class EditorContainer : OverlayContainer
     {
         // propagate this into the children to be able to add more sliders into the editor
         [Cached]
         public readonly Container<SlideContainer> Sliders;
 
+        [Cached]
+        public readonly EditorTreeVisualizer TreeVisualizer;
+
         private SlideContainer sideBar;
         private SlideContainer propertiesPanel;
-        private EditorSideBar editorSide;
         // private FillFlowContainer palette;
 
         private double colorChangeDuration = 1200D;
@@ -37,6 +39,7 @@ namespace LivinOnSweets.API.Overlays
                     Colour = Colour4.Black,
                     Alpha = 0.35f
                 },
+                TreeVisualizer = new EditorTreeVisualizer(),
                 Sliders = new Container<SlideContainer>()
                 {
                     RelativeSizeAxes = Axes.Both,
@@ -74,6 +77,7 @@ namespace LivinOnSweets.API.Overlays
         {
             Box sideBg;
             SweetScrollContainer scroller;
+            EditorSideBar editorSide;
             sideBar.Children = new Drawable[]
             {
                 sideBg = new Box()
@@ -132,43 +136,6 @@ namespace LivinOnSweets.API.Overlays
                 ApplyColors((List<Colour4>)EditorColours.SecondaryColors.SyncRoot, propsBg, wipText, propertiesPanel.PanelNudge);
             });
         }
-
-        /*
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            palette.Children = new Drawable[]
-            {
-                createPaletteButton("Add Box", () =>
-                {
-                    canvas.Add(new Box
-                    {
-                        Size = new Vector2(100),
-                        Colour = Colour4.Blue
-                    });
-                }),
-                createPaletteButton("Add Text", () =>
-                {
-                    canvas.Add(new SpriteText
-                    {
-                        Text = "New Text",
-                        Font = FontUsage.Default.With(size: 20),
-                    });
-                })
-            };
-        }
-
-        private BasicButton createPaletteButton(string label, Action onClick)
-        {
-            return new BasicButton()
-            {
-                RelativeSizeAxes = Axes.X,
-                Height = 40,
-                Text = label,
-                Action = onClick
-            };
-        }*/
 
         protected virtual void ApplyColors(List<Colour4> newColors, params dynamic[] targets)
         {
@@ -230,7 +197,5 @@ namespace LivinOnSweets.API.Overlays
 
             return base.OnMouseDown(e);
         }
-
-        internal void PropagateScreenCtxChange(ScreenStack newCtx) => editorSide.PropagateScreenCtxChange(newCtx);
     }
 }
