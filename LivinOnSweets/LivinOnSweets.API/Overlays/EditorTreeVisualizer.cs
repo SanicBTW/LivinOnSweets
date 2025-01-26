@@ -1,6 +1,7 @@
 ﻿// https://github.com/ppy/osu-framework/blob/master/osu.Framework/Graphics/Visualisation/DrawVisualiser.cs
 
 using System.Reflection;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -24,6 +25,16 @@ namespace LivinOnSweets.API.Overlays
         private ScreenStack gameScreenStack { get; set; }
 
         private readonly InfoOverlay overlay;
+
+        // This controls where the search is gonna take place
+        private Drawable searchTarget;
+        public Drawable SearchTarget
+        {
+            get => searchTarget ?? gameScreenStack;
+            internal set => searchTarget = value;
+        }
+
+        public bool Searching { get; private set; }
 
         internal event Action<Drawable> OnTargetChanged;
         private Drawable target;
@@ -49,7 +60,6 @@ namespace LivinOnSweets.API.Overlays
 
         private InputManager inputManager;
         private Drawable cursorTarget;
-        public bool Searching { get; private set; }
         protected override bool BlockPositionalInput => Searching;
 
         public EditorTreeVisualizer()
@@ -66,9 +76,11 @@ namespace LivinOnSweets.API.Overlays
         {
             base.Update();
 
-            updateCursorTarget();
             if (Searching)
+            {
+                updateCursorTarget();
                 overlay.Target = cursorTarget;
+            }
             /*
             Drawable hoveredDrawable = inputManager.HoveredDrawables.FirstOrDefault();
             if (hoveredDrawable != null)
@@ -82,8 +94,7 @@ namespace LivinOnSweets.API.Overlays
             CompositeDrawable compositeTarget = null;
             Quad? maskingQuad = null;
 
-            // This controls where the search is gonna take place
-            findTarget(gameScreenStack);
+            findTarget(SearchTarget);
 
             cursorTarget = drawableTarget ?? compositeTarget;
 
@@ -173,10 +184,11 @@ namespace LivinOnSweets.API.Overlays
             inputManager = GetContainingInputManager();
         }
 
-        internal void StartSearching()
+        internal void StartSearching([CanBeNull] Drawable searchIn = null)
         {
             Show();
             Searching = true;
+            SearchTarget = searchIn;
             Target = null;
         }
 
