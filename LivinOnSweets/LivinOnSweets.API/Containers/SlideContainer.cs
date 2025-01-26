@@ -22,6 +22,7 @@ namespace LivinOnSweets.API.Containers
         public Nudge PanelNudge { get; protected set; }
 
         public BindableBool SlideBlock = new();
+        internal bool BlockHoverSlide = false; // quick flag for the editor to manage the sliding in manually
 
         public float OutOfBoundsPosition { get; protected set; }
         public double SlideDuration = 500D;
@@ -87,6 +88,9 @@ namespace LivinOnSweets.API.Containers
 
         protected override bool OnHover(HoverEvent e)
         {
+            if (BlockHoverSlide)
+                return true;
+
             if (IsHidden())
                 this.MoveToX(0, SlideDuration, Easing.OutQuint);
 
@@ -119,7 +123,7 @@ namespace LivinOnSweets.API.Containers
             return LeftSide ? -NewContent.DrawWidth - halfPad : NewContent.DrawWidth + halfPad;
         }
 
-        public bool IsHidden() => LeftSide ? X <= 0 : X >= 0;
+        public bool IsHidden() => LeftSide ? X < 0 : X > 0;
 
         public bool IsVisible() => LeftSide ? X >= OutOfBoundsPosition : X <= OutOfBoundsPosition;
 
