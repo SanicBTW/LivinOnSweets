@@ -11,8 +11,8 @@ namespace LivinOnSweets.Game
 {
     public partial class LivinOnSweetsGame : LivinOnSweetsGameBase
     {
-        // We are 100% sure that the Parent (LivinOnSweetsGameBase) first and only child is gonna be the input container
-        protected ManiaActionContainer ActionContainer => (ManiaActionContainer)Content.Child;
+        // We are 100% sure that the Parent (LivinOnSweetsGameBase) last child is gonna be the input container
+        protected ManiaActionContainer ActionContainer => (ManiaActionContainer)Content[^1];
 
         private ScreenStack screenStack;
 

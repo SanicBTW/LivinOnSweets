@@ -45,6 +45,11 @@ namespace LivinOnSweets.Game
             // Used to pass an accent store through the dp container
             container.CacheAs(new AccentStore(Resources));
 
+            // Used to pass down the accents and populate those who implement the target interface
+            AccentComponent component = new AccentComponent();
+            container.CacheAs(component);
+            Add(component);
+
             // Used to pass the main menu resources across the dp container
             container.CacheAs(new MainMenuStore(Host.Renderer, Resources));
 
