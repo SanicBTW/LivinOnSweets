@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Containers;
-using LivinOnSweets.API.Data;
+using LivinOnSweets.API.Enum;
 using LivinOnSweets.API.Sprites.UI;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -22,6 +23,7 @@ namespace LivinOnSweets.Game.StartScreens
         private SweetScreen nextScreen;
         private ShaderPrecompiler precompiler;
         private StutterComponent stutterChecker;
+        private AccentLoaderComponent accentLoader;
 
         private LoadingSpinner spinner;
         private ScheduledDelegate spinnerShow;
@@ -35,11 +37,11 @@ namespace LivinOnSweets.Game.StartScreens
         {
             base.OnEntering(e);
 
-            EditorColours.Reset();
-
             LoadComponentAsync(stutterChecker = CreateStutterChecker(), AddInternal);
 
             LoadComponentAsync(precompiler = CreateShaderPrecompiler(), AddInternal);
+
+            LoadComponentAsync(accentLoader = CreateAccentLoader(), AddInternal);
 
             LoadComponentAsync(nextScreen = CreateNextScreen());
 
@@ -54,7 +56,7 @@ namespace LivinOnSweets.Game.StartScreens
 
         private void loadedCheck()
         {
-            if (nextScreen?.LoadState != LoadState.Ready || !precompiler.FinishedCompiling || !stutterChecker.IsStable)
+            if (notReady())
             {
                 Schedule(loadedCheck);
                 return;
@@ -71,11 +73,16 @@ namespace LivinOnSweets.Game.StartScreens
                 ScreenStack.Push(nextScreen);
         }
 
+        private bool notReady() => nextScreen?.LoadState != LoadState.Ready ||
+                                                !precompiler.FinishedCompiling || !stutterChecker.IsStable || !accentLoader.AccentsReady;
+
         protected virtual SweetScreen CreateNextScreen() => new StartupScreen();
 
         protected virtual ShaderPrecompiler CreateShaderPrecompiler() => new();
 
         protected virtual StutterComponent CreateStutterChecker() => new();
+
+        protected virtual AccentLoaderComponent CreateAccentLoader() => new();
 
         // Literally https://github.com/ppy/osu/blob/master/osu.Game/Screens/Loader.cs#L117
         public partial class ShaderPrecompiler : Component
@@ -171,6 +178,34 @@ namespace LivinOnSweets.Game.StartScreens
 
                 timer += elapsedDrawFrameTime;
                 IsStable = timer >= maxTime;
+
+                if (IsStable)
+                    Expire();
+            }
+        }
+
+        public partial class AccentLoaderComponent : Component
+        {
+            [Resolved]
+            private AccentComponent accentComponent { get; set; }
+
+            public bool AccentsReady { get; protected set; }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                bool sidesReady = accentComponent.SideColors.Count >= 2;
+                if (sidesReady)
+                {
+                    bool leftReady = accentComponent.SideColors[AccentBannerSide.Left].Count >= 3;
+                    bool rightReady = accentComponent.SideColors[AccentBannerSide.Right].Count >= 3;
+
+                    AccentsReady = leftReady && rightReady;
+                }
+
+                if (AccentsReady)
+                    Expire();
             }
         }
     }

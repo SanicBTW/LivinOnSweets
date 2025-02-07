@@ -26,6 +26,8 @@ namespace LivinOnSweets.API.Components
                                                             throw new InvalidOperationException("Unexpected hierarchy");
 #endif
 
+        public Dictionary<AccentBannerSide, Dictionary<AccentColorRole, BindableColour4>> SideColors => sideColors;
+
         // Will be mapped by Left/Right, keyed dictionary will be mapped like Prim/Sec/Terti then it will return the color
         private Dictionary<AccentBannerSide, Dictionary<AccentColorRole, BindableColour4>> sideColors = [];
 
