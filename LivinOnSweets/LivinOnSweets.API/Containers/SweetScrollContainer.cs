@@ -5,6 +5,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Utils;
 using osuTK;
 
 namespace LivinOnSweets.API.Containers
@@ -115,7 +116,7 @@ namespace LivinOnSweets.API.Containers
             {
                 base.UpdateAfterChildren();
 
-                bool hasChanged = !Parent.ScrollBlocked && lastScrollPos != Y;
+                bool hasChanged = !Parent.ScrollBlocked && !Precision.AlmostEquals(lastScrollPos, Y);
 
                 switch (hasChanged)
                 {
