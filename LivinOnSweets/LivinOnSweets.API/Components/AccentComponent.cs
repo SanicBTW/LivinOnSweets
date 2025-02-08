@@ -34,6 +34,9 @@ namespace LivinOnSweets.API.Components
         // For synchronization when propagating
         private object objLock = new();
 
+        // Tracks if colors have been propagated at least once, to run "PropagateAccents" in the targets
+        private bool hasPropagatedOnce;
+
         // Fade Color Duration
         public double ColorChangeDuration = 1200D;
 
@@ -56,10 +59,7 @@ namespace LivinOnSweets.API.Components
                     if (colors.TryGetValue(role, out BindableColour4 boundColor))
                         boundColor.Value = accent;
                     else
-                    {
-                        boundColor = new BindableColour4(accent);
-                        colors[role] = boundColor;
-                    }
+                        colors[role] = new BindableColour4(accent);
                 }
 
                 // Schedule the UI update
@@ -75,8 +75,16 @@ namespace LivinOnSweets.API.Components
 
             lock (objLock)
             {
+                bool anyReceiver = false;
+
                 foreach (IAccentColorReceiver receiver in targetContainer.ChildrenOfType<IAccentColorReceiver>())
+                {
                     PropagateInto(receiver, false);
+                    anyReceiver = true;
+                }
+
+                if (anyReceiver)
+                    hasPropagatedOnce = true;
             }
         }
 
@@ -86,7 +94,8 @@ namespace LivinOnSweets.API.Components
         // manually trigger the propagation into the container
         public void PropagateInto(IAccentColorReceiver receiver, bool manual = true)
         {
-            if (!manual)
+            // If it already has propagated once, you can automatically signal the changes now without having to propagate the accents
+            if (!manual && hasPropagatedOnce)
             {
                 Schedule(() => receiver.AccentsUpdated(ColorChangeDuration, ColorEasing));
                 return;
@@ -101,6 +110,8 @@ namespace LivinOnSweets.API.Components
             ];
 
             Schedule(() => receiver.PropagateAccents([..colors.Select(c => (BindableColour4)c.GetUnboundCopy())]));
+            if (!manual && !hasPropagatedOnce) // Schedule the signal if its the first run
+                Schedule(() => receiver.AccentsUpdated(ColorChangeDuration, ColorEasing));
         }
 
         public BindableColour4 GetBindable(AccentBannerSide side, AccentColorRole role)
@@ -119,19 +130,13 @@ namespace LivinOnSweets.API.Components
         private void ensureSide(AccentBannerSide side, out Dictionary<AccentColorRole, BindableColour4> bannerColors)
         {
             if (!sideColors.TryGetValue(side, out bannerColors))
-            {
-                bannerColors = new Dictionary<AccentColorRole, BindableColour4>();
-                sideColors[side] = bannerColors;
-            }
+                sideColors[side] = bannerColors = new Dictionary<AccentColorRole, BindableColour4>();
         }
 
         private void ensureRole(Dictionary<AccentColorRole, BindableColour4> source, AccentColorRole role, out BindableColour4 accent)
         {
             if (!source.TryGetValue(role, out accent))
-            {
-                accent = new BindableColour4();
-                source[role] = accent;
-            }
+                source[role] = accent = new BindableColour4();
         }
 
         protected override void LoadComplete()
