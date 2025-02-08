@@ -1,6 +1,9 @@
-﻿using LivinOnSweets.API.Containers.Editor;
+﻿using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Enum;
+using LivinOnSweets.API.Extensions;
+using LivinOnSweets.API.Interfaces;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -11,24 +14,27 @@ namespace LivinOnSweets.API.Sprites.Editor
 {
     // TODO: Fix design having issues with mouse events (they get fired even if its out of bounds, probably due to the padding)
     // TODO (Children): Bind the scrollbar colour to the parent of the controller which is indeed, a scroll container
-    // Controller as the variable name for EditorSideBar is kinda misleading ngl
-    public partial class EditorEntry : Container
+    public partial class EditorEntry : Container, IAccentColorReceiver
     {
+        [Resolved]
+        private AccentComponent accentComponent { get; set; }
+
+        protected BindableColour4 PrimaryColor = new();
+        protected BindableColour4 SecondaryColor = new();
+
+        internal EntryHeader Entryheader;
+
+        // The parent container of all the content inside this entry
+        protected Container RoundedMask;
+        private Box background;
+
         public readonly string Category;
         public readonly EditorEntryContentAnimation ContentAnimation;
         public double ColorFadeDuration = 500D;
         public float BaseHeight = 150;
 
-        protected Container RoundedMask; // The parent container of all the content inside this entry
-        protected EditorSideBar Controller;
-
-        internal EntryHeader Entryheader;
-
-        private Box background;
-
-        public EditorEntry(EditorSideBar controller, string category, EditorEntryContentAnimation entryType)
+        public EditorEntry(string category, EditorEntryContentAnimation entryType)
         {
-            Controller = controller;
             Category = category;
             ContentAnimation = entryType;
 
@@ -69,7 +75,7 @@ namespace LivinOnSweets.API.Sprites.Editor
                     break;
             }
 
-            Controller.PrimaryColor.BindValueChanged((ev) =>
+            PrimaryColor.BindValueChanged((ev) =>
             {
                 background.Colour = ev.NewValue;
             });
@@ -77,20 +83,39 @@ namespace LivinOnSweets.API.Sprites.Editor
 
         protected override bool OnHover(HoverEvent e)
         {
-            background.FadeColour(Controller.PrimaryColor.Value.Darken(0.15f), ColorFadeDuration, Easing.OutQuint);
+            background.FadeColour(PrimaryColor.Value.Darken(0.15f), ColorFadeDuration, Easing.OutQuint);
             return base.OnHover(e);
         }
 
         protected override void OnHoverLost(HoverLostEvent e)
         {
-            background.FadeColour(Controller.PrimaryColor.Value, ColorFadeDuration, Easing.OutQuint);
+            background.FadeColour(PrimaryColor.Value, ColorFadeDuration, Easing.OutQuint);
             base.OnHoverLost(e);
         }
 
-        protected virtual EntryHeader CreateHeader(string category) => new(category, Controller);
+        protected virtual EntryHeader CreateHeader(string category) => new(category);
 
-        protected virtual EntryPreview CreatePreview() => new EntryPreviewPlaceholder(Controller);
+        protected virtual EntryPreview CreatePreview() => new EntryPreviewPlaceholder();
 
-        protected virtual EntryExpandable CreateExpandable() => new EntryExpandablePlaceholder(this, Controller);
+        protected virtual EntryExpandable CreateExpandable() => new EntryExpandablePlaceholder(this);
+
+        AccentBannerSide IAccentColorReceiver.AccentSide => AccentBannerSide.Left;
+
+        void IAccentColorReceiver.PropagateAccents(BindableColour4[] colors)
+        {
+            // This mimics the old behaviour of EditorSideBar, the secondary was the primary and the tertiary was the secondary
+            // kind of asss if you ask me, I never realized it until now lmao
+            PrimaryColor.BindTo(colors[1]);
+            SecondaryColor.BindTo(colors[2]);
+        }
+
+        void IAccentColorReceiver.AccentsUpdated(double duration, Easing easing)
+        {
+            BindableColour4 newPrimary = accentComponent.GetAccent(this, AccentColorRole.Secondary);
+            BindableColour4 newSecondary = accentComponent.GetAccent(this, AccentColorRole.Tertiary);
+
+            this.TransformBindableTo(PrimaryColor, newPrimary.Value, duration, easing);
+            this.TransformBindableTo(SecondaryColor, newSecondary.Value, duration, easing);
+        }
     }
 }

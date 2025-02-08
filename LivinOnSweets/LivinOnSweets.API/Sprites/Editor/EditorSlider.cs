@@ -1,14 +1,24 @@
-﻿using LivinOnSweets.API.Containers;
-using LivinOnSweets.API.Containers.Editor;
+﻿using LivinOnSweets.API.Components;
+using LivinOnSweets.API.Containers;
+using LivinOnSweets.API.Enum;
+using LivinOnSweets.API.Extensions;
+using LivinOnSweets.API.Interfaces;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 
 namespace LivinOnSweets.API.Sprites.Editor
 {
-    internal partial class EditorSlider : SlideContainer
+    internal partial class EditorSlider : SlideContainer, IAccentColorReceiver
     {
+        [Resolved]
+        private AccentComponent accentComponent { get; set; }
+
+        protected BindableColour4 PrimaryColor = new();
+        protected BindableColour4 SecondaryColor = new();
+
         internal Box ContainerBackground = new()
         {
             RelativeSizeAxes = Axes.Both
@@ -23,19 +33,17 @@ namespace LivinOnSweets.API.Sprites.Editor
 
         protected SlideContainer ParentSlider;
         protected EditorSliderHeader Header;
-        protected EditorSideBar Controller;
 
         internal bool Closing = false;
 
-        public EditorSlider(bool leftSide, SlideContainer parentSlider, EditorSideBar controller) : base(leftSide)
+        public EditorSlider(bool leftSide, SlideContainer parentSlider) : base(leftSide)
         {
             ParentSlider = parentSlider;
-            Controller = controller;
 
             Children =
             [
                 ContainerBackground,
-                Header = new EditorSliderHeader(this, controller),
+                Header = new EditorSliderHeader(this),
                 ScrollContent
             ];
         }
@@ -43,13 +51,15 @@ namespace LivinOnSweets.API.Sprites.Editor
         [BackgroundDependencyLoader]
         private void load()
         {
-            Controller.PrimaryColor.BindValueChanged((ev) =>
+            PrimaryColor.BindValueChanged((ev) =>
             {
                 ContainerBackground.Colour = ev.NewValue;
-            }, true);
+            });
 
             Width = ParentSlider.Width * 1.5f;
             RelativeSizeAxes = ParentSlider.RelativeSizeAxes;
+
+            accentComponent.PropagateToChildren(this);
         }
 
         protected override void LoadComplete()
@@ -91,6 +101,23 @@ namespace LivinOnSweets.API.Sprites.Editor
                 return;
 
             base.OnHoverLost(e);
+        }
+
+        AccentBannerSide IAccentColorReceiver.AccentSide => AccentBannerSide.Left;
+
+        void IAccentColorReceiver.PropagateAccents(BindableColour4[] colors)
+        {
+            PrimaryColor.BindTo(colors[1]);
+            SecondaryColor.BindTo(colors[2]);
+        }
+
+        void IAccentColorReceiver.AccentsUpdated(double duration, Easing easing)
+        {
+            BindableColour4 newPrimary = accentComponent.GetAccent(this, AccentColorRole.Secondary);
+            BindableColour4 newSecondary = accentComponent.GetAccent(this, AccentColorRole.Tertiary);
+
+            this.TransformBindableTo(PrimaryColor, newPrimary.Value, duration, easing);
+            this.TransformBindableTo(SecondaryColor, newSecondary.Value, duration, easing);
         }
     }
 }

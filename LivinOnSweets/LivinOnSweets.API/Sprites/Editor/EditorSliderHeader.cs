@@ -1,5 +1,10 @@
-﻿using LivinOnSweets.API.Containers;
-using LivinOnSweets.API.Containers.Editor;
+﻿using LivinOnSweets.API.Components;
+using LivinOnSweets.API.Containers;
+using LivinOnSweets.API.Enum;
+using LivinOnSweets.API.Extensions;
+using LivinOnSweets.API.Interfaces;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -11,19 +16,23 @@ namespace LivinOnSweets.API.Sprites.Editor
 {
     internal partial class EditorSlider
     {
-        internal partial class EditorSliderHeader : Container
+        internal partial class EditorSliderHeader : Container, IAccentColorReceiver
         {
-            public double ColorFadeDuration = 500D;
+            [Resolved]
+            private AccentComponent accentComponent { get; set; }
+
+            protected BindableColour4 PrimaryColor = new();
+            protected BindableColour4 SecondaryColor = new();
+
+            protected EditorSlider ParentSlider;
 
             protected Box Background;
 
-            protected EditorSlider ParentSlider;
-            protected EditorSideBar Controller;
+            public double ColorFadeDuration = 500D;
 
-            public EditorSliderHeader(EditorSlider parentSlider, EditorSideBar controller)
+            public EditorSliderHeader(EditorSlider parentSlider)
             {
                 ParentSlider = parentSlider;
-                Controller = controller;
 
                 Anchor = Anchor.TopCentre;
                 Origin = Anchor.TopCentre;
@@ -64,27 +73,27 @@ namespace LivinOnSweets.API.Sprites.Editor
                     ]
                 };
 
-                Controller.SecondaryColor.BindValueChanged((ev) =>
+                SecondaryColor.BindValueChanged((ev) =>
                 {
                     Background.Colour = ev.NewValue;
-                }, true);
+                });
 
-                Controller.PrimaryColor.BindValueChanged((ev) =>
+                PrimaryColor.BindValueChanged((ev) =>
                 {
                     icon.Colour = ev.NewValue;
                     text.Colour = ev.NewValue;
-                }, true);
+                });
             }
 
             protected override bool OnHover(HoverEvent e)
             {
-                Background.FadeColour(Controller.SecondaryColor.Value.Darken(0.15f), ColorFadeDuration, Easing.OutQuint);
+                Background.FadeColour(SecondaryColor.Value.Darken(0.15f), ColorFadeDuration, Easing.OutQuint);
                 return true;
             }
 
             protected override void OnHoverLost(HoverLostEvent e)
             {
-                Background.FadeColour(Controller.SecondaryColor.Value, ColorFadeDuration, Easing.OutQuint);
+                Background.FadeColour(SecondaryColor.Value, ColorFadeDuration, Easing.OutQuint);
             }
 
             protected override bool OnMouseDown(MouseDownEvent e)
@@ -105,6 +114,23 @@ namespace LivinOnSweets.API.Sprites.Editor
                     });
 
                 return true;
+            }
+
+            AccentBannerSide IAccentColorReceiver.AccentSide => AccentBannerSide.Left;
+
+            void IAccentColorReceiver.PropagateAccents(BindableColour4[] colors)
+            {
+                PrimaryColor.BindTo(colors[1]);
+                SecondaryColor.BindTo(colors[2]);
+            }
+
+            void IAccentColorReceiver.AccentsUpdated(double duration, Easing easing)
+            {
+                BindableColour4 newPrimary = accentComponent.GetAccent(this, AccentColorRole.Secondary);
+                BindableColour4 newSecondary = accentComponent.GetAccent(this, AccentColorRole.Tertiary);
+
+                this.TransformBindableTo(PrimaryColor, newPrimary.Value, duration, easing);
+                this.TransformBindableTo(SecondaryColor, newSecondary.Value, duration, easing);
             }
         }
     }

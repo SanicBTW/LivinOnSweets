@@ -22,9 +22,6 @@ namespace LivinOnSweets.API.Containers.Editor
         [Cached]
         private SlideContainer slideContainer;
 
-        public BindableColour4 PrimaryColor = new();
-        public BindableColour4 SecondaryColor = new();
-
         public EditorSideBar(SlideContainer slideContainer)
         {
             this.slideContainer = slideContainer;
@@ -52,8 +49,9 @@ namespace LivinOnSweets.API.Containers.Editor
             EditorEntry[] orderedImports = new EditorEntry[types.Length];
             foreach (TypeInfo type in types)
             {
-                EditorEntry instance = (EditorEntry)Activator.CreateInstance(type, this);
-                EditorImportOrder importIndex = (EditorImportOrder)type.GetCustomAttributes(attrType).FirstOrDefault() ?? throw new ArgumentNullException($"{instance!.GetType()} is missing the attribute {attrType}");
+                EditorEntry instance = (EditorEntry)Activator.CreateInstance(type, []);
+                EditorImportOrder importIndex = (EditorImportOrder)type.GetCustomAttributes(attrType).FirstOrDefault()
+                                                ?? throw new ArgumentNullException($"{instance!.GetType()} is missing the attribute {attrType}");
                 orderedImports[importIndex.ImportPosition] = instance;
             }
 

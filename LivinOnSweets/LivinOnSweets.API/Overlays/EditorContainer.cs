@@ -1,8 +1,11 @@
-﻿using System.Collections.Specialized;
+﻿using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Containers;
 using LivinOnSweets.API.Containers.Editor;
-using LivinOnSweets.API.Data;
+using LivinOnSweets.API.Enum;
+using LivinOnSweets.API.Extensions;
+using LivinOnSweets.API.Interfaces;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -23,9 +26,10 @@ namespace LivinOnSweets.API.Overlays
 
         private SlideContainer sideBar;
         private SlideContainer propertiesPanel;
-        // private FillFlowContainer palette;
 
-        private double colorChangeDuration = 1200D;
+        private EditorLeftReceiver leftSideColorizer;
+        private EditorRightReceiver rightSideColorizer;
+        // private FillFlowContainer palette;
 
         public EditorContainer()
         {
@@ -33,6 +37,8 @@ namespace LivinOnSweets.API.Overlays
 
             InternalChildren = new Drawable[]
             {
+                leftSideColorizer = new EditorLeftReceiver(),
+                rightSideColorizer = new EditorRightReceiver(),
                 new Box()
                 {
                     RelativeSizeAxes = Axes.Both,
@@ -61,14 +67,6 @@ namespace LivinOnSweets.API.Overlays
                         },
                     ]
                 },
-                /*
-                palette = new FillFlowContainer()
-                {
-                    RelativeSizeAxes = Axes.Y,
-                    Width = 200,
-                    Direction = FillDirection.Vertical,
-                    Padding = new MarginPadding(10),
-                }*/
             };
         }
 
@@ -77,7 +75,6 @@ namespace LivinOnSweets.API.Overlays
         {
             Box sideBg;
             SweetScrollContainer scroller;
-            EditorSideBar editorSide;
             sideBar.Children = new Drawable[]
             {
                 sideBg = new Box()
@@ -91,7 +88,7 @@ namespace LivinOnSweets.API.Overlays
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     ClampExtension = 10,
-                    Child = editorSide = new EditorSideBar(sideBar)
+                    Child = new EditorSideBar(sideBar)
                 }
             };
 
@@ -119,60 +116,8 @@ namespace LivinOnSweets.API.Overlays
                 }
             };
 
-            // I should use the sender or args, whatever
-            EditorColours.PrimaryColors.BindCollectionChanged((_, args) =>
-            {
-                if (args.Action == NotifyCollectionChangedAction.Remove)
-                    return;
-
-                ApplyColors((List<Colour4>)EditorColours.PrimaryColors.SyncRoot, sideBg, editorSide, scroller, sideBar.PanelNudge);
-            });
-
-            EditorColours.SecondaryColors.BindCollectionChanged((_, args) =>
-            {
-                if (args.Action == NotifyCollectionChangedAction.Remove)
-                    return;
-
-                ApplyColors((List<Colour4>)EditorColours.SecondaryColors.SyncRoot, propsBg, wipText, propertiesPanel.PanelNudge);
-            });
-        }
-
-        protected virtual void ApplyColors(List<Colour4> newColors, params dynamic[] targets)
-        {
-            // I still kinda hate this buttt its somewhat better than before ig
-
-            // Schedule the mutation since its done in another thread for the accent task
-            Schedule(() =>
-            {
-                Box background = targets[0];
-
-                background.FadeColour(newColors[0], colorChangeDuration, Easing.OutQuint);
-
-                // bruh, i have to do this to know which side we changing the colour to, since this instance doesnt get
-                // recreated anytime, the previous variable wouldnt reset at all and keep its value from the first run
-                // so now we check if the array is equal to the exposed static class that holds the bindables
-                if (newColors.SequenceEqual(EditorColours.PrimaryColors))
-                {
-                    EditorSideBar editorSide = targets[1];
-                    SweetScrollContainer scroller = targets[2];
-                    SlideContainer.Nudge panelNudge = targets[3];
-
-                    // I should be doing these transforms inside their respective containers but whatever
-                    this.TransformBindableTo(editorSide.PrimaryColor, newColors[1], colorChangeDuration, Easing.OutQuint);
-                    this.TransformBindableTo(editorSide.SecondaryColor, newColors[2], colorChangeDuration, Easing.OutQuint);
-
-                    this.TransformBindableTo(scroller.ScrollBarColour, newColors[1], colorChangeDuration, Easing.OutQuint);
-                    this.TransformBindableTo(panelNudge.NudgeColor, newColors[2], colorChangeDuration, Easing.OutQuint);
-                }
-                else
-                {
-                    SpriteText text = targets[1];
-                    SlideContainer.Nudge propNudge = targets[2];
-
-                    text.FadeColour(newColors[2], colorChangeDuration, Easing.OutQuint);
-                    this.TransformBindableTo(propNudge.NudgeColor, newColors[2], colorChangeDuration, Easing.OutQuint);
-                }
-            });
+            leftSideColorizer.Bind(sideBg, scroller, sideBar.PanelNudge);
+            rightSideColorizer.Bind(propsBg, wipText, propertiesPanel.PanelNudge);
         }
 
         protected override void PopIn() => this.FadeIn(500D, Easing.OutQuint);
@@ -184,10 +129,6 @@ namespace LivinOnSweets.API.Overlays
         {
             foreach (SlideContainer slider in Sliders)
             {
-                /*
-                IEnumerable<ISlideContainerCloseBlock> blockedSliders =
-                    slider.ChildrenOfType<ISlideContainerCloseBlock>();*/
-
                 if (slider.ClickOutClosesContainer && slider.IsVisible() && slider.SlideBlock.Value)
                 {
                     slider.SlideBlock.Value = false;
@@ -196,6 +137,107 @@ namespace LivinOnSweets.API.Overlays
             }
 
             return base.OnMouseDown(e);
+        }
+
+        private abstract partial class EditorAccentReceiver : Component, IAccentColorReceiver
+        {
+            [Resolved]
+            protected AccentComponent AccentComponent { get; private set; }
+
+            protected bool Bound;
+
+            private AccentBannerSide accentSide;
+            protected BindableColour4 Primary;
+            protected BindableColour4 Secondary;
+            protected BindableColour4 Tertiary;
+
+            public EditorAccentReceiver(AccentBannerSide targetSide)
+            {
+                accentSide = targetSide;
+            }
+
+            AccentBannerSide IAccentColorReceiver.AccentSide => accentSide;
+
+            void IAccentColorReceiver.PropagateAccents(BindableColour4[] colors)
+            {
+                Primary = colors[0];
+                Secondary = colors[1];
+                Tertiary = colors[2];
+            }
+
+            void IAccentColorReceiver.AccentsUpdated(double duration, Easing easing)
+            {
+                if (!Bound)
+                {
+                    BindAccents();
+                    Bound = true;
+                }
+
+                BindableColour4 newPrimary = AccentComponent.GetAccent(this, AccentColorRole.Primary);
+                BindableColour4 newSecondary = AccentComponent.GetAccent(this, AccentColorRole.Secondary);
+                BindableColour4 newTertiary = AccentComponent.GetAccent(this, AccentColorRole.Tertiary);
+
+                this.TransformBindableTo(Primary, newPrimary.Value, duration, easing);
+                this.TransformBindableTo(Secondary, newSecondary.Value, duration, easing);
+                this.TransformBindableTo(Tertiary, newTertiary.Value, duration, easing);
+            }
+
+            private protected abstract void BindAccents();
+        }
+
+        private partial class EditorLeftReceiver() : EditorAccentReceiver(AccentBannerSide.Left)
+        {
+
+            protected Box Background;
+            protected SweetScrollContainer Scroller;
+            protected SlideContainer.Nudge PanelNudge;
+
+            public void Bind(Box background, SweetScrollContainer scroller, SlideContainer.Nudge panelNudge)
+            {
+                Background = background;
+                Scroller = scroller;
+                PanelNudge = panelNudge;
+            }
+
+            private protected override void BindAccents()
+            {
+                Primary.BindValueChanged((ev) =>
+                {
+                    Background.Colour = ev.NewValue;
+                });
+
+                Scroller.ScrollBarColour.BindTo(Secondary);
+                PanelNudge.NudgeColor.BindTo(Tertiary);
+            }
+        }
+
+        private partial class EditorRightReceiver() : EditorAccentReceiver(AccentBannerSide.Right)
+        {
+            protected Box Background;
+            protected SpriteText WipText;
+            protected SlideContainer.Nudge PanelNudge;
+
+            public void Bind(Box background, SpriteText wipText, SlideContainer.Nudge panelNudge)
+            {
+                Background = background;
+                WipText = wipText;
+                PanelNudge = panelNudge;
+            }
+
+            private protected override void BindAccents()
+            {
+                Primary.BindValueChanged((ev) =>
+                {
+                    Background.Colour = ev.NewValue;
+                });
+
+                Tertiary.BindValueChanged((ev) =>
+                {
+                    WipText.Colour = ev.NewValue;
+                });
+
+                PanelNudge.NudgeColor.BindTo(Tertiary);
+            }
         }
     }
 }

@@ -11,11 +11,11 @@ using osu.Framework.Graphics.Sprites;
 namespace LivinOnSweets.API.EditorComponents
 {
     [EditorImportOrder(0)]
-    public partial class TreeHierarchy(EditorSideBar controller) : EditorEntry(controller, "tree hierarchy", EditorEntryContentAnimation.ANOTHER_VIEW)
+    public partial class TreeHierarchy() : EditorEntry("tree hierarchy", EditorEntryContentAnimation.ANOTHER_VIEW)
     {
-        protected override EntryPreview CreatePreview() => new TreePreview(Controller);
+        protected override EntryPreview CreatePreview() => new TreePreview();
 
-        internal partial class TreePreview(EditorSideBar controller) : EntryPreview(controller)
+        internal partial class TreePreview : EntryPreview
         {
             private SpriteText selectedObject;
             private Bindable<string> selectionText = new("select a master container");
@@ -37,13 +37,13 @@ namespace LivinOnSweets.API.EditorComponents
                     selectedObject.Text = ev.NewValue;
                 }, true);
 
-                Controller.PrimaryColor.BindValueChanged((ev) =>
+                PrimaryColor.BindValueChanged((ev) =>
                 {
                     selectedObject.Colour = ev.NewValue;
                 });
             }
 
-            protected override Container CreateSlideContent() => new TreeHierarchyContent(Controller, selectionText);
+            protected override Container CreateSlideContent() => new TreeHierarchyContent(selectionText);
         }
     }
 }

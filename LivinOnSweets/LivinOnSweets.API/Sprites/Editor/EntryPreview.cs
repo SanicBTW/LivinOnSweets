@@ -1,6 +1,10 @@
-﻿using LivinOnSweets.API.Containers;
-using LivinOnSweets.API.Containers.Editor;
+﻿using LivinOnSweets.API.Components;
+using LivinOnSweets.API.Containers;
+using LivinOnSweets.API.Enum;
+using LivinOnSweets.API.Extensions;
+using LivinOnSweets.API.Interfaces;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -14,7 +18,7 @@ namespace LivinOnSweets.API.Sprites.Editor
     // TODO: Add a loading spinner (for the DebugContainer only) to show if theres an asynchronous task in the background
     public partial class EditorEntry
     {
-        public abstract partial class EntryPreview : Container
+        public abstract partial class EntryPreview : Container, IAccentColorReceiver
         {
             [Resolved]
             private Container<SlideContainer> editorSliders { get; set; }
@@ -22,19 +26,21 @@ namespace LivinOnSweets.API.Sprites.Editor
             [Resolved]
             private SlideContainer parentSlider { get; set; }
 
-            public double ColorFadeDuration = 500D;
+            [Resolved]
+            private AccentComponent accentComponent { get; set; }
 
-            protected EditorSideBar Controller;
+            protected BindableColour4 PrimaryColor = new();
+            protected BindableColour4 SecondaryColor = new();
+
+            public double ColorFadeDuration = 500D;
 
             protected override Container Content => PreviewContent;
             protected readonly Container PreviewContent;
 
             private Box background;
 
-            public EntryPreview(EditorSideBar controller)
+            public EntryPreview()
             {
-                Controller = controller;
-
                 Anchor = Anchor.BottomCentre;
                 Origin = Anchor.BottomCentre;
                 RelativeSizeAxes = Axes.X;
@@ -60,7 +66,7 @@ namespace LivinOnSweets.API.Sprites.Editor
                     }
                 };
 
-                controller.SecondaryColor.BindValueChanged((ev) =>
+                SecondaryColor.BindValueChanged((ev) =>
                 {
                     background.Colour = ev.NewValue;
                 });
@@ -68,13 +74,13 @@ namespace LivinOnSweets.API.Sprites.Editor
 
             protected override bool OnHover(HoverEvent e)
             {
-                background.FadeColour(Controller.SecondaryColor.Value.Darken(0.25f), ColorFadeDuration, Easing.OutQuint);
+                background.FadeColour(SecondaryColor.Value.Darken(0.25f), ColorFadeDuration, Easing.OutQuint);
                 return base.OnHover(e);
             }
 
             protected override void OnHoverLost(HoverLostEvent e)
             {
-                background.FadeColour(Controller.SecondaryColor.Value, ColorFadeDuration, Easing.OutQuint);
+                background.FadeColour(SecondaryColor.Value, ColorFadeDuration, Easing.OutQuint);
                 base.OnHoverLost(e);
             }
 
@@ -92,15 +98,32 @@ namespace LivinOnSweets.API.Sprites.Editor
 
             protected virtual SlideContainer CreateSlideContainer()
             {
-                EditorSlider newContainer = new EditorSlider(parentSlider.LeftSide, parentSlider, Controller);
+                EditorSlider newContainer = new EditorSlider(parentSlider.LeftSide, parentSlider);
                 newContainer.ScrollContent.Child = CreateSlideContent();
                 return newContainer;
             }
 
             protected abstract Container CreateSlideContent();
+
+            AccentBannerSide IAccentColorReceiver.AccentSide => AccentBannerSide.Left;
+
+            void IAccentColorReceiver.PropagateAccents(BindableColour4[] colors)
+            {
+                PrimaryColor.BindTo(colors[1]);
+                SecondaryColor.BindTo(colors[2]);
+            }
+
+            void IAccentColorReceiver.AccentsUpdated(double duration, Easing easing)
+            {
+                BindableColour4 newPrimary = accentComponent.GetAccent(this, AccentColorRole.Secondary);
+                BindableColour4 newSecondary = accentComponent.GetAccent(this, AccentColorRole.Tertiary);
+
+                this.TransformBindableTo(PrimaryColor, newPrimary.Value, duration, easing);
+                this.TransformBindableTo(SecondaryColor, newSecondary.Value, duration, easing);
+            }
         }
 
-        internal partial class EntryPreviewPlaceholder(EditorSideBar controller) : EntryPreview(controller)
+        internal partial class EntryPreviewPlaceholder : EntryPreview
         {
             [BackgroundDependencyLoader]
             private void load()
@@ -116,7 +139,7 @@ namespace LivinOnSweets.API.Sprites.Editor
                     Colour = Colour4.Black // Opposite as the background, to not need to wait for the accents to apply
                 });
 
-                Controller.PrimaryColor.BindValueChanged((ev) =>
+                PrimaryColor.BindValueChanged((ev) =>
                 {
                     text.Colour = ev.NewValue;
                 });
@@ -133,7 +156,7 @@ namespace LivinOnSweets.API.Sprites.Editor
                         Margin = new MarginPadding(16),
                         Text = "override entrypreview to customize this",
                         Font = new FontUsage(family: "DNFBitBit", size: 24F),
-                        Colour = Controller.SecondaryColor.Value
+                        Colour = SecondaryColor.Value
                     }
                 };
             }

@@ -59,7 +59,7 @@ namespace LivinOnSweets.API.Containers
             });
         }
 
-        protected override void OnUserScroll(float value, bool animated = true, double? distanceDecay = null)
+        protected override void OnUserScroll(double value, bool animated = true, double? distanceDecay = null)
         {
             if (ScrollBlocked)
                 return;
@@ -95,7 +95,7 @@ namespace LivinOnSweets.API.Containers
                     Masking = true,
                     CornerRadius = 4,
                     RelativeSizeAxes = Axes.Both,
-                    Child = bar = new()
+                    Child = bar = new Box()
                     {
                         RelativeSizeAxes = Axes.Both,
                     }

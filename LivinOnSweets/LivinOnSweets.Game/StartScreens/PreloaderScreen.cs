@@ -56,7 +56,7 @@ namespace LivinOnSweets.Game.StartScreens
 
         private void loadedCheck()
         {
-            if (notReady())
+            if (!isReady)
             {
                 Schedule(loadedCheck);
                 return;
@@ -73,8 +73,10 @@ namespace LivinOnSweets.Game.StartScreens
                 ScreenStack.Push(nextScreen);
         }
 
-        private bool notReady() => nextScreen?.LoadState != LoadState.Ready ||
-                                                !precompiler.FinishedCompiling || !stutterChecker.IsStable || !accentLoader.AccentsReady;
+        private bool isReady => nextScreen?.LoadState == LoadState.Ready &&
+                                    precompiler.FinishedCompiling &&
+                                    stutterChecker.IsStable &&
+                                    accentLoader.AccentsReady;
 
         protected virtual SweetScreen CreateNextScreen() => new StartupScreen();
 

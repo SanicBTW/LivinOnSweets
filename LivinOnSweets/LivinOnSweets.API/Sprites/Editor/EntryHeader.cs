@@ -1,4 +1,9 @@
-﻿using LivinOnSweets.API.Containers.Editor;
+﻿using LivinOnSweets.API.Components;
+using LivinOnSweets.API.Enum;
+using LivinOnSweets.API.Extensions;
+using LivinOnSweets.API.Interfaces;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -8,9 +13,15 @@ namespace LivinOnSweets.API.Sprites.Editor
 {
     public partial class EditorEntry
     {
-        public partial class EntryHeader : Container
+        public partial class EntryHeader : Container, IAccentColorReceiver
         {
-            public EntryHeader(string category, EditorSideBar controller)
+            [Resolved]
+            private AccentComponent accentComponent { get; set; }
+
+            protected BindableColour4 PrimaryColor = new();
+            protected BindableColour4 SecondaryColor = new();
+
+            public EntryHeader(string category)
             {
                 Anchor = Anchor.TopCentre;
                 Origin = Anchor.TopCentre;
@@ -45,15 +56,32 @@ namespace LivinOnSweets.API.Sprites.Editor
                     }
                 };
 
-                controller.PrimaryColor.BindValueChanged((ev) =>
+                PrimaryColor.BindValueChanged((ev) =>
                 {
                     text.Colour = ev.NewValue;
                 });
 
-                controller.SecondaryColor.BindValueChanged((ev) =>
+                SecondaryColor.BindValueChanged((ev) =>
                 {
                     background.Colour = ev.NewValue;
                 });
+            }
+
+            AccentBannerSide IAccentColorReceiver.AccentSide => AccentBannerSide.Left;
+
+            void IAccentColorReceiver.PropagateAccents(BindableColour4[] colors)
+            {
+                PrimaryColor.BindTo(colors[1]);
+                SecondaryColor.BindTo(colors[2]);
+            }
+
+            void IAccentColorReceiver.AccentsUpdated(double duration, Easing easing)
+            {
+                BindableColour4 newPrimary = accentComponent.GetAccent(this, AccentColorRole.Secondary);
+                BindableColour4 newSecondary = accentComponent.GetAccent(this, AccentColorRole.Tertiary);
+
+                this.TransformBindableTo(PrimaryColor, newPrimary.Value, duration, easing);
+                this.TransformBindableTo(SecondaryColor, newSecondary.Value, duration, easing);
             }
         }
     }

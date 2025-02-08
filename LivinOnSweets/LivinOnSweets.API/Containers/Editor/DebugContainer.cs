@@ -47,6 +47,7 @@ namespace LivinOnSweets.API.Containers.Editor
         {
             switch (e.Action)
             {
+                #if DEBUG
                 // Maybe its much worse than just handling the refresh on the startup screen which would result on
                 // a single screen to exit and no screen stack swapping, but this is global
                 // meaning that i can refresh anywhere now
@@ -66,6 +67,9 @@ namespace LivinOnSweets.API.Containers.Editor
                     ChangeInternalChildDepth(screenStackRef, 1);
 
                     stateManager.Reset();
+                    /*
+                    if (editor.State.Value == Visibility.Visible)
+                        editor.Hide();*/
 
                     Type screenType = firstScreen.GetType();
                     screenStackRef.Push((IScreen)Activator.CreateInstance(screenType));
@@ -75,6 +79,7 @@ namespace LivinOnSweets.API.Containers.Editor
                 case ManiaAction.EDITOR:
                     editor.ToggleVisibility();
                     return true;
+#endif
 
                 default:
                     return false;

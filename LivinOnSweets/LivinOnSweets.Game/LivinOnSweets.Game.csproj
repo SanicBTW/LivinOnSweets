@@ -7,6 +7,6 @@
     <ProjectReference Include="..\LivinOnSweets.API\LivinOnSweets.API.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ppy.osu.Framework" Version="2024.1220.0" />
+    <PackageReference Include="ppy.osu.Framework" Version="2025.204.0" />
   </ItemGroup>
 </Project>

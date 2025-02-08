@@ -11,6 +11,7 @@ using osu.Framework.Testing;
 
 namespace LivinOnSweets.API.Components
 {
+    // TODO!! Theres multiple function calls with just one propagation
     public partial class AccentComponent : Component
     {
         [Resolved]
@@ -85,6 +86,15 @@ namespace LivinOnSweets.API.Components
 
                 if (anyReceiver)
                     hasPropagatedOnce = true;
+            }
+        }
+
+        // Used inside containers that wish to propagate colors automatically to its children
+        public void PropagateToChildren(Container target)
+        {
+            foreach (IAccentColorReceiver receiver in targetContainer.ChildrenOfType<IAccentColorReceiver>())
+            {
+                PropagateInto(receiver, false);
             }
         }
 
