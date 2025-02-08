@@ -110,8 +110,6 @@ namespace LivinOnSweets.API.Components
             ];
 
             Schedule(() => receiver.PropagateAccents([..colors.Select(c => (BindableColour4)c.GetUnboundCopy())]));
-            if (!manual && !hasPropagatedOnce) // Schedule the signal if its the first run
-                Schedule(() => receiver.AccentsUpdated(ColorChangeDuration, ColorEasing));
         }
 
         public BindableColour4 GetBindable(AccentBannerSide side, AccentColorRole role)
