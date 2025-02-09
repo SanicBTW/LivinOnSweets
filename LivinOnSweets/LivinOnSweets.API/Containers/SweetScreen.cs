@@ -6,5 +6,11 @@ namespace LivinOnSweets.API.Containers
     {
         // 100% Sure that the parent is a screen stack (since it will throw otherwise)
         protected ScreenStack ScreenStack => (ScreenStack)Parent;
+
+        public new bool Masking
+        {
+            get => base.Masking;
+            set => base.Masking = value;
+        }
     }
 }
