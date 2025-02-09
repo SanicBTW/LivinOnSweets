@@ -86,7 +86,7 @@ namespace LivinOnSweets.API.Overlays
         {
             base.LoadComplete();
 
-            stateManager.RTState.BindValueChanged(ProcessRtState);
+            stateManager.RtState.BindValueChanged(ProcessRtState);
             // Not working as expected, will come back to it later, for now the main thing is working
             // sanco here, 15 min later, read lazer source code to see how they do it, uhhh ill work on this another day
             // host.ExitRequested += ExitGame;
@@ -170,7 +170,7 @@ namespace LivinOnSweets.API.Overlays
                     break;
             }
 
-            return stateManager.RTState.Value != RuntimeState.CLOSE_PROMPT;
+            return stateManager.RtState.Value != RuntimeState.CLOSE_PROMPT;
         }
 
         public void OnReleased(KeyBindingReleaseEvent<ManiaAction> e) { }
