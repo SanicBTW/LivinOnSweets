@@ -14,11 +14,6 @@ namespace LivinOnSweets.API.Containers
         public ComponentContainer()
         {
             AutoSizeAxes = Axes.Both;
-        }
-
-        [BackgroundDependencyLoader]
-        private void load()
-        {
             Add(Components = new Container<Component>()
             {
                 Depth = 99
