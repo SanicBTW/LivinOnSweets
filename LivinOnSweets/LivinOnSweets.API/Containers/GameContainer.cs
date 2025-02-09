@@ -26,6 +26,8 @@ namespace LivinOnSweets.API.Containers
         public override bool PropagatePositionalInputSubTree => propagateInput;
 
         public Vector2 GameSize = new(820, 461);
+        public Vector2 TargetSize = new(1280, 720);
+        public DrawSizePreservationStrategy Strategy = DrawSizePreservationStrategy.Minimum;
 
         public BindableMarginPadding GameMargin = new(new MarginPadding()
         {
@@ -58,19 +60,16 @@ namespace LivinOnSweets.API.Containers
                     Colour = Colour4.FromHex("#3a3a3a"), // color of the game container,
                     Alpha = 0f,
                 },
-                spinner = new LoadingSpinner(true, true)
-                {
-                    Anchor = Anchor.BottomRight,
-                    Origin = Anchor.BottomRight,
-                    Margin = new MarginPadding(40)
-                },
                 // All of the content will be sized as 1280x720, to avoid issues with positioning and scaling artifacts
+                // This could change in the future however, allowing the users to uncap the size of the screens
+                // thats actually great content for an update lmao
                 new DrawSizePreservingFillContainer()
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
-                    TargetDrawSize = new Vector2(1280, 720), // OMFG THIS SAVED MY LIFE, I LOVE YOU DRAW SIZE PRESERVING FILL CONTAINER
+                    TargetDrawSize = TargetSize, // OMFG THIS SAVED MY LIFE, I LOVE YOU DRAW SIZE PRESERVING FILL CONTAINER
+                    Strategy = Strategy,
                     Child = screenStack = new ScreenStack()
                     {
                         Anchor = Anchor.Centre,
@@ -79,10 +78,17 @@ namespace LivinOnSweets.API.Containers
                         Scale = new Vector2(0.8f),
                         Alpha = 0,
                     }
+                },
+                spinner = new LoadingSpinner(true, true)
+                {
+                    Anchor = Anchor.BottomRight,
+                    Origin = Anchor.BottomRight,
+                    Margin = new MarginPadding(40)
                 }
             };
 
             GameMargin.BindValueChanged((ev) => Margin = ev.NewValue);
+            screenStack.ScreenPushed += ScreenStackOnScreenPushed;
         }
 
         public void EnterGame(GameScreenData screenData)
@@ -156,6 +162,19 @@ namespace LivinOnSweets.API.Containers
                 if (nextScreen != null)
                     screenStack.Push(nextScreen);
             }
+        }
+
+        // Made to cap the new screens to the target size (1280x720) while also masking them to
+        // hide anything out of the target size, I don't really like this approach
+        // because I think there's another way to do this but I don't want to do it manually
+        // either so I'm gonna stay with this for now :grin:
+        private void ScreenStackOnScreenPushed(IScreen lastScreen, IScreen newScreen)
+        {
+            SweetScreen currentScreen = (SweetScreen)newScreen;
+            currentScreen.Anchor = currentScreen.Origin = Anchor.Centre;
+            currentScreen.Masking = true;
+            currentScreen.RelativeSizeAxes = Axes.None;
+            currentScreen.Size = TargetSize;
         }
     }
 }
