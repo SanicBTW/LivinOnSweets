@@ -53,6 +53,9 @@ namespace LivinOnSweets.Game
             // Used to pass the main menu resources across the dp container
             container.CacheAs(new MainMenuStore(Host.Renderer, Resources));
 
+            // used to pass the rhythm game resources across the dp container
+            container.CacheAs(new RhythmGameStore(Host.Renderer, Resources, Audio));
+
             IResourceStore<TextureUpload> texUpload = Host.CreateTextureLoaderStore(Resources);
 
             LargeTextureStore largeTS = new(Host.Renderer, texUpload);
@@ -67,6 +70,11 @@ namespace LivinOnSweets.Game
             // Add the resource stores to the texture lookups
             container.CacheAs(AddToTextureLookup(new StoryModeStore(Resources), texLookups));
             container.CacheAs(AddToTextureLookup(new StartupStore(Resources), texLookups));
+
+            // Add the namespaces to the texture lookups (except the pixel art store, since these 2 already exist in their own pixel art store)
+            texLookups = texLookups[..^1];
+            AddToTextureLookup(new MainMenuNamespace(Resources), texLookups);
+            AddToTextureLookup(new RhythmGameNamespace(Resources), texLookups);
 
             ManiaActionContainer actionContainer = [];
             container.CacheAs(actionContainer);

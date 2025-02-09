@@ -11,5 +11,6 @@
     <EmbeddedResource Include="StoryMode\**\*" />
     <EmbeddedResource Include="Startup\**\*" />
     <EmbeddedResource Include="MainMenu\**\*" />
+    <EmbeddedResource Include="RhythmGame\**\*" />
   </ItemGroup>
 </Project>
