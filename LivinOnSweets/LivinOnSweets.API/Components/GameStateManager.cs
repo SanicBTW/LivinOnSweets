@@ -13,39 +13,39 @@ namespace LivinOnSweets.API.Components
         public BindableBool ProgressionBlock = new();
 
         // Runtime = RT
-        public Bindable<RuntimeState> RTState = new Bindable<RuntimeState>();
+        public Bindable<RuntimeState> RtState = new();
 
         // Gameplay = GP
-        public Bindable<GameplayState> GPState = new Bindable<GameplayState>();
+        public Bindable<GameplayState> GpState = new();
 
-        // tries to guess the next state it should be in
+        // tries to guess the next runtime state it should be in
         public void UpdateRuntimeState(bool backing = false, bool checkGameplayState = false)
         {
             if (ProgressionBlock.Value || backing && !CanBack.Value)
                 return;
 
-            RuntimeState runtimeState = RTState.Value;
-            GameplayState gameplayState = checkGameplayState ? GPState.Value : GameplayState.UNINITIALIZED;
+            RuntimeState runtimeState = RtState.Value;
+            GameplayState gameplayState = checkGameplayState ? GpState.Value : GameplayState.UNINITIALIZED;
 
             switch (runtimeState)
             {
                 case RuntimeState.CLOSE_PROMPT:
                     // pressing back will close the prompt
                     // pressing confirm will close the game
-                    RTState.Value = backing ? RuntimeState.STARTUP : RuntimeState.CLOSING;
+                    RtState.Value = backing ? RuntimeState.STARTUP : RuntimeState.CLOSING;
                     break;
 
                 case RuntimeState.STARTUP:
                     if (backing)
                     {
-                        RTState.Value = gameplayState switch
+                        RtState.Value = gameplayState switch
                         {
                             GameplayState.UNINITIALIZED or GameplayState.INITIALIZED => RuntimeState.CLOSE_PROMPT,
-                            _ => RTState.Value
+                            _ => RtState.Value
                         };
                     }
                     else
-                        RTState.Value = RuntimeState.IN_GAME;
+                        RtState.Value = RuntimeState.IN_GAME;
                     break;
 
                 case RuntimeState.IN_GAME:
@@ -54,13 +54,13 @@ namespace LivinOnSweets.API.Components
                     if (!backing)
                         return;
 
-                    RTState.Value = gameplayState switch
+                    RtState.Value = gameplayState switch
                     {
                         // Its in the main menu, not story mode, options or song selection
                         // sanco 1/5/25 - i noticed that the uninitialized state was missing in here, this was causing a blockage inside
                         // the game container preventing it from setting the rt state and blocking the exit from it if it failed to load
                         GameplayState.INITIALIZED or GameplayState.UNINITIALIZED => RuntimeState.STARTUP,
-                        _ => RTState.Value
+                        _ => RtState.Value
                     };
                     break;
             }
@@ -71,13 +71,13 @@ namespace LivinOnSweets.API.Components
         {
             CanBack.UnbindAll();
             ProgressionBlock.UnbindAll();
-            RTState.UnbindAll();
-            GPState.UnbindAll();
+            RtState.UnbindAll();
+            GpState.UnbindAll();
 
             CanBack.SetDefault();
             ProgressionBlock.SetDefault();
-            RTState.SetDefault();
-            GPState.SetDefault();
+            RtState.SetDefault();
+            GpState.SetDefault();
         }
     }
 }

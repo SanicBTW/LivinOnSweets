@@ -54,6 +54,7 @@ namespace LivinOnSweets.Game.StartScreens
             BoundContainer.GameMargin.Value = new MarginPadding(0);
             BoundContainer.Size = Vector2.Zero;
             BoundContainer.RelativeSizeAxes = Axes.Both;
+            BoundContainer.EnableInput(); // Enable the GameScreen input again
         }
 
         public override bool OnExiting(ScreenExitEvent e)

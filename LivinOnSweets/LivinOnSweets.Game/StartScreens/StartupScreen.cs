@@ -27,10 +27,14 @@ namespace LivinOnSweets.Game.StartScreens
     // TODO: Horrible variable naming, clean up / Incorrect variable naming and usage
     // TODO: When spamming enter/esc (BACK, CONFIRM) the scroll pos gets set to the container position (because it didn't have time to scroll to the old position), make it wait for a bit to save the new one
     // TODO: First press might lag a little bit, I don't know what's causing it
+    // TODO: Resizing breaks the layout, reported by MKI, probably osu!framework stuff but I believe its on my side too
     public partial class StartupScreen : SweetScreen, IKeyBindingHandler<ManiaAction>
     {
         [Resolved]
         private GameStateManager stateManager { get; set; }
+
+        [Resolved]
+        private AccentComponent accentComponent { get; set; }
 
         protected SweetScrollContainer ScrollContainer;
         protected Box TransitionBackground;
@@ -53,7 +57,7 @@ namespace LivinOnSweets.Game.StartScreens
         private float animOffset = 150;
         private float minScrollShow = 140; // the minimum value the scroll container has to reach to show or animate sprites that are out of bounds
 
-        private float lastScrollPos;
+        private double lastScrollPos;
 
         public StartupScreen()
         {
@@ -85,12 +89,12 @@ namespace LivinOnSweets.Game.StartScreens
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Alpha = 0f,
-                    }
+                    },
                 ];
         }
 
         [BackgroundDependencyLoader]
-        private void load(TextureStore textures, PixelArtTextureStore pixArtStore, LargeTextureStore largeStore, AccentStore accentStore)
+        private void load(TextureStore textures, PixelArtTextureStore pixArtStore, LargeTextureStore largeStore)
         {
             // CD
             ScrollContainer.Add(new DrawSizePreservingFillContainer()
@@ -210,13 +214,13 @@ namespace LivinOnSweets.Game.StartScreens
                 Texture = textures.Get("Startup/UI/Branding.png")
             });
 
+            // Kinda improved the accents population ig
+            accentComponent.Populate(Banners[0], AccentBannerSide.Left);
+            accentComponent.Populate(Banners[1], AccentBannerSide.Right);
+
             // I was applying the accent when the banners finished loading, which would result on a few secs with the default color then changing to the accent
             // sanco here, i decided to use the left banner accent rather than the right one, since the color can blend in a lot, making the scrollbar kind of hard to see
             ScrollContainer.ApplyAccent(Banners[0]);
-
-            // Kinda improved the accents population ig
-            EditorColours.PopulateColors(accentStore, Banners[0], EditorColours.PrimaryColors);
-            EditorColours.PopulateColors(accentStore, Banners[1], EditorColours.SecondaryColors);
         }
 
         // Screen loaded, entering in view (PUSH)
@@ -310,7 +314,7 @@ namespace LivinOnSweets.Game.StartScreens
             ScrollContainer.ScrollBy(0.1f); // trigger the scroll event to show that you can now scroll
 
             stateManager.ProgressionBlock.SetDefault();
-            stateManager.RTState.BindValueChanged(ProcessRtState); // dont trigger since the banners are already mid animation prob
+            stateManager.RtState.BindValueChanged(ProcessRtState); // dont trigger since the banners are already mid animation prob
         }
 
         protected virtual void AnimateGameContainer(bool transIn = true)
@@ -323,7 +327,7 @@ namespace LivinOnSweets.Game.StartScreens
                 ScrollContainer.BlockScroll();
                 ScrollContainer.TransformBindableTo(ScrollContainer.ScrollBarAlpha, 0, ScrollContainer.AlphaDuration);
 
-                bool notInit = stateManager.GPState.Value == GameplayState.UNINITIALIZED;
+                bool notInit = stateManager.GpState.Value == GameplayState.UNINITIALIZED;
                 ScrollContainer.ScrollTo(notInit ? GameBgContainer[2] : GameBgContainer[1]); // because we dont change the depth of the sprite anymore, we have to properly index the target
 
                 TransitionBackground.Delay(500D)
@@ -375,6 +379,7 @@ namespace LivinOnSweets.Game.StartScreens
         public void SwapGameCtx(GameContainer game)
         {
             // Reset the properties
+            game.DisableInput(); // Disable the input of GameScreen
             game.RelativeSizeAxes = Axes.None;
             game.Size = game.GameSize;
             GameBgContainer.Add(GameContainer = game);
@@ -386,7 +391,7 @@ namespace LivinOnSweets.Game.StartScreens
             if (e.Repeat)
                 return false;
 
-            RuntimeState runtimeState = stateManager.RTState.Value;
+            RuntimeState runtimeState = stateManager.RtState.Value;
 
             switch (e.Action)
             {

@@ -19,6 +19,12 @@ namespace LivinOnSweets.API.Containers
         [Resolved]
         private GameStateManager stateManager { get; set; }
 
+        // Used to block the propagation of input events in the screen when unwanted (e.g runtime state is not in game)
+        private bool propagateInput = true;
+        public override bool PropagateNonPositionalInputSubTree => propagateInput;
+
+        public override bool PropagatePositionalInputSubTree => propagateInput;
+
         public Vector2 GameSize = new(820, 461);
 
         public BindableMarginPadding GameMargin = new(new MarginPadding()
@@ -81,7 +87,7 @@ namespace LivinOnSweets.API.Containers
 
         public void EnterGame(GameScreenData screenData)
         {
-            switch (stateManager.GPState.Value)
+            switch (stateManager.GpState.Value)
             {
                 case GameplayState.INITIALIZED:
                     screenData.OnLoad?.Invoke();
@@ -110,7 +116,7 @@ namespace LivinOnSweets.API.Containers
                         {
                             checkSpinner(nextScreen);
 
-                            stateManager.GPState.Value = GameplayState.INITIALIZED;
+                            stateManager.GpState.Value = GameplayState.INITIALIZED;
                             enableBacking();
                             screenData.OnLoad?.Invoke();
                         });
@@ -118,6 +124,10 @@ namespace LivinOnSweets.API.Containers
                     break;
             }
         }
+
+        public void EnableInput() => propagateInput = true;
+
+        public void DisableInput() => propagateInput = false;
 
         private void enableBacking()
         {
