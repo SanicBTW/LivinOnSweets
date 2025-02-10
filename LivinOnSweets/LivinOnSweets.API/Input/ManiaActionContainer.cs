@@ -18,6 +18,8 @@ namespace LivinOnSweets.API.Input
             new KeyBinding(InputKey.Enter, ManiaAction.CONFIRM),
 
             new KeyBinding(InputKey.Escape, ManiaAction.BACK),
+            // If its a debug build we want it to add the default keybinds
+            // if not the player will have to manually add them in order to use them with the editor dll
             #if DEBUG
             new KeyBinding(new KeyCombination([InputKey.LControl, InputKey.F4]), ManiaAction.EDITOR),
 
@@ -131,7 +133,7 @@ namespace LivinOnSweets.API.Input
         }
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) =>
-            GameDependencies = new(base.CreateChildDependencies(parent));
+            GameDependencies = new DependencyContainer(base.CreateChildDependencies(parent));
 
         internal readonly struct KeyDict(List<InputKey> keys, bool isCombination)
         {
