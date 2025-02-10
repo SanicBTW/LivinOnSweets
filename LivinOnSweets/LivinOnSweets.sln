@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LivinOnSweets.Resources", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LivinOnSweets.API", "LivinOnSweets.API\LivinOnSweets.API.csproj", "{8040FD37-665F-42F1-ACDA-B8B1B84C9348}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LivinOnSweets.Editor", "LivinOnSweets\LivinOnSweets.Editor\LivinOnSweets.Editor.csproj", "{5A6EF85C-5245-42D5-9156-505FA024AF21}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9AF9C164-2A9E-4958-BB12-0FEDC40F58EC}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
