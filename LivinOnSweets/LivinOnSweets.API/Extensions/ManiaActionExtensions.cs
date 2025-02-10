@@ -6,6 +6,6 @@ namespace LivinOnSweets.API.Extensions
     // Now the debug actions are exposed to the public (10/2/25)
     public static class ManiaActionExtensions
     {
-        public static bool IsDebugAction(this ManiaAction action) => action == ManiaAction.REFRESH || action == ManiaAction.EDITOR;
+        public static bool IsDebugAction(this ManiaAction action) => action == ManiaAction.EDITOR;
     }
 }

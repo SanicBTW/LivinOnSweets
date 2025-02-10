@@ -12,11 +12,11 @@ namespace LivinOnSweets.API.Input
         CONFIRM = 4,
         BACK,
         SCREENSHOT,
-        // Now the actions are exposed!
+
+        // Now the debug actions are exposed!
         // If you add the keybind definition to your keybind files
         // the action will be available to be used with the editor
         // if the editor dll is added to the build folder
-        REFRESH,
         EDITOR,
 
         // VOLUME
