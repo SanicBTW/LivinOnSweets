@@ -75,8 +75,8 @@ namespace LivinOnSweets.Game.StartScreens
 
         private bool isReady => nextScreen?.LoadState == LoadState.Ready &&
                                     precompiler.FinishedCompiling &&
-                                    stutterChecker.IsStable &&
-                                    accentLoader.AccentsReady;
+                                    accentLoader.AccentsReady &&
+                                    stutterChecker.IsStable;
 
         protected virtual SweetScreen CreateNextScreen() => new StartupScreen();
 
@@ -181,8 +181,7 @@ namespace LivinOnSweets.Game.StartScreens
                 timer += elapsedDrawFrameTime;
                 IsStable = timer >= maxTime;
 
-                if (IsStable)
-                    Expire();
+                // Expiring the component when its first stable lead to changing the screen when its still lagging
             }
         }
 
