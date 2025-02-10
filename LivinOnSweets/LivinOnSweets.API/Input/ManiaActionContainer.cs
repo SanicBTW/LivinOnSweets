@@ -8,7 +8,7 @@ namespace LivinOnSweets.API.Input
     // This class is added on top of the tree hierarchy, in order to pump down key presses effectively
     public partial class ManiaActionContainer : KeyBindingContainer<ManiaAction>
     {
-        protected KeybindsConfig KBConfig;
+        protected KeybindsConfig KbConfig;
         protected DependencyContainer GameDependencies;
 
         public override IEnumerable<IKeyBinding> DefaultKeyBindings =>
@@ -18,6 +18,9 @@ namespace LivinOnSweets.API.Input
             new KeyBinding(InputKey.Enter, ManiaAction.CONFIRM),
 
             new KeyBinding(InputKey.Escape, ManiaAction.BACK),
+
+            new KeyBinding(InputKey.F2, ManiaAction.SCREENSHOT),
+
             // If its a debug build we want it to add the default keybinds
             // if not the player will have to manually add them in order to use them with the editor dll
             #if DEBUG
@@ -68,20 +71,20 @@ namespace LivinOnSweets.API.Input
             IDictionary<ManiaAction, object> converted = ConvertDefaults();
 
             // We add the configuration to the dependencies so it can be retrieved thru BDL in child containers
-            GameDependencies.CacheAs(KBConfig = new KeybindsConfig(userStorage, converted));
+            GameDependencies.CacheAs(KbConfig = new KeybindsConfig(userStorage, converted));
         }
 
         protected override void ReloadMappings()
         {
             // if there are no keybinds loaded, call the base method to load up the default keybinds
             // 23/12/24 (3:43 am) sanco: but probably this wont reach since theres a ton of exceptions in the way so uhh just in case??
-            if (KBConfig.LoadedKeybinds == null)
+            if (KbConfig.LoadedKeybinds == null)
             {
                 base.ReloadMappings();
                 return;
             }
 
-            KeyBindings = KBConfig.LoadedKeybinds;
+            KeyBindings = KbConfig.LoadedKeybinds;
         }
 
         protected virtual IDictionary<ManiaAction, object> ConvertDefaults()

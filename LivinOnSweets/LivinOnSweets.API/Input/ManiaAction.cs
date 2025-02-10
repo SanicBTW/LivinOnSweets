@@ -1,4 +1,5 @@
-﻿namespace LivinOnSweets.API.Input
+﻿// ReSharper disable InconsistentNaming
+namespace LivinOnSweets.API.Input
 {
     // https://github.com/SanicBTW/FunkinSharp/blob/legacy/FunkinSharp/FunkinSharp.Game/Funkin/FunkinKeybinds.cs#L195
 
@@ -10,6 +11,7 @@
         // GLOBAL
         CONFIRM = 4,
         BACK,
+        SCREENSHOT,
         // Now the actions are exposed!
         // If you add the keybind definition to your keybind files
         // the action will be available to be used with the editor

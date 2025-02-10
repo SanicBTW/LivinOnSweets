@@ -387,25 +387,24 @@ namespace LivinOnSweets.Game.StartScreens
 
         public bool OnPressed(KeyBindingPressEvent<ManiaAction> e)
         {
-            // Just in case a key is kept pressed
-            if (e.Repeat)
-                return false;
-
             RuntimeState runtimeState = stateManager.RtState.Value;
+
+            // If repeating actions, debug actions or if runtime state is in game continue propagating
+            if (e.Repeat || e.Action.IsDebugAction() || runtimeState == RuntimeState.IN_GAME)
+                return false;
 
             switch (e.Action)
             {
                 case ManiaAction.CONFIRM:
                     stateManager.UpdateRuntimeState();
-                    break;
+                    return true;
 
                 case ManiaAction.BACK:
                     stateManager.UpdateRuntimeState(true, true);
-                    break;
+                    return true;
             }
 
-            // If the action isn't a debug action AND the player IS NOT in game, stop the propagation
-            return !e.Action.IsDebugAction() && runtimeState != RuntimeState.IN_GAME;
+            return false;
         }
 
         public void OnReleased(KeyBindingReleaseEvent<ManiaAction> e) { }

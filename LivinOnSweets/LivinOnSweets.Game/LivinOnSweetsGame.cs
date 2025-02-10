@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
+using LivinOnSweets.API.Overlays;
 #endif
 using LivinOnSweets.API.Input;
 using LivinOnSweets.Game.StartScreens;
@@ -49,6 +50,12 @@ namespace LivinOnSweets.Game
 #if DEBUG
             LoadComponentAsync(new DebugContainer(screenStack), ActionContainer.Add);
 #else
+            void defaultAdd()
+            {
+                ActionContainer.Add(screenStack);
+                ActionContainer.Add(new ScreenshotOverlay());
+            }
+
             string dllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LivinOnSweets.Editor.dll");
             if (File.Exists(dllPath))
             {
@@ -69,11 +76,11 @@ namespace LivinOnSweets.Game
                 catch (Exception ex)
                 {
                     Logger.Log($"Failed to inject the editor: {ex.Message}");
-                    ActionContainer.Add(screenStack);
+                    defaultAdd();
                 }
             }
             else
-                ActionContainer.Add(screenStack);
+                defaultAdd();
 #endif
         }
     }
