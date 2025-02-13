@@ -36,6 +36,11 @@ internal partial class ToolBar : Container
                 Direction = FillDirection.Horizontal,
                 Spacing = new Vector2(24, 0),
                 Padding = new MarginPadding() { Top = 14, Bottom = 14, Left = 22, Right = 22 },
+                Children =
+                [
+                    new StackInspector(),
+                    new ToolBarButton(FontAwesome.Solid.EyeDropper, ToolBarActionType.STANDARD),
+                ]
             }
         ]);
     }
