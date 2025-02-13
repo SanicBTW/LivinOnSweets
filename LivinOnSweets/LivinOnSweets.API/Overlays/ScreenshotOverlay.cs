@@ -8,7 +8,10 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Framework.Platform;
 using osuTK;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace LivinOnSweets.API.Overlays
 {
@@ -19,7 +22,7 @@ namespace LivinOnSweets.API.Overlays
         private IRenderer renderer { get; set; }
 
         private Box flash;
-        private Sprite lastScreenshot;
+        private ScreenshotSprite lastScreenshot;
 
         public ScreenshotOverlay()
         {
@@ -60,17 +63,7 @@ namespace LivinOnSweets.API.Overlays
 
         private void takeScreenshot()
         {
-            Sprite ss = new Sprite()
-            {
-                // The size is 1280x720 / 4
-                Size = new Vector2(320, 180),
-                Texture = renderer.TakeScreenshotToTexture(),
-                Anchor = Anchor.TopRight,
-                Origin = Anchor.TopRight,
-                // Scale it to 1280x720
-                Scale = new Vector2(4)
-            };
-
+            ScreenshotSprite ss = new ScreenshotSprite(DrawSize);
             lastScreenshot = ss;
             Add(ss);
 
@@ -85,6 +78,45 @@ namespace LivinOnSweets.API.Overlays
         {
             spr.Texture?.Dispose();
             Remove(spr, true);
+        }
+
+        private partial class ScreenshotSprite : Sprite
+        {
+            [Resolved]
+            private Clipboard clipboard { get; set; }
+
+            [Resolved]
+            private IRenderer renderer { get; set; }
+
+            // Save a reference to the screenshot pixels so if the screenshot is clicked
+            // it doesnt have to take another one, changing  the content of the copied img
+            private Image<Rgba32> image;
+
+            public ScreenshotSprite(Vector2 drawSize, float scaleFactor = 4)
+            {
+                Size = drawSize / scaleFactor;
+                Scale = new Vector2(scaleFactor);
+
+                Anchor = Anchor.TopRight;
+                Origin = Anchor.TopRight;
+            }
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                // Save up a copy of the image because if we use it, it will get disposed as soon as
+                // it gets uploaded to the texture data, so we allocating twice now :grin:
+                // hey i should just look at osu lazer code? wtf am i doing lmao
+                image = renderer.TakeScreenshotToImage();
+
+                Texture = renderer.TakeScreenshotToTexture();
+            }
+
+            protected override bool OnClick(ClickEvent e)
+            {
+                clipboard.SetImage(image);
+                return true;
+            }
         }
     }
 }
