@@ -1,5 +1,5 @@
 ﻿#if DEBUG
-using LivinOnSweets.Editor.Containers;
+using LivinOnSweets.Editor;
 #else
 using System;
 using System.IO;
@@ -62,9 +62,9 @@ namespace LivinOnSweets.Game
                 try
                 {
                     Assembly editorAssembly = Assembly.LoadFrom(dllPath);
-                    Type editorContainer = editorAssembly.GetType("LivinOnSweets.Editor.Containers.DebugContainer");
+                    Type editorContainer = editorAssembly.GetType("LivinOnSweets.Editor.DebugContainer");
                     if (editorContainer == null)
-                        throw new TypeLoadException($"Failed to get \"LivinOnSweets.Editor.Containers.DebugContainer\" type.");
+                        throw new TypeLoadException($"Failed to get \"LivinOnSweets.Editor.DebugContainer\" type.");
 
                     object editorInstance = Activator.CreateInstance(editorContainer, args: [screenStack]);
                     if (editorInstance == null)
