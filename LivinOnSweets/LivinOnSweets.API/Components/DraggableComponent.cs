@@ -4,7 +4,6 @@ using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
-using osuTK;
 using osuTK.Input;
 
 namespace LivinOnSweets.API.Components
@@ -21,7 +20,6 @@ namespace LivinOnSweets.API.Components
         }
 
         private MouseButtonEventManager dragButtonManager;
-        private Vector2 dragStartPosition;
 
         public virtual bool IsDragging { get; private set; }
 
@@ -35,7 +33,6 @@ namespace LivinOnSweets.API.Components
 
             IsDragging = true;
             dragButtonManager = GetContainingInputManager().AsNonNull().GetButtonEventManagerFor(e.Button);
-            dragStartPosition = ComponentCntr.ToLocalSpace(e.ScreenSpaceMousePosition);
 
             return true;
         }
@@ -45,7 +42,7 @@ namespace LivinOnSweets.API.Components
             if (!IsDragging)
                 return;
 
-            ComponentCntr.MoveTo(e.ScreenSpaceMousePosition - dragStartPosition, 200D, Easing.OutQuint);
+            ComponentCntr.Position += e.Delta;
 
             DragBlocksClick |= Math.Abs(e.MouseDownPosition.LengthFast - e.MousePosition.LengthFast) > dragButtonManager.ClickDragDistance;
         }
