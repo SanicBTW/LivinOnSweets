@@ -12,6 +12,7 @@ using osuTK;
 namespace LivinOnSweets.API.Sprites
 {
     // Represents the menu entries (Play, Option, Story) with the characters in the og game
+    // TODO: Rewrite or look for the source of lag, probably its due to the huge size of the containers, I don't really know
     public partial class CharacterParallaxBackground : Container
     {
         private const string character_path = "MainMenu/Characters";
@@ -348,8 +349,8 @@ namespace LivinOnSweets.API.Sprites
                             Origin = Anchor.CentreRight;
                             Anchor = Origin.Opposite();
 
-                            float sixt = DrawWidth / 5f;
-                            float nDiff = half - sixt;
+                            float quint = DrawWidth / 5f;
+                            float nDiff = half - quint;
                             Margin = new MarginPadding() { Right = -nDiff };
                             break;
 
