@@ -10,6 +10,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input.Events;
 using osu.Framework.Screens;
 using osu.Framework.Testing;
 using osuTK;
@@ -106,12 +107,15 @@ internal partial class StackInspector() : ToolBarButton(FontAwesome.Solid.Clone,
         public static FontUsage DetailsFont = new(family: "GyeonggiTitle", size: 14F);
 
         private Container previewContainer;
-        private FillFlowContainer<SpriteText> detailsContainer;
-        private SweetScreen screen;
+        private SpriteText isLoaded;
+
+        internal SweetScreen Screen;
+        internal int StackPosition;
 
         public StackCard(SweetScreen targetScreen, int posInStack)
         {
-            screen = targetScreen;
+            Screen = targetScreen;
+            StackPosition = posInStack;
 
             Masking = true;
             CornerRadius = 10;
@@ -138,7 +142,7 @@ internal partial class StackInspector() : ToolBarButton(FontAwesome.Solid.Clone,
                     CornerRadius = 10,
                     Child = getDefaultPreview()
                 },
-                detailsContainer = new FillFlowContainer<SpriteText>()
+                new FillFlowContainer<SpriteText>()
                 {
                     Name = "details container",
                     Direction = FillDirection.Vertical,
@@ -146,7 +150,7 @@ internal partial class StackInspector() : ToolBarButton(FontAwesome.Solid.Clone,
                     Origin = Anchor.TopLeft,
                     X = PREVIEW_WIDTH + PREVIEW_MARGIN,
                     Margin = new MarginPadding() { Left = PREVIEW_MARGIN, Top = PREVIEW_MARGIN * 1.5F, },
-                    AutoSizeAxes = Axes.Y,
+                    AutoSizeAxes = Axes.Both,
                     Spacing = new Vector2(0, 2),
                     Children =
                     [
@@ -160,14 +164,36 @@ internal partial class StackInspector() : ToolBarButton(FontAwesome.Solid.Clone,
                             Text = $"depth: {posInStack}",
                             Font = DetailsFont.With(size: 10F)
                         },
-                        new SpriteText()
+                        isLoaded = new SpriteText()
                         {
-                            Text = $"loaded: {screen.IsAlive}",
+                            Text = $"loaded: {Screen.IsAlive}",
                             Font = DetailsFont.With(size: 10F)
                         }
                     ]
                 },
+                new FillFlowContainer<SpriteIconButton>()
+                {
+                    Name = "toolbar container",
+                    Direction = FillDirection.Horizontal,
+                    Anchor = Anchor.BottomRight,
+                    Origin = Anchor.BottomRight,
+                    Margin = new MarginPadding() { Right = PREVIEW_MARGIN / 2, Bottom = PREVIEW_MARGIN / 2 },
+                    AutoSizeAxes = Axes.X,
+                    Height = 24,
+                    Children =
+                    [
+                        new RefreshScreenButton(this),
+                    ]
+                }
             ];
+        }
+
+        protected override void UpdateAfterChildren()
+        {
+            base.UpdateAfterChildren();
+
+            // Should make it a bindable or something rather than changing the text everytime I guess
+            isLoaded.Text = $"loaded: {Screen.IsAlive}";
         }
 
         private Container getDefaultPreview()
@@ -197,7 +223,93 @@ internal partial class StackInspector() : ToolBarButton(FontAwesome.Solid.Clone,
 
         private string getScreenName()
         {
-            return screen.GetType().Name;
+            return Screen.GetType().Name;
+        }
+
+        // TODO: Fix this
+        private partial class RefreshScreenButton : SpriteIconButton
+        {
+            public const float BOUNCE_ROTATION = 25;
+
+            private SweetScreen screen;
+            private int stackPosition;
+            private bool spinning;
+
+            public RefreshScreenButton(StackCard card) : base(FontAwesome.Solid.RedoAlt)
+            {
+                screen = card.Screen;
+                stackPosition = card.StackPosition;
+                Action = refreshScreen;
+            }
+
+            protected override bool OnHover(HoverEvent e)
+            {
+                if (spinning)
+                    return false;
+
+                Icon.RotateTo(-(BOUNCE_ROTATION * 0.75F), 250D, Easing.OutBack).Then()
+                    .RotateTo(BOUNCE_ROTATION, 500D, Easing.OutBack);
+
+                return true;
+            }
+
+            protected override void OnHoverLost(HoverLostEvent e)
+            {
+                if (spinning)
+                    return;
+
+                Icon.RotateTo(-BOUNCE_ROTATION, 250D, Easing.OutBack).Then()
+                    .RotateTo(BOUNCE_ROTATION * 0.25F, 300D, Easing.OutBack).Then()
+                    .RotateTo(0, 500D, Easing.OutBack);
+            }
+
+            private void refreshScreen()
+            {
+                // The screen can be null if the instance was disposed but the list wasn't updated
+                // TODO: Automatically update the list once a screen gets refreshed
+                if (screen == null)
+                {
+                    // Make it kickback, meaning that something bad happened while refreshing? or that the refresh couldn't be completed properly
+                    OnHover(null);
+                    return;
+                }
+
+                ScreenStack sStack = (ScreenStack)screen.Parent!;
+
+                // Show the user a confirm modal to fully refresh the stack, since the first (last screen) is the beginning of the stack
+                if (!screen.ValidForResume && stackPosition != 0)
+                {
+                    OnHover(null);
+                    return;
+                }
+
+                // Wanting to refresh any screen that isn't the first one would need to change the stack internally, which I guess it should be
+                // by using reflection and creating a new stack with the existing screens while only replacing the target one
+                if (stackPosition != 0)
+                {
+                    OnHover(null);
+                    return;
+                }
+
+                Type targetType = screen.GetType();
+
+                // We cannot figure out the necessary values to make the constructor, sooo avoid em
+                bool hasCtorArgs = targetType.GetConstructors().Any(ctorinf => ctorinf.GetParameters().Length > 0);
+                if (hasCtorArgs)
+                {
+                    OnHover(null);
+                    return;
+                }
+
+                // Exit the current screen (0 lmao)
+                sStack.Exit();
+
+                // Push the new instance
+                sStack.Push((IScreen)Activator.CreateInstance(targetType));
+
+                spinning = true;
+                Icon.Spin(500D, RotationDirection.Clockwise, Icon.Rotation, 1).OnComplete(_ => spinning = false);
+            }
         }
     }
 }
