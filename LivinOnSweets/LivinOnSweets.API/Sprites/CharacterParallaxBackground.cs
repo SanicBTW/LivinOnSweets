@@ -30,7 +30,6 @@ namespace LivinOnSweets.API.Sprites
 
         private Sprite background;
         private Container<CharacterTracker> characters; // The character container inside the update tree
-        private Sprite optionsOverlay; // the "light" that can be seen on the options slide
         private EntryName entry;
 
         public CharacterParallaxBackground(MainMenuEntry targetEntry)
@@ -59,32 +58,44 @@ namespace LivinOnSweets.API.Sprites
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     AutoSizeAxes = Axes.Y,
+                    Depth = -1,
                 },
+                entry = new EntryName(TargetEntry, this)
             ]);
 
             if (TargetEntry == MainMenuEntry.OPTION)
             {
-                // negative transform since it "follows" airi
-                optionsOverlay = new Sprite()
+                // the "light" that can be seen on the options slide
+                Add(new Sprite()
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    Texture = mmStore.Get("MainMenu/UI/Options/SlideOverlay"),
+                    Texture = mmStore.Get("MainMenu/UI/Options/SlideOverlay.png"),
                     Blending = BlendingParameters.Additive
-                };
+                });
             }
 
-            entry = new EntryName(TargetEntry, this);
-
-            if (optionsOverlay != null)
+            if (TargetEntry == MainMenuEntry.STORY)
             {
-                AddRange([
-                    optionsOverlay,
-                    entry
-                ]);
+                // The shadow of the hands of kazusa
+                Add(new Sprite()
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Texture = mmStore.Get($"{story_chars_path}/KazusaShadow.png"),
+                    // Apparently this is the multiply blending, chatgpt gave me the correct arguments except destination
+                    // which would be inherit, now it renders correctly
+                    Blending = new BlendingParameters()
+                    {
+                        Source = BlendingType.DstColor,
+                        Destination = BlendingType.Inherit,
+                        SourceAlpha = BlendingType.One,
+                        DestinationAlpha = BlendingType.Zero,
+                        RGBEquation = BlendingEquation.Add,
+                        AlphaEquation = BlendingEquation.Add,
+                    },
+                });
             }
-            else
-                Add(entry);
 
             AddBackCharacters();
             AddFrontCharacters();
@@ -177,6 +188,7 @@ namespace LivinOnSweets.API.Sprites
             {
                 // Kind of accurate position relative to the OG version :grin:
                 Margin = new MarginPadding() { Bottom = -36, Left = 16 };
+                Depth = -2;
 
                 Label = entry switch
                 {
@@ -273,7 +285,7 @@ namespace LivinOnSweets.API.Sprites
             private string imagePath;
 
             public CharacterTracker(CharacterParallaxBackground track, MainMenuEntry targetEntry, Students targetStudent, bool goesLeft)
-                : base(track, 10D, Easing.InOutCubic, v => goesLeft ? -v : v)
+                : base(track, 0D, Easing.InOutCubic, v => goesLeft ? -v : v)
             {
                 if (targetStudent == Students.RANDOM)
                     throw new InvalidOperationException();
