@@ -27,7 +27,10 @@ namespace LivinOnSweets.API.Sprites
             if (follow != null)
             {
                 Vector2 position = posTransformer(follow.Position);
-                this.MoveTo(position, followDelay, followEase);
+                if (followDelay > 0)
+                    this.MoveTo(position, followDelay, followEase);
+                else
+                    Position = position;
             }
         }
     }

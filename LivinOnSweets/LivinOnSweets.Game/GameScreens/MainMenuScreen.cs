@@ -9,6 +9,7 @@ using LivinOnSweets.API.Interfaces;
 using LivinOnSweets.API.Sprites;
 using LivinOnSweets.API.Stores;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Audio;
 using osu.Framework.Graphics.Containers;
@@ -16,6 +17,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Screens;
+using osuTK;
 
 namespace LivinOnSweets.Game.GameScreens
 {
@@ -110,6 +112,19 @@ namespace LivinOnSweets.Game.GameScreens
                 Colour = Colour4.Black,
                 Depth = -99
             });
+        }
+
+        protected override void UpdateAfterAutoSize()
+        {
+            base.UpdateAfterAutoSize();
+
+            // This is a hack I learnt while doing the editor, check ToolBar.cs
+            if (Backgrounds.AutoSizeAxes.HasFlagFast(Axes.Both))
+            {
+                Vector2 prevSize = Backgrounds.DrawSize;
+                Backgrounds.AutoSizeAxes = Axes.None;
+                Backgrounds.Size = prevSize;
+            }
         }
 
         public bool OnPressed(KeyBindingPressEvent<ManiaAction> e)

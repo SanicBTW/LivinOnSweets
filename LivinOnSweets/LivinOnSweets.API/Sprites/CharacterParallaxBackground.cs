@@ -2,6 +2,7 @@
 using LivinOnSweets.API.Stores;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -25,8 +26,8 @@ namespace LivinOnSweets.API.Sprites
 
         public bool FinishedTransform => Precision.AlmostEquals(LatestTransformEndTime - Time.Current, 0);
 
-        public double SlideTime = 700D;
-        public Easing SlideEase = Easing.InOutCubic;
+        public const double SLIDE_TIME = 700D;
+        public const Easing SLIDE_EASE = Easing.InOutCubic;
 
         private Sprite background;
         private Container<CharacterTracker> characters; // The character container inside the update tree
@@ -150,13 +151,13 @@ namespace LivinOnSweets.API.Sprites
 
         public void SlideIn()
         {
-            this.MoveToX(0, SlideTime, SlideEase);
+            this.MoveToX(0, SLIDE_TIME, SLIDE_EASE);
         }
 
         // slideeee to the left, slideeee to the right, criss cross
         public void SlideOut(bool slideLeft)
         {
-            this.MoveToX(background.DrawWidth * (slideLeft ? -1 : 1), SlideTime, SlideEase);
+            this.MoveToX(background.DrawWidth * (slideLeft ? -1 : 1), SLIDE_TIME, SLIDE_EASE);
         }
 
         // This prepares the background position offscreen, mostly used to position the third background when changing selection
@@ -168,6 +169,19 @@ namespace LivinOnSweets.API.Sprites
             foreach (CharacterTracker charTrack in characters)
             {
                 charTrack.MoveTo(Position);
+            }
+        }
+
+        protected override void UpdateAfterAutoSize()
+        {
+            base.UpdateAfterAutoSize();
+
+            // This is a hack I learnt while doing the editor, check ToolBar.cs
+            if (AutoSizeAxes.HasFlagFast(Axes.Both))
+            {
+                Vector2 prevSize = DrawSize;
+                AutoSizeAxes = Axes.None;
+                Size = prevSize;
             }
         }
 
@@ -285,7 +299,7 @@ namespace LivinOnSweets.API.Sprites
             private string imagePath;
 
             public CharacterTracker(CharacterParallaxBackground track, MainMenuEntry targetEntry, Students targetStudent, bool goesLeft)
-                : base(track, 0D, Easing.InOutCubic, v => goesLeft ? -v : v)
+                : base(track, 0D, SLIDE_EASE, v => goesLeft ? -v : v)
             {
                 if (targetStudent == Students.RANDOM)
                     throw new InvalidOperationException();
