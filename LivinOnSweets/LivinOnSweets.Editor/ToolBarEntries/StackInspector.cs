@@ -265,16 +265,16 @@ internal partial class StackInspector() : ToolBarButton(FontAwesome.Solid.Clone,
 
             private void refreshScreen()
             {
-                // The screen can be null if the instance was disposed but the list wasn't updated
+                // The screen parent can be null if the instance was disposed but the list wasn't updated
                 // TODO: Automatically update the list once a screen gets refreshed
-                if (screen == null)
+                if (screen.Parent == null)
                 {
                     // Make it kickback, meaning that something bad happened while refreshing? or that the refresh couldn't be completed properly
                     OnHover(null);
                     return;
                 }
 
-                ScreenStack sStack = (ScreenStack)screen.Parent!;
+                ScreenStack sStack = (ScreenStack)screen.Parent;
 
                 // Show the user a confirm modal to fully refresh the stack, since the first (last screen) is the beginning of the stack
                 if (!screen.ValidForResume && stackPosition != 0)
