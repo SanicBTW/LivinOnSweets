@@ -18,9 +18,6 @@ namespace LivinOnSweets.API.Overlays
     // This is a port of the screenshot feature I quickly made for the DebugContainer
     public partial class ScreenshotOverlay : Container, IKeyBindingHandler<ManiaAction>
     {
-        [Resolved]
-        private IRenderer renderer { get; set; }
-
         private Box flash;
         private ScreenshotSprite lastScreenshot;
 
@@ -104,18 +101,24 @@ namespace LivinOnSweets.API.Overlays
             [BackgroundDependencyLoader]
             private void load()
             {
-                // Save up a copy of the image because if we use it, it will get disposed as soon as
-                // it gets uploaded to the texture data, so we allocating twice now :grin:
-                // hey i should just look at osu lazer code? wtf am i doing lmao
-                image = renderer.TakeScreenshotToImage();
+                // opengl couldnt return the texture in time, causing in a corrupted texture & image data
+                // to fix it we schedule an "expensive operation" to the draw thread, hopefully retrieving a good image
+                renderer.WrapExpensiveOperation(() =>
+                {
+                    // Save up a copy of the image because if we use it, it will get disposed as soon as
+                    // it gets uploaded to the texture data, so we allocating twice now :grin:
+                    // hey i should just look at osu lazer code? wtf am i doing lmao
+                    image = renderer.TakeScreenshotToImage();
 
-                Texture = renderer.TakeScreenshotToTexture();
+                    Texture = renderer.TakeScreenshotToTexture();
+                });
             }
 
-            protected override bool OnClick(ClickEvent e)
+            protected override void LoadComplete()
             {
+                base.LoadComplete();
+
                 clipboard.SetImage(image);
-                return true;
             }
         }
     }
