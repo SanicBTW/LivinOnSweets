@@ -38,6 +38,8 @@ namespace LivinOnSweets.API.Containers
         private Box background;
         private ScreenStack screenStack;
 
+        // expose the spinner to indicate something is loading and its taking some time inside the game itself
+        [Cached]
         private LoadingSpinner spinner;
         private ScheduledDelegate spinnerShow;
 
