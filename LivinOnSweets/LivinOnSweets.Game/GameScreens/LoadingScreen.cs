@@ -27,6 +27,7 @@ namespace LivinOnSweets.Game.GameScreens
         private bool sining;
 
         private Box fadeOverlay;
+        private bool transitioning;
 
         public LoadingScreen()
         {
@@ -138,6 +139,9 @@ namespace LivinOnSweets.Game.GameScreens
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
+            if (transitioning)
+                return false;
+
             if (isReady() && e.Button == MouseButton.Left)
             {
                 changeScreen();
@@ -149,6 +153,9 @@ namespace LivinOnSweets.Game.GameScreens
 
         public bool OnPressed(KeyBindingPressEvent<ManiaAction> e)
         {
+            if (transitioning)
+                return false;
+
             if (isReady() && e.Action == ManiaAction.CONFIRM)
             {
                 changeScreen();
@@ -162,6 +169,9 @@ namespace LivinOnSweets.Game.GameScreens
 
         private void changeScreen()
         {
+
+
+            transitioning = true;
             fadeOverlay.FadeInFromZero(1000D, Easing.OutQuint).OnComplete(_ =>
             {
                 ScreenStack.Push(nextScreen);
