@@ -105,6 +105,8 @@ namespace LivinOnSweets.Game.StartScreens
                 loadTargets.Add(manager.Load(VertexShaderDescriptor.TEXTURE_2, @"CircularProgress"));
                 loadTargets.Add(manager.Load(VertexShaderDescriptor.TEXTURE_2, @"SaturationSelectorBackground"));
                 loadTargets.Add(manager.Load(VertexShaderDescriptor.TEXTURE_2, @"HueSelectorBackground"));
+
+                loadTargets.Add(manager.Load(VertexShaderDescriptor.TEXTURE_2, @"CircularWipe"));
             }
 
             protected override void Update()
