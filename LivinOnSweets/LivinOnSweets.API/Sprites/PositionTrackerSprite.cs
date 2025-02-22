@@ -24,14 +24,14 @@ namespace LivinOnSweets.API.Sprites
         {
             base.Update();
 
-            if (follow != null)
-            {
-                Vector2 position = posTransformer(follow.Position);
-                if (followDelay > 0)
-                    this.MoveTo(position, followDelay, followEase);
-                else
-                    Position = position;
-            }
+            if (follow == null)
+                return;
+
+            Vector2 position = posTransformer(follow.Position);
+            if (followDelay > 0)
+                this.MoveTo(position, followDelay, followEase);
+            else
+                Position = position;
         }
     }
 }
