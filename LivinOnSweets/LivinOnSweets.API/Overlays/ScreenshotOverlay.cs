@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Platform;
@@ -85,10 +86,6 @@ namespace LivinOnSweets.API.Overlays
             [Resolved]
             private IRenderer renderer { get; set; }
 
-            // Save a reference to the screenshot pixels so if the screenshot is clicked
-            // it doesnt have to take another one, changing  the content of the copied img
-            private Image<Rgba32> image;
-
             public ScreenshotSprite(Vector2 drawSize, float scaleFactor = 4)
             {
                 Size = drawSize / scaleFactor;
@@ -105,20 +102,12 @@ namespace LivinOnSweets.API.Overlays
                 // to fix it we schedule an "expensive operation" to the draw thread, hopefully retrieving a good image
                 renderer.WrapExpensiveOperation(() =>
                 {
-                    // Save up a copy of the image because if we use it, it will get disposed as soon as
-                    // it gets uploaded to the texture data, so we allocating twice now :grin:
-                    // hey i should just look at osu lazer code? wtf am i doing lmao
-                    image = renderer.TakeScreenshotToImage();
+                    Image<Rgba32> image = renderer.TakeScreenshotToImage();
+                    clipboard.SetImage(image);
 
-                    Texture = renderer.TakeScreenshotToTexture();
+                    Texture = renderer.CreateTexture(image.Width, image.Height);
+                    Texture.SetData(new TextureUpload(image));
                 });
-            }
-
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
-
-                clipboard.SetImage(image);
             }
         }
     }
