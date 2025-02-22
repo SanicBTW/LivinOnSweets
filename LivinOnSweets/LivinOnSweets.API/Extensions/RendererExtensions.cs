@@ -10,6 +10,9 @@ namespace LivinOnSweets.API.Extensions
     // More extensions for the renderer
     public static class RendererExtensions
     {
+        // Since the TakeScreenshot function is internal we'll have to use reflection to get the function
+        private static MethodInfo takeScreenshotMethod = typeof(IRenderer).GetMethod("TakeScreenshot", BindingFlags.Instance | BindingFlags.NonPublic);
+
         public static ScheduledDelegate WrapExpensiveOperation(this IRenderer renderer, Action task, double executionTime = 0D, double repeatInterval = -1D)
         {
             ScheduledDelegate operation = new(task, executionTime, repeatInterval);
@@ -17,17 +20,8 @@ namespace LivinOnSweets.API.Extensions
             return operation;
         }
 
-        public static Image<Rgba32> TakeScreenshotToImage(this IRenderer renderer)
-        {
-            // Since the TakeScreenshot function is internal we'll have to use reflection to get the function
-            Type renderType = renderer.GetType();
-
-            MethodInfo method = renderType.GetMethod("TakeScreenshot", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (method == null)
-                return null;
-
-            return (Image<Rgba32>)method.Invoke(renderer, null);
-        }
+        public static Image<Rgba32> TakeScreenshotToImage(this IRenderer renderer) =>
+            (Image<Rgba32>)takeScreenshotMethod.Invoke(renderer, null);
 
         public static Texture TakeScreenshotToTexture(this IRenderer renderer)
         {
