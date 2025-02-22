@@ -1,10 +1,10 @@
-﻿using LivinOnSweets.API.Enum;
+﻿using LivinOnSweets.API.Containers;
+using LivinOnSweets.API.Enum;
 using LivinOnSweets.API.Stores;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Utils;
@@ -13,162 +13,185 @@ using osuTK;
 namespace LivinOnSweets.API.Sprites
 {
     // Represents the menu entries (Play, Option, Story) with the characters in the og game
-    // TODO: Rewrite or look for the source of lag, probably its due to the huge size of the containers, I don't really know
-    public partial class CharacterParallaxBackground : Container
+    public partial class CharacterParallaxBackground : SlideContainer
     {
         private const string character_path = "MainMenu/Characters";
         private const string play_chars_path = $"{character_path}/Play";
         private const string options_chars_path = $"{character_path}/Options";
         private const string story_chars_path = $"{character_path}/Story";
+        private const string label_path = "MainMenu/UI/Slides";
+
+        // TODO: Move this bs to some file, I'm not too proud of it lol
+        private static Dictionary<MainMenuEntry, Dictionary<Students, float>> positions = new()
+        {
+            [MainMenuEntry.STORY] = new Dictionary<Students, float>()
+            {
+                [Students.KAZUSA] = 20,
+                [Students.AIRI] = 545,
+                [Students.NATSU] = -330,
+            },
+            [MainMenuEntry.OPTION] = new Dictionary<Students, float>()
+            {
+                [Students.YOSHIMI] = 0,
+                [Students.KAZUSA] = 155,
+                [Students.NATSU] = -260,
+                [Students.AIRI] = 20
+            }
+        };
+
+        private static Dictionary<MainMenuEntry, Dictionary<Students, int>> charDepths = new()
+        {
+            [MainMenuEntry.PLAY] = new Dictionary<Students, int>()
+            {
+                [Students.NATSU] = 3,
+                [Students.AIRI] = 6,
+                [Students.YOSHIMI] = 7,
+                [Students.KAZUSA] = 8,
+            },
+            [MainMenuEntry.OPTION] = new Dictionary<Students, int>()
+            {
+                [Students.YOSHIMI] = 9,
+                [Students.KAZUSA] = 10,
+                [Students.NATSU] = 11,
+                [Students.AIRI] = 12
+            },
+            [MainMenuEntry.STORY] = new Dictionary<Students, int>()
+            {
+                [Students.KAZUSA] = 2,
+                [Students.AIRI] = 4,
+                [Students.NATSU] = 5,
+            },
+        };
+
+        private static Dictionary<MainMenuEntry, int[]> labelDepths = new()
+        {
+            [MainMenuEntry.PLAY] = [18, 17, 16, 15],
+            [MainMenuEntry.OPTION] = [22, 21, 20, 19],
+            [MainMenuEntry.STORY] = [24, 23, 22, 21]
+        };
 
         public readonly string BackgroundImage;
         public readonly MainMenuEntry TargetEntry;
 
         public bool FinishedTransform => Precision.AlmostEquals(LatestTransformEndTime - Time.Current, 0);
 
-        public const double SLIDE_TIME = 700D;
-        public const Easing SLIDE_EASE = Easing.InOutCubic;
-
-        private Sprite background;
-        private Container<CharacterTracker> characters; // The character container inside the update tree
-        private EntryName entry;
-
         public CharacterParallaxBackground(MainMenuEntry targetEntry)
         {
             TargetEntry = targetEntry;
             BackgroundImage = targetEntry.GetDescription();
 
-            Anchor = Origin = Anchor.Centre;
+            // devious work actually, quick hack to hide off slide(screen) transitions, i dont know if this could kill performance but it cant be that bad right
+            Masking = true;
             AutoSizeAxes = Axes.Both;
         }
 
         [BackgroundDependencyLoader]
-        private void load(MainMenuStore mmStore)
+        private void load(MainMenuStore mmStore, TextureStore textureStore)
         {
-            AddRangeInternal([
-                background = new Sprite()
-                {
-                    Texture = mmStore.Get(BackgroundImage),
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                },
-                // No width for ya guys, even if it looks weird, its for the greater good of the current layout
-                // lmao jk TODO! Fix the characters container not having a width set since it breaks everything else and also breaks sliding animations
-                characters = new Container<CharacterTracker>()
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    AutoSizeAxes = Axes.Y,
-                    Depth = -1,
-                },
-                entry = new EntryName(TargetEntry, this)
-            ]);
-
-            if (TargetEntry == MainMenuEntry.OPTION)
+            AddInternal(new Sprite()
             {
-                // the "light" that can be seen on the options slide
-                Add(new Sprite()
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    Texture = mmStore.Get("MainMenu/UI/Options/SlideOverlay.png"),
-                    Blending = BlendingParameters.Additive
-                });
-            }
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Texture = mmStore.Get(BackgroundImage),
+                Depth = 99,
+            });
+
+            AddBackCharacters(mmStore);
+            AddFrontCharacters(mmStore);
+
+            // the sun shine lmao, why tf is it called slide overlay on the resources
+            if (TargetEntry == MainMenuEntry.OPTION)
+                AddElement(mmStore.Get("MainMenu/UI/Options/SlideOverlay.png"), -140, 1, 13, blending: BlendingParameters.Additive);
 
             if (TargetEntry == MainMenuEntry.STORY)
             {
-                // The shadow of the hands of kazusa
-                Add(new Sprite()
+                // Apparently this is the multiply blending, chatgpt gave me the correct arguments except destination
+                // which would be inherit, now it renders correctly
+                BlendingParameters multiplyBlending = new BlendingParameters()
                 {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    Texture = mmStore.Get($"{story_chars_path}/KazusaShadow.png"),
-                    // Apparently this is the multiply blending, chatgpt gave me the correct arguments except destination
-                    // which would be inherit, now it renders correctly
-                    Blending = new BlendingParameters()
-                    {
-                        Source = BlendingType.DstColor,
-                        Destination = BlendingType.Inherit,
-                        SourceAlpha = BlendingType.One,
-                        DestinationAlpha = BlendingType.Zero,
-                        RGBEquation = BlendingEquation.Add,
-                        AlphaEquation = BlendingEquation.Add,
-                    },
-                });
+                    Source = BlendingType.DstColor,
+                    Destination = BlendingType.Inherit,
+                    SourceAlpha = BlendingType.One,
+                    DestinationAlpha = BlendingType.Zero,
+                    RGBEquation = BlendingEquation.Add,
+                    AlphaEquation = BlendingEquation.Add,
+                };
+
+                // The shadow of the hands of kazusa
+                AddElement(mmStore.Get($"{story_chars_path}/KazusaShadow.png"), 20, -1, 1, blending: multiplyBlending);
             }
 
-            AddBackCharacters();
-            AddFrontCharacters();
+            // Use the default texture store to be able to use texture atlases, since the textures wee using aint that big
+            AddEntryLabel(textureStore);
         }
 
-        /*
-         * Play: K, Y (Front) | A, N (Back)
-         * Story: N, Y (Front) | A, K (Back)
-         * Option: A (Front 1) N (Middle 2) Y (Back 1) K (Back 2)
-         */
-
-        protected virtual void AddBackCharacters()
+        protected virtual void AddBackCharacters(MainMenuStore mmStore)
         {
-            switch (TargetEntry)
+            (Students[], bool[], int) slideStudents = getEntryStudents(false);
+            for (int i = 0; i < slideStudents.Item3; i++)
             {
-                case MainMenuEntry.PLAY:
-                    characters.Add(new CharacterTracker(this,  TargetEntry, Students.AIRI, true));
-                    characters.Add(new CharacterTracker(this,  TargetEntry, Students.NATSU, true));
-                    break;
+                Students student = slideStudents.Item1[i];
+                bool slideLeft = slideStudents.Item2[i];
 
-                case MainMenuEntry.STORY:
-                    characters.Add(new CharacterTracker(this,  TargetEntry, Students.KAZUSA, true));
-                    characters.Add(new CharacterTracker(this,  TargetEntry, Students.AIRI, true));
-                    break;
-
-                case MainMenuEntry.OPTION:
-                    characters.Add(new CharacterTracker(this,  TargetEntry, Students.YOSHIMI, true));
-                    characters.Add(new CharacterTracker(this,  TargetEntry, Students.KAZUSA, false));
-                    break;
+                AddElement(mmStore.Get(getCharacterTexture(student)), getCharXPosition(student), slideLeft ? -1 : 1, getCharDepth(student));
             }
         }
 
-        protected virtual void AddFrontCharacters()
+        protected virtual void AddFrontCharacters(MainMenuStore mmStore)
         {
-            switch (TargetEntry)
+            (Students[], bool[], int) slideStudents = getEntryStudents(true);
+            for (int i = 0; i < slideStudents.Item3; i++)
             {
-                case MainMenuEntry.PLAY:
-                    characters.Add(new CharacterTracker(this,  TargetEntry, Students.KAZUSA, false));
-                    characters.Add(new CharacterTracker(this,  TargetEntry, Students.YOSHIMI, false));
-                    break;
+                Students student = slideStudents.Item1[i];
+                bool slideLeft = slideStudents.Item2[i];
 
-                case MainMenuEntry.STORY:
-                    characters.Add(new CharacterTracker(this,  TargetEntry, Students.NATSU, false));
-                    break;
-
-                case MainMenuEntry.OPTION:
-                    characters.Add(new CharacterTracker(this,  TargetEntry, Students.NATSU, false));
-                    characters.Add(new CharacterTracker(this,  TargetEntry, Students.AIRI, true));
-                    break;
+                AddElement(mmStore.Get(getCharacterTexture(student)), getCharXPosition(student), slideLeft ? -1 : 1, getCharDepth(student));
             }
         }
 
-        public void SlideIn()
+        protected virtual void AddEntryLabel(TextureStore textureStore)
         {
-            this.MoveToX(0, SLIDE_TIME, SLIDE_EASE);
-        }
-
-        // slideeee to the left, slideeee to the right, criss cross
-        public void SlideOut(bool slideLeft)
-        {
-            this.MoveToX(background.DrawWidth * (slideLeft ? -1 : 1), SLIDE_TIME, SLIDE_EASE);
-        }
-
-        // This prepares the background position offscreen, mostly used to position the third background when changing selection
-        public void SlideOffscreen(bool wasSlideLeft)
-        {
-            this.MoveToX(wasSlideLeft ? background.DrawWidth : -background.DrawWidth);
-
-            entry.SetShadowsPositions(Position);
-            foreach (CharacterTracker charTrack in characters)
+            // Essentials
+            string label = TargetEntry switch
             {
-                charTrack.MoveTo(Position);
+                MainMenuEntry.PLAY => "Play",
+                MainMenuEntry.OPTION => "Option",
+                MainMenuEntry.STORY => "Story",
+                _ => ""
+            };
+
+            Anchor targetAnchor = TargetEntry switch
+            {
+                MainMenuEntry.PLAY => Anchor.BottomCentre,
+                MainMenuEntry.OPTION => Anchor.BottomRight,
+                MainMenuEntry.STORY => Anchor.BottomLeft,
+                _ => Anchor.TopLeft
+            };
+
+            // Textures
+            string foregroundTexture = $"{label_path}/{label}FG";
+            string backgroundTexture = $"{label_path}/{label}BG";
+            Texture fgTex = textureStore.Get(foregroundTexture);
+            Texture bgTex = textureStore.Get(backgroundTexture);
+
+            // Since we are gathering from the global texture store which has a scale adjust of 2,
+            // we need to set it to 1 to each of the sprites added to this container
+            fgTex.ScaleAdjust = bgTex.ScaleAdjust = 1;
+
+            // Foreground
+            SlideElement fgEl = AddElement(fgTex, -8, 0, getLabelDepth(0));
+            fgEl.Y = -8;
+            fgEl.Anchor = fgEl.Origin = targetAnchor;
+
+            // 3 Shadows
+            for (int i = 0; i < 3; i++)
+            {
+                int depthIndex = i + 1;
+                double baseDelay = 50D;
+                double endDelay = baseDelay + baseDelay * i;
+
+                SlideElement bgEl = AddElement(bgTex, 0, 0, getLabelDepth(depthIndex), endDelay);
+                bgEl.Anchor = bgEl.Origin = targetAnchor;
             }
         }
 
@@ -185,213 +208,92 @@ namespace LivinOnSweets.API.Sprites
             }
         }
 
-        // One hour later, all i had to track was the background, not the fg sprite...
-        private partial class EntryName : Container
+        /*
+         * Play: K, Y (Front) | A, N (Back)
+         * Story: N, Y (Front) | A, K (Back)
+         * Option: A (Front 1) N (Middle 2) Y (Back 1) K (Back 2)
+         */
+        private (Students[], bool[], int) getEntryStudents(bool front)
         {
-            private const string path = "MainMenu/UI/Slides";
+            Students[] students = new Students[2];
+            bool[] slidesLeft = new bool[2];
 
-            public readonly string Label; // The target entry string we representing
-            public string BackgroundTexture => $"{path}/{Label}BG"; // The background texture path of the label
-            public string ForegroundTexture => $"{path}/{Label}FG"; // The foreground texture path of the label
-
-            private CharacterParallaxBackground parallaxBackground;
-            private Sprite fgSpr;
-            private Container<PositionTrackerSprite> shadows;
-
-            public EntryName(MainMenuEntry entry, CharacterParallaxBackground background)
+            switch (TargetEntry)
             {
-                // Kind of accurate position relative to the OG version :grin:
-                Margin = new MarginPadding() { Bottom = -36, Left = 16 };
-                Depth = -2;
+                case MainMenuEntry.PLAY:
+                    students[0] = front ? Students.KAZUSA : Students.AIRI;
+                    students[1] = front ? Students.YOSHIMI : Students.NATSU;
+                    slidesLeft[0] = slidesLeft[1] = !front; // If front, slide the opposite direction
+                    break;
 
-                Label = entry switch
-                {
-                    MainMenuEntry.PLAY => "Play",
-                    MainMenuEntry.OPTION => "Option",
-                    MainMenuEntry.STORY => "Story",
-                    _ => ""
-                };
-
-                Anchor = Origin = Anchor.BottomCentre;
-                parallaxBackground = background;
-
-                // Create the sprite and set the origin & anchor here
-                fgSpr = new Sprite();
-                fgSpr.Anchor = fgSpr.Origin = entry switch
-                {
-                    MainMenuEntry.PLAY => Anchor.BottomCentre,
-                    MainMenuEntry.OPTION => Anchor.BottomRight,
-                    MainMenuEntry.STORY => Anchor.BottomLeft,
-                    _ => Anchor.TopLeft
-                };
-                fgSpr.MoveToOffset(new Vector2(-8));
-
-                shadows = new Container<PositionTrackerSprite>()
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                };
-
-                RelativeSizeAxes = Axes.X;
-                AutoSizeAxes = Axes.Y;
-            }
-
-            [BackgroundDependencyLoader]
-            private void load(TextureStore textureStore)
-            {
-                Texture bgTex = textureStore.Get(BackgroundTexture);
-                Texture fgTex = textureStore.Get(ForegroundTexture);
-
-                // Since we are gathering from the global texture store which has a scale adjust of 2,
-                // we need to set it to 1 to each of the sprites added to this container
-                bgTex.ScaleAdjust = fgTex.ScaleAdjust = 1;
-
-                // Set the sprite texture here
-                fgSpr.Texture = fgTex;
-
-                GenerateShadows(bgTex);
-
-                AddRange([
-                    shadows,
-                    fgSpr
-                ]);
-            }
-
-            protected virtual void GenerateShadows(Texture bgTex)
-            {
-                shadows.AddRange([
-                    new PositionTrackerSprite(parallaxBackground, 50)
+                case MainMenuEntry.STORY:
+                    if (front)
                     {
-                        Texture = bgTex,
-                        Anchor = fgSpr.Anchor,
-                        Origin = fgSpr.Origin,
-                    },
-                    new PositionTrackerSprite(parallaxBackground, 100)
-                    {
-                        Texture = bgTex,
-                        Anchor = fgSpr.Anchor,
-                        Origin = fgSpr.Origin,
-                    },
-                    new PositionTrackerSprite(parallaxBackground, 150)
-                    {
-                        Texture = bgTex,
-                        Anchor = fgSpr.Anchor,
-                        Origin = fgSpr.Origin,
+                        students[0] = Students.NATSU;
+                        slidesLeft[0] = false;
                     }
-                ]);
+                    else
+                    {
+                        students[0] = Students.KAZUSA;
+                        students[1] = Students.AIRI;
+                        slidesLeft[0] = slidesLeft[1] = true;
+                    }
+                    break;
+
+                case MainMenuEntry.OPTION:
+                    students[0] = front ? Students.NATSU : Students.YOSHIMI;
+                    students[1] = front ? Students.AIRI : Students.KAZUSA;
+
+                    slidesLeft[0] = !front;
+                    slidesLeft[1] = front;
+                    break;
             }
 
-            public void SetShadowsPositions(Vector2 newPos)
-            {
-                foreach (PositionTrackerSprite tracker in shadows)
-                {
-                    tracker.MoveTo(newPos);
-                }
-            }
+            // students length will always match the slides left length
+            return (students, slidesLeft, students.Length);
         }
 
-        private partial class CharacterTracker : PositionTrackerSprite
+        private string getCharacterTexture(Students targetStudent)
         {
-            private MainMenuEntry entry;
-            private Students student;
-            private string imagePath;
+            if (targetStudent == Students.RANDOM)
+                throw new InvalidOperationException();
 
-            public CharacterTracker(CharacterParallaxBackground track, MainMenuEntry targetEntry, Students targetStudent, bool goesLeft)
-                : base(track, 0D, SLIDE_EASE, v => goesLeft ? -v : v)
+            string studentImage = targetStudent.GetDescription();
+
+            string imagePath = TargetEntry switch
             {
-                if (targetStudent == Students.RANDOM)
-                    throw new InvalidOperationException();
+                MainMenuEntry.PLAY => $"{play_chars_path}/{studentImage}",
+                MainMenuEntry.OPTION => $"{options_chars_path}/{studentImage}",
+                _ => null
+            };
 
-                entry = targetEntry;
-                student = targetStudent;
-
-                string studentImage = targetStudent.GetDescription();
-
-                imagePath = targetEntry switch
+            if (imagePath == null)
+            {
+                switch (TargetEntry)
                 {
-                    MainMenuEntry.PLAY => $"{play_chars_path}/{studentImage}",
-                    MainMenuEntry.OPTION => $"{options_chars_path}/{studentImage}",
-                    _ => null
-                };
-
-                if (imagePath == null)
-                {
-                    switch (targetEntry)
-                    {
-                        case MainMenuEntry.STORY:
-                            if (targetStudent == Students.AIRI || targetStudent == Students.KAZUSA)
-                            {
-                                imagePath = $"{story_chars_path}/{studentImage}";
-                                return;
-                            }
-
+                    case MainMenuEntry.STORY:
+                        if (targetStudent == Students.AIRI || targetStudent == Students.KAZUSA)
+                            imagePath = $"{story_chars_path}/{studentImage}";
+                        else
                             imagePath = $"{story_chars_path}/NatsuYoshimi.png";
-                            break;
-                    }
+                        break;
                 }
             }
 
-            [BackgroundDependencyLoader]
-            private void load(MainMenuStore mmStore)
-            {
-                Texture = mmStore.Get(imagePath);
-            }
-
-            // Manual adjustments my friends
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
-
-                Anchor = Origin = Anchor.Centre;
-                if (imagePath.Contains("NatsuYoshimi"))
-                {
-                    Origin = Anchor.CentreRight;
-                    Anchor = Origin.Opposite();
-
-                    float target = DrawWidth / 4;
-                    Margin = new MarginPadding() { Right = -target };
-                }
-
-                if (entry == MainMenuEntry.STORY && student == Students.AIRI)
-                {
-                    Origin = Anchor.CentreLeft;
-                    Anchor = Origin.Opposite();
-
-                    float half = DrawWidth / 2;
-                    float targetHalf = DrawWidth / 2.5f;
-                    float diff = half - targetHalf;
-                    Margin = new MarginPadding() { Left = -diff };
-                }
-
-                if (entry == MainMenuEntry.OPTION)
-                {
-                    float half = DrawWidth / 2;
-
-                    switch (student)
-                    {
-                        case Students.NATSU:
-                            Origin = Anchor.CentreRight;
-                            Anchor = Origin.Opposite();
-
-                            float quint = DrawWidth / 5f;
-                            float nDiff = half - quint;
-                            Margin = new MarginPadding() { Right = -nDiff };
-                            break;
-
-                        case Students.KAZUSA:
-                            Origin = Anchor.CentreLeft;
-                            Anchor = Origin.Opposite();
-
-                            // 4.2 is a magic number, i figured it out using Figma and my basic maths :pray:
-                            float quartsec = half / 4.2f;
-                            float kDiff = half - quartsec;
-                            Margin = new MarginPadding() { Left = -kDiff };
-                            break;
-                    }
-                }
-            }
+            return imagePath;
         }
+
+        private float getCharXPosition(Students student)
+        {
+            float posX = 0;
+            if (positions.TryGetValue(TargetEntry, out Dictionary<Students, float> posDict))
+                posX = posDict[student];
+
+            return posX;
+        }
+
+        private int getCharDepth(Students student) => charDepths[TargetEntry][student];
+
+        private int getLabelDepth(int index) => labelDepths[TargetEntry][index];
     }
 }
