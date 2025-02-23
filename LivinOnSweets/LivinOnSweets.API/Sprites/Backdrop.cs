@@ -13,14 +13,16 @@ namespace LivinOnSweets.API.Sprites
     {
         protected override DrawNode CreateDrawNode() => new BackdropDrawNode(this);
 
+        public bool Running { get; private set; }
         public readonly double Duration;
 
-        public bool Running { get; private set; }
+        private bool startImmediately;
 
-        public Backdrop(double duration = 2000D)
+        public Backdrop(double duration = 2000D, bool startOnLoad = false)
         {
             RelativeSizeAxes = Axes.Both;
             Duration = duration;
+            startImmediately = startOnLoad;
         }
 
         public void Start()
@@ -46,6 +48,15 @@ namespace LivinOnSweets.API.Sprites
         {
             TextureShader = shaders.Load(@"Backdrop", @"Backdrop");
         }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            if (startImmediately)
+                Start();
+        }
+
 
         private partial class BackdropDrawNode : SpriteDrawNode
         {
