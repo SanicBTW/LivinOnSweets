@@ -15,6 +15,7 @@ namespace LivinOnSweets.API.Sprites
     // Represents the menu entries (Play, Option, Story) with the characters in the og game
     public partial class CharacterParallaxBackground : SlideContainer
     {
+        private const string background_path = "MainMenu/Backgrounds";
         private const string character_path = "MainMenu/Characters";
         private const string play_chars_path = $"{character_path}/Play";
         private const string options_chars_path = $"{character_path}/Options";
@@ -70,7 +71,6 @@ namespace LivinOnSweets.API.Sprites
             [MainMenuEntry.STORY] = [24, 23, 22, 21]
         };
 
-        public readonly string BackgroundImage;
         public readonly MainMenuEntry TargetEntry;
 
         public bool FinishedTransform => Precision.AlmostEquals(LatestTransformEndTime - Time.Current, 0);
@@ -78,7 +78,6 @@ namespace LivinOnSweets.API.Sprites
         public CharacterParallaxBackground(MainMenuEntry targetEntry)
         {
             TargetEntry = targetEntry;
-            BackgroundImage = targetEntry.GetDescription();
 
             // devious work actually, quick hack to hide off slide(screen) transitions, i dont know if this could kill performance but it cant be that bad right
             Masking = true;
@@ -92,7 +91,7 @@ namespace LivinOnSweets.API.Sprites
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Texture = mmStore.Get(BackgroundImage),
+                Texture = mmStore.Get($"{background_path}/{TargetEntry.GetDescription()}Slide.png"),
                 Depth = 99,
             });
 

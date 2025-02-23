@@ -2,16 +2,17 @@
 
 namespace LivinOnSweets.API.Enum
 {
-    // Why dont I make string concat? I uhh idk, lets do this for now
+    // Since the texture is prefixed with the entry, we can use string interpolation to form the texture path
+    // MainMenu/Backgrounds/{entry}Slide.png
     public enum MainMenuEntry
     {
-        [Description("MainMenu/Backgrounds/PlaySlide.png")]
+        [Description("Play")]
         PLAY,
 
-        [Description("MainMenu/Backgrounds/OptionsSlide.png")]
+        [Description("Options")]
         OPTION,
 
-        [Description("MainMenu/Backgrounds/StorySlide.png")]
+        [Description("Story")]
         STORY
     }
 }
