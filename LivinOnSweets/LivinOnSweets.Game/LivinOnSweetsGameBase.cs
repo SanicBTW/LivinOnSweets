@@ -58,24 +58,26 @@ namespace LivinOnSweets.Game
 
             IResourceStore<TextureUpload> texUpload = Host.CreateTextureLoaderStore(Resources);
 
-            LargeTextureStore largeTS = new(Host.Renderer, texUpload);
-            container.CacheAs(largeTS);
+            LargeTextureStore largeTs = new(Host.Renderer, texUpload);
+            container.CacheAs(largeTs);
 
             // since the game is pixel art (most of the times except the story mode sprites) we make a pixel art store to set the filter mode to nearest
-            PixelArtTextureStore pixArtTS = new(Host.Renderer, texUpload);
-            container.CacheAs(pixArtTS);
+            // Now the store is an animated one but can be fetched as a standard one or an animated one
+            AnimatedPixelArtTextureStore pixArtTs = new(Host.Renderer, texUpload);
+            container.CacheAs(typeof(PixelArtTextureStore), pixArtTs); // Cache as the derivative of PixelArtTextureStore
+            container.CacheAs(pixArtTs); // Cache as AnimatedPixelArtTextureStore
 
-            Action<IResourceStore<TextureUpload>>[] texLookups = [Textures.AddTextureSource, largeTS.AddTextureSource, pixArtTS.AddTextureSource];
+            Action<IResourceStore<TextureUpload>>[] texLookups = [Textures.AddTextureSource, largeTs.AddTextureSource, pixArtTs.AddTextureSource];
 
             // Add the resource stores to the texture lookups
             container.CacheAs(AddToTextureLookup(new StoryModeStore(Resources), texLookups));
             container.CacheAs(AddToTextureLookup(new StartupStore(Resources), texLookups));
 
-            // Add the namespaces to the texture lookups (except the pixel art store, since these 2 already exist in their own pixel art store)
-            texLookups = texLookups[..^1];
+            // Add the namespaces to the texture lookups, in case the target store doesnt meet the needs of the moment
             AddToTextureLookup(new MainMenuNamespace(Resources), texLookups);
             AddToTextureLookup(new RhythmGameNamespace(Resources), texLookups);
 
+            // Load up the action container
             ManiaActionContainer actionContainer = [];
             container.CacheAs(actionContainer);
             Content.Add(actionContainer);
