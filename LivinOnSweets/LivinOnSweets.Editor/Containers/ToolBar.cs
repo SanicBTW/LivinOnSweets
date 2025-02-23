@@ -1,7 +1,7 @@
-﻿using LivinOnSweets.Editor.Enum;
+﻿using LivinOnSweets.API.Containers;
+using LivinOnSweets.Editor.Enum;
 using LivinOnSweets.Editor.Sprites;
 using LivinOnSweets.Editor.ToolBarEntries;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -10,9 +10,10 @@ using osuTK;
 
 namespace LivinOnSweets.Editor.Containers;
 
-internal partial class ToolBar : Container
+// Resize code now handled in AutoSizeOnceContainer
+internal partial class ToolBar : AutoSizeOnceContainer
 {
-    public ToolBar()
+    public ToolBar() : base(Axes.Y)
     {
         AutoSizeAxes = Axes.Both;
         Anchor = Anchor.BottomCentre;
@@ -43,19 +44,5 @@ internal partial class ToolBar : Container
                 ]
             }
         ]);
-    }
-
-    protected override void UpdateAfterAutoSize()
-    {
-        base.UpdateAfterAutoSize();
-
-        // This disables the auto sizing on the Y axis while also keeping the height before disabling the auto sizing
-        // this is made to be able to modify the sprites without worrying about the size of this container changing
-        if (AutoSizeAxes.HasFlagFast(Axes.Y))
-        {
-            float prevHeight = DrawHeight;
-            AutoSizeAxes &= ~Axes.Y;
-            Height = prevHeight;
-        }
     }
 }

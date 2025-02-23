@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using LivinOnSweets.API.Containers;
 using LivinOnSweets.Editor.Enum;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
@@ -13,23 +14,25 @@ using osuTK.Input;
 
 namespace LivinOnSweets.Editor.Sprites;
 
-internal partial class ToolBarButton : Button
+internal partial class ToolBarButton : AutoSizeOnceContainer
 {
     public static Colour4 InactiveColor = Colour4.FromHex("#6C6C6C");
     public static Colour4 ActiveColor = Colour4.FromHex("#D9D9D9");
 
     private float bounceHeight => DrawHeight * 0.1f;
 
+    private Action action;
     private ToolBarActionType actionBehaviour;
+
     private SpriteIcon icon;
     private Box indicator;
 
-    public ToolBarButton(IconUsage toolIcon, ToolBarActionType actionType)
+    public ToolBarButton(IconUsage toolIcon, ToolBarActionType actionType) : base(Axes.Y)
     {
         actionBehaviour = actionType;
         AutoSizeAxes = Axes.Both;
 
-        Container<SpriteIcon> iconMask = new Container<SpriteIcon>()
+        AutoSizeOnceContainer<SpriteIcon> iconMask = new AutoSizeOnceContainer<SpriteIcon>(Axes.Y)
         {
             Name = "icon mask",
             AutoSizeAxes = Axes.Both,
@@ -84,26 +87,6 @@ internal partial class ToolBarButton : Button
         setupBehaviour();
     }
 
-    protected override void UpdateAfterAutoSize()
-    {
-        base.UpdateAfterAutoSize();
-
-        // See ToolBar.cs
-        if (AutoSizeAxes.HasFlagFast(Axes.Y))
-        {
-            float prevHeight = DrawHeight;
-            AutoSizeAxes &= ~Axes.Y;
-            Height = prevHeight;
-
-            // yes i should save a reference to this but fuck it
-            // this is made to be able to move the icon freely, without making the parent container resize all the time
-            Container<SpriteIcon> iconMask = (Container<SpriteIcon>)icon.Parent!;
-            prevHeight = iconMask.DrawHeight;
-            iconMask.AutoSizeAxes = AutoSizeAxes;
-            iconMask.Height = prevHeight;
-        }
-    }
-
     // Animations
 
     // Mimic the Windows 11 taskbar animations
@@ -131,7 +114,7 @@ internal partial class ToolBarButton : Button
     // Action Behaviour
     private void setupBehaviour()
     {
-        Action = actionBehaviour switch
+        action = actionBehaviour switch
         {
             ToolBarActionType.TOGGLEABLE => actionToggle,
             _ => actionClick,
@@ -162,6 +145,13 @@ internal partial class ToolBarButton : Button
         focusAnimation();
 
         Clicked();
+    }
+
+    // ClickableContainer implementation
+    protected override bool OnClick(ClickEvent e)
+    {
+        action?.Invoke();
+        return true;
     }
 
     // Custom callbacks

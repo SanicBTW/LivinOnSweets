@@ -199,7 +199,7 @@ namespace LivinOnSweets.API.Sprites
         {
             base.UpdateAfterAutoSize();
 
-            // This is a hack I learnt while doing the editor, check ToolBar.cs
+            // This is a hack I learnt while doing the editor, check AutoSizeOnceContainer
             if (AutoSizeAxes.HasFlagFast(Axes.Both))
             {
                 Vector2 prevSize = DrawSize;
