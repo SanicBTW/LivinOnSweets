@@ -39,6 +39,9 @@ namespace LivinOnSweets.Game
         {
             base.LoadComplete();
             screenStack.Push(new PreloaderScreen());
+
+            // https://github.com/ppy/osu/blob/master/osu.Game/OsuGame.cs#L905
+            LoadLocales();
         }
 
         // New feature! It will look for the Editor DLL to load it up

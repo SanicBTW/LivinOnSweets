@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 using osu.Framework.Platform;
 
 namespace LivinOnSweets.API.Overlays
@@ -72,7 +73,7 @@ namespace LivinOnSweets.API.Overlays
                 new SpriteText()
                 {
                     Font = new FontUsage(family: "DNFBitBit", size: 40F),
-                    Text = "CLOSING",
+                    Text = new TranslatableString("close_popup:header", "CLOSING"),
                     Margin = new MarginPadding()
                     {
                         Left = 52,

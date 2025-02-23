@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="ppy.osu.Framework" Version="2025.204.0" />
+    <PackageReference Include="Tomlyn" Version="0.18.0" />
   </ItemGroup>
 
 </Project>

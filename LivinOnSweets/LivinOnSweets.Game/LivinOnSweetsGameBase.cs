@@ -1,13 +1,21 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using LivinOnSweets.API.Components;
+using LivinOnSweets.API.Extensions;
 using LivinOnSweets.API.Input;
+using LivinOnSweets.API.Localisation;
 using LivinOnSweets.API.Stores;
 using LivinOnSweets.Resources;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
+using osu.Framework.Localisation;
+using osu.Framework.Logging;
 using osuTK;
 
 namespace LivinOnSweets.Game
@@ -16,6 +24,15 @@ namespace LivinOnSweets.Game
     {
         protected override Container<Drawable> Content { get; }
         private DependencyContainer gameDependencies;
+
+        // language bs
+        // https://github.com/ppy/osu/blob/master/osu.Game/OsuGameBase.cs#L171
+        public Bindable<Language> CurrentLanguage { get; } = new();
+
+        // https://github.com/ppy/osu/blob/master/osu.Game/OsuGameBase.cs#L233C9-L235C82
+        private Bindable<string> frameworkLocale = null!;
+
+        private IBindable<LocalisationParameters> localisationParameters = null!;
 
         protected LivinOnSweetsGameBase()
         {
@@ -26,11 +43,19 @@ namespace LivinOnSweets.Game
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(FrameworkConfigManager frameworkConfig)
         {
             Resources.AddStore(new DllResourceStore(LivinOnSweetsResources.ResourceAssembly));
             SetupDependencies(gameDependencies);
             SetupFonts();
+
+            frameworkLocale = frameworkConfig.GetBindable<string>(FrameworkSetting.Locale);
+            frameworkLocale.BindValueChanged(_ => updateLanguage());
+
+            localisationParameters = Localisation.CurrentParameters.GetBoundCopy();
+            localisationParameters.BindValueChanged(_ => updateLanguage(), true);
+
+            CurrentLanguage.BindValueChanged(val => frameworkLocale.Value = val.NewValue.ToCultureCode());
         }
 
         protected virtual void SetupDependencies(DependencyContainer container)
@@ -101,6 +126,37 @@ namespace LivinOnSweets.Game
                 addFunc(upload);
 
             return store;
+        }
+
+        // https://github.com/ppy/osu/blob/master/osu.Game/OsuGameBase.cs#L424
+        // Apparently there's like 4 calls on first run (locale is null on framework.ini)
+        // After the first run its only 2 calls
+        private void updateLanguage() => CurrentLanguage.Value = LanguageExtensions.GetLanguageFor(frameworkLocale.Value, localisationParameters.Value);
+
+        // https://github.com/ppy/osu/blob/master/osu.Game/OsuGame.cs#L905
+        protected virtual void LoadLocales()
+        {
+            PreservingNamespaceResourceStore<byte[]> localeNamespace =
+                new PreservingNamespaceResourceStore<byte[]>(Resources, "Localisation");
+
+            Language[] languages = Enum.GetValues<Language>();
+
+            IEnumerable<LocaleMapping> mappings = languages.Select(lang =>
+            {
+                string cultureCode = lang.ToCultureCode();
+
+                try
+                {
+                    return new LocaleMapping(new TomlLocalisationStore(localeNamespace, cultureCode));
+                }
+                catch (Exception e)
+                {
+                    Logger.Error(e, $"Failed to load localisations for language \"{cultureCode}\"");
+                    return null;
+                }
+            }).Where(m => m != null);
+
+            Localisation.AddLocaleMappings(mappings);
         }
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) =>

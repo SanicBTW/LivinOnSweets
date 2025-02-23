@@ -1,0 +1,73 @@
+﻿using System.Globalization;
+using LivinOnSweets.API.Extensions;
+using osu.Framework.IO.Stores;
+using osu.Framework.Localisation;
+using Tomlyn;
+using Tomlyn.Model;
+
+namespace LivinOnSweets.API.Localisation
+{
+    // Uses Tomlyn to parse the localisation files
+    public class TomlLocalisationStore : ILocalisationStore
+    {
+        private IResourceStore<byte[]> backingStore;
+
+        private TomlTable backingToml;
+
+        public CultureInfo EffectiveCulture { get; }
+
+        public TomlLocalisationStore(IResourceStore<byte[]> store, string cultureCode)
+        {
+            backingStore = store;
+
+            EffectiveCulture = new CultureInfo(cultureCode);
+            populate();
+
+            if (backingToml == null)
+                throw new NullReferenceException($"Backing TOML is null, cannot use Localisation {cultureCode}");
+        }
+
+        public string Get(string lookup)
+        {
+            string[] split = lookup.Split(":");
+
+            string section = split[0];
+            string key = split[1];
+
+            // Section content, pretty sure its a TomlTable
+            TomlTable secCont = (TomlTable)backingToml[section];
+
+            // Table Content, represents the value of the key
+            if (!secCont.TryGetValue(key, out object tblCont))
+                return null; // Fallback
+
+            // Should stringify the table content if its not a string just in case, but we falling back for now
+            if (tblCont is not string content)
+                return null;
+
+            return content;
+        }
+
+        public Task<string> GetAsync(string lookup, CancellationToken cancellationToken = default) => Task.FromResult(Get(lookup));
+
+        public Stream GetStream(string name) => backingStore.GetStream(name);
+
+        public IEnumerable<string> GetAvailableResources() => backingStore.GetAvailableResources();
+
+        public void Dispose()
+        {
+            backingStore.Dispose();
+        }
+
+        private void populate()
+        {
+            string locale = EffectiveCulture.Name;
+
+            using Stream stream = GetStream($"Localisation/{locale}.toml");
+            using StreamReader reader = new StreamReader(stream);
+            string content = reader.ReadToEnd();
+
+            backingToml = Toml.ToModel(content);
+        }
+    }
+}
