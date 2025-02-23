@@ -1,7 +1,7 @@
 ﻿using JetBrains.Annotations;
 using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Data;
-using LivinOnSweets.API.Enum;
+using LivinOnSweets.API.Enums;
 using LivinOnSweets.API.Sprites.UI;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;

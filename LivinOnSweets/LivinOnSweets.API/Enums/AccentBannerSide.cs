@@ -1,4 +1,4 @@
-﻿namespace LivinOnSweets.API.Enum
+﻿namespace LivinOnSweets.API.Enums
 {
     public enum AccentBannerSide
     {

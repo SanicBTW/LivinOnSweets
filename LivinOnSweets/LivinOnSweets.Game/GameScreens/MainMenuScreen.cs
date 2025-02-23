@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using LivinOnSweets.API.Containers;
 using LivinOnSweets.API.Data;
-using LivinOnSweets.API.Enum;
+using LivinOnSweets.API.Enums;
 using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Interfaces;
 using LivinOnSweets.API.Sprites;

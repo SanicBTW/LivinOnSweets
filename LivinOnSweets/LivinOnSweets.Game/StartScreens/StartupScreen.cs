@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Containers;
 using LivinOnSweets.API.Data;
-using LivinOnSweets.API.Enum;
+using LivinOnSweets.API.Enums;
 using LivinOnSweets.API.Extensions;
 using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Overlays;

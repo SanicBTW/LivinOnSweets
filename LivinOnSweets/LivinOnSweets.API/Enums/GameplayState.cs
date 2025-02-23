@@ -1,4 +1,5 @@
-namespace LivinOnSweets.API.Enum
+// ReSharper disable InconsistentNaming
+namespace LivinOnSweets.API.Enums
 {
     // Represents the current state INSIDE the gameplay container
     public enum GameplayState

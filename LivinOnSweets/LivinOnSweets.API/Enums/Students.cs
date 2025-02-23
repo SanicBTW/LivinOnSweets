@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
+// ReSharper disable InconsistentNaming
 
-namespace LivinOnSweets.API.Enum
+namespace LivinOnSweets.API.Enums
 {
     // Descriptions target the most common suffix for the students images
     public enum Students

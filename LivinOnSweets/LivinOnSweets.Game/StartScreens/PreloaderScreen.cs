@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Containers;
-using LivinOnSweets.API.Enum;
+using LivinOnSweets.API.Enums;
 using LivinOnSweets.API.Sprites.UI;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;

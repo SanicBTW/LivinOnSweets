@@ -1,4 +1,4 @@
-﻿using LivinOnSweets.API.Enum;
+﻿using LivinOnSweets.API.Enums;
 using LivinOnSweets.API.Extensions;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;

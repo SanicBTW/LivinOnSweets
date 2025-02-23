@@ -1,5 +1,5 @@
 ﻿using LivinOnSweets.API.Components;
-using LivinOnSweets.API.Enum;
+using LivinOnSweets.API.Enums;
 using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Stores;
 using osu.Framework.Allocation;

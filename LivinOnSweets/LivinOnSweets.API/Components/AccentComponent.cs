@@ -1,4 +1,4 @@
-﻿using LivinOnSweets.API.Enum;
+﻿using LivinOnSweets.API.Enums;
 using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Interfaces;
 using LivinOnSweets.API.Sprites;

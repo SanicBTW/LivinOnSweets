@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Containers;
-using LivinOnSweets.API.Enum;
+using LivinOnSweets.API.Enums;
 using LivinOnSweets.Editor.Containers;
 using LivinOnSweets.Editor.Enum;
 using LivinOnSweets.Editor.Sprites;

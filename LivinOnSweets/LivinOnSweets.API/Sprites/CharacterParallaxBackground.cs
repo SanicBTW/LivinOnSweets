@@ -1,5 +1,5 @@
 ﻿using LivinOnSweets.API.Containers;
-using LivinOnSweets.API.Enum;
+using LivinOnSweets.API.Enums;
 using LivinOnSweets.API.Stores;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;

@@ -1,4 +1,5 @@
-namespace LivinOnSweets.API.Enum
+// ReSharper disable InconsistentNaming
+namespace LivinOnSweets.API.Enums
 {
     // Represents the state of the StartupScreen to handle some operations
     public enum RuntimeState
