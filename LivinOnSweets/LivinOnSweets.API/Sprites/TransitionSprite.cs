@@ -1,4 +1,5 @@
-﻿using LivinOnSweets.API.Containers;
+﻿using JetBrains.Annotations;
+using LivinOnSweets.API.Containers;
 using LivinOnSweets.API.Extensions;
 using LivinOnSweets.API.Stores;
 using osu.Framework.Allocation;
@@ -7,13 +8,14 @@ using osu.Framework.Graphics.Animations;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Screens;
-using osu.Framework.Threading;
 using osu.Framework.Utils;
 using osuTK;
 
 namespace LivinOnSweets.API.Sprites
 {
     // Used for the transition animations, includes the circular wiping transition, this sprite should sit on top of the parent container
+    // TODO: Fix random blinking on some parts of the transitions
+    // they randomly happen, most likely to be the circular wipe shader but I don't really know
     public partial class TransitionSprite : CompositeDrawable
     {
         private bool useReisa;
@@ -44,6 +46,13 @@ namespace LivinOnSweets.API.Sprites
         [BackgroundDependencyLoader]
         private void load()
         {
+            if (wasPreload)
+            {
+                // Only preload the animation instead of creating all of the wipes n shit
+                InternalChild = (useReisa) ? new ReisaAnimation(null) : new MochiAnimation(null);
+                return;
+            }
+
             fakeStack = genScreenStack();
 
             RelativeSizeAxes = Axes.Both;
@@ -57,7 +66,7 @@ namespace LivinOnSweets.API.Sprites
                 Reveal = false,
                 Progress = 0,
 
-                Colour = Colour4.White, // TODO: Find a way to wipe when the color is transparent
+                Colour = Colour4.Transparent, // TODO: Find a way to wipe when the color is transparent
                 Alpha = 0,
 
                 Anchor = Anchor.Centre,
@@ -120,8 +129,7 @@ namespace LivinOnSweets.API.Sprites
             // chill like that
             if (wasPreload)
             {
-                Container parent = (Container)Parent!;
-                parent.Remove(this, false);
+                removeFromParent();
                 return;
             }
 
@@ -140,34 +148,35 @@ namespace LivinOnSweets.API.Sprites
                 throw new InvalidOperationException();
 
             double startMask = 0D;
+            Colour4 nextColor = Colour4.White;
             if (!useReisa)
             {
                 bgCover.Alpha = 1;
                 mochiCover.Alpha = 1;
 
-                bgCover.TransformTo("Progress", 1f, 800);
-                mochiCover
-                    .Delay(400D)
-                    .TransformTo("Progress", 1f, 800D)
-                    .OnComplete(_ =>
-                    {
-                        transitionMask.Colour = mochiCover.Colour;
-                        transitionMask.Alpha = 1;
-                    });
+                bgCover.TransformTo("Progress", 1f, 800D);
 
-                startMask = mochiCover.LatestTransformEndTime - mochiCover.TransformStartTime;
+                double delay = 400D;
+                mochiCover
+                    .Delay(delay)
+                    .TransformTo("Progress", 1f, 800D);
+
+                nextColor = mochiCover.Colour;
+
+                // - delay since we only want to take the progress transform duration
+                startMask = (mochiCover.LatestTransformEndTime - mochiCover.TransformStartTime) - delay;
             }
-            else
-                transitionMask.Alpha = 1;
 
             // switch the screen context here i suppose
             transitionMask
                 .Delay(startMask)
+                .FadeInFromZero() // This may cause blinking
+                .FadeColour(nextColor)
                 .TransformTo("Progress", 1f, 800D)
                 .OnComplete(_ => Schedule(switchContext));
 
             fakeStack
-                .Delay(startMask + 100D)
+                .Delay(startMask)
                 .FadeInFromZero();
         }
 
@@ -202,14 +211,32 @@ namespace LivinOnSweets.API.Sprites
 
             NextScreen.ChangeLoadState(LoadState.Ready);
             TargetScStack.Push(NextScreen);
+
+            // Remove the transition from the current screen or container when done
+            ScheduleAfterChildren(removeFromParent);
+        }
+
+        private void removeFromParent()
+        {
+            if (Parent is Container pContainer)
+            {
+                pContainer.Remove(this, false);
+                return;
+            }
+
+            if (Parent is SweetScreen pScreen)
+            {
+                pScreen.Remove(this, true);
+                return;
+            }
         }
 
         private partial class MochiAnimation : TextureAnimation
         {
             private bool invoked;
-            private Action animFinished;
+            [CanBeNull] private Action animFinished;
 
-            public MochiAnimation(Action onFinish)
+            public MochiAnimation([CanBeNull] Action onFinish)
             {
                 animFinished = onFinish;
                 Depth = 3;
@@ -231,7 +258,7 @@ namespace LivinOnSweets.API.Sprites
 
                 if (!invoked && PlaybackPosition >= Duration)
                 {
-                    animFinished.Invoke();
+                    animFinished?.Invoke();
                     invoked = true;
                 }
             }
@@ -239,11 +266,11 @@ namespace LivinOnSweets.API.Sprites
 
         private partial class ReisaAnimation : Container
         {
-            private Action animFinished;
+            [CanBeNull] private Action animFinished;
             private Sprite fling;
             private Sprite hit;
 
-            public ReisaAnimation(Action onFinish)
+            public ReisaAnimation([CanBeNull] Action onFinish)
             {
                 animFinished = onFinish;
                 Depth = 2;
@@ -276,6 +303,9 @@ namespace LivinOnSweets.API.Sprites
             protected override void LoadComplete()
             {
                 base.LoadComplete();
+
+                if (animFinished == null)
+                    return;
 
                 fling.Y = DrawHeight + 350;
 
@@ -310,7 +340,7 @@ namespace LivinOnSweets.API.Sprites
                     .OnComplete(_ => hit.FadeOut(500D, Easing.OutQuint));
 
                 double hitTime = hit.LatestTransformEndTime - hit.TransformStartTime;
-                Scheduler.AddDelayed(animFinished, hitTime);
+                Scheduler.AddDelayed(animFinished!, hitTime);
             }
         }
     }
