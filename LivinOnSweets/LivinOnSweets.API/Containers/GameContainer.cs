@@ -97,7 +97,11 @@ namespace LivinOnSweets.API.Containers
         {
             switch (stateManager.GpState.Value)
             {
-                case GameplayState.INITIALIZED:
+                // sanco 24/2/25 - i noticed that this was only working if we were on the main menu, blocking the return to the game screen
+                // if we were in other menu like song select and such, only marking the uninitialized value as a possible match fixes the issue
+
+                // Only load up the next screen WHEN uninitialized, otherwise just invoke the load callback which does the magic
+                default:
                     screenData.OnLoad?.Invoke();
                     ScheduleAfterChildren(enableBacking);
                     break;
