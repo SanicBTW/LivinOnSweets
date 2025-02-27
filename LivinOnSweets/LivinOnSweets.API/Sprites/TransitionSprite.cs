@@ -170,7 +170,7 @@ namespace LivinOnSweets.API.Sprites
             // switch the screen context here i suppose
             transitionMask
                 .Delay(startMask)
-                .FadeInFromZero() // This may cause blinking
+                .FadeInFromZero()
                 .FadeColour(nextColor)
                 .TransformTo("Progress", 1f, 800D)
                 .OnComplete(_ => Schedule(switchContext));
@@ -213,7 +213,7 @@ namespace LivinOnSweets.API.Sprites
             TargetScStack.Push(NextScreen);
 
             // Remove the transition from the current screen or container when done
-            ScheduleAfterChildren(removeFromParent);
+            Schedule(removeFromParent);
         }
 
         private void removeFromParent()
@@ -226,7 +226,7 @@ namespace LivinOnSweets.API.Sprites
 
             if (Parent is SweetScreen pScreen)
             {
-                pScreen.Remove(this, true);
+                pScreen.Remove(this, false);
                 return;
             }
         }
