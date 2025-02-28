@@ -45,7 +45,7 @@ namespace LivinOnSweets.API.Sprites
             spritesheet.ScaleAdjust = 1;
 
             List<FrameData<Texture>> frames = animPixStore.GetFrames(texturePath, 0D, 1, 2);
-            SetFrames(frames.Select(f => f.Content).ToArray());
+            SetFrames([frames[0].Content, frames[1].Content]);
         }
 
         protected override void FireEvent() => Action?.Invoke();
