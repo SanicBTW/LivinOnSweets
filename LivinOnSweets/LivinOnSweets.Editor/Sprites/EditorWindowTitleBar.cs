@@ -4,6 +4,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 using osuTK;
 
 // https://github.com/ppy/osu-framework/blob/master/osu.Framework/Graphics/Visualisation/TitleBar.cs
@@ -16,7 +17,7 @@ internal partial class EditorWindowTitleBar : CompositeDrawable
 
     private readonly Drawable movableTarget;
 
-    public EditorWindowTitleBar(string title, Drawable movableTarget)
+    public EditorWindowTitleBar(TranslatableString title, Drawable movableTarget)
     {
         this.movableTarget = movableTarget;
 

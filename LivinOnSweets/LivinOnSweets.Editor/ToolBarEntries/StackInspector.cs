@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 using osu.Framework.Screens;
 using osu.Framework.Testing;
 using osuTK;
@@ -35,8 +36,8 @@ internal partial class StackInspector() : ToolBarButton(FontAwesome.Solid.Clone,
     [BackgroundDependencyLoader]
     private void load()
     {
-        EditorWindowOption refreshOption = new("refresh list", refreshList);
-        LoadComponentAsync(stackWindow = new EditorWindow("stack inspector", refreshOption), editorView.Add);
+        EditorWindowOption refreshOption = new("editor.stack_inspector:option_label", "refresh list", refreshList);
+        LoadComponentAsync(stackWindow = new EditorWindow("editor.stack_inspector:window_title", "stack inspector", refreshOption), editorView.Add);
     }
 
     protected override void LoadComplete()
@@ -161,12 +162,12 @@ internal partial class StackInspector() : ToolBarButton(FontAwesome.Solid.Clone,
                         },
                         new SpriteText()
                         {
-                            Text = $"depth: {posInStack}",
+                            Text = new TranslatableString("editor.stack_inspector.card:depth", "depth: {0}", posInStack),
                             Font = DetailsFont.With(size: 10F)
                         },
                         isLoaded = new SpriteText()
                         {
-                            Text = $"loaded: {Screen.IsAlive}",
+                            Text = new TranslatableString("editor.stack_inspector.card:loaded", "loaded: {0}", Screen.IsAlive),
                             Font = DetailsFont.With(size: 10F)
                         }
                     ]
@@ -193,7 +194,8 @@ internal partial class StackInspector() : ToolBarButton(FontAwesome.Solid.Clone,
             base.UpdateAfterChildren();
 
             // Should make it a bindable or something rather than changing the text everytime I guess
-            isLoaded.Text = $"loaded: {Screen.IsAlive}";
+            // Should look into this again, since now I'm using translatable strings, I need to format the current string in some way
+            //isLoaded.Text = $"loaded: {Screen.IsAlive}";
         }
 
         private Container getDefaultPreview()

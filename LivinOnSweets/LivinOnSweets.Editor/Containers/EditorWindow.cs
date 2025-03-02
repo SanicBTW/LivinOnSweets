@@ -2,6 +2,7 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Localisation;
 using osuTK;
 
 // https://github.com/ppy/osu-framework/blob/master/osu.Framework/Graphics/Visualisation/ToolWindow.cs
@@ -18,7 +19,7 @@ internal partial class EditorWindow : OverlayContainer
 
     public FillFlowContainer ScrollContent { get; protected set; }
 
-    public EditorWindow(string title, EditorWindowOption option)
+    public EditorWindow(string key, string titleFallback, EditorWindowOption option)
     {
         Size = new Vector2(WIDTH, HEIGHT);
         Masking = true;
@@ -26,7 +27,7 @@ internal partial class EditorWindow : OverlayContainer
 
         AddRangeInternal([
             getBackground(),
-            new EditorWindowTitleBar(title, this),
+            new EditorWindowTitleBar(new TranslatableString(key, titleFallback), this),
             option,
             new EditorScrollContainer()
             {

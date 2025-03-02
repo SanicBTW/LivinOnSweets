@@ -5,6 +5,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 using osuTK;
 
 namespace LivinOnSweets.Editor.Sprites;
@@ -24,7 +25,7 @@ internal partial class EditorWindowOption : CompositeDrawable
 
     private readonly Action action;
 
-    public EditorWindowOption(string label, [CanBeNull] Action action = null)
+    public EditorWindowOption(string key, string labelFallback, [CanBeNull] Action action = null)
     {
         this.action = action;
 
@@ -80,7 +81,7 @@ internal partial class EditorWindowOption : CompositeDrawable
             {
                 Anchor = Anchor.CentreLeft,
                 Origin = Anchor.CentreLeft,
-                Text = label,
+                Text = new TranslatableString(key, labelFallback),
                 Font = new FontUsage(family: "GyeonggiTitle", size: 12F),
                 Margin = new MarginPadding() { Left = CORNER_RADIUS }
             }
