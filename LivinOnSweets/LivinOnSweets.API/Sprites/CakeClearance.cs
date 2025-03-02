@@ -20,13 +20,10 @@ namespace LivinOnSweets.API.Sprites
 
         // TODO: Load the song store with the clearance stat n shi
         [BackgroundDependencyLoader]
-        private void load(AnimatedPixelArtTextureStore animPixStore)
+        private void load(MainMenuStore mmStore)
         {
-            Texture texture = animPixStore.Get(texture_path);
-            texture.ScaleAdjust = 1;
-
             bool hasIt = true;
-            List<FrameData<Texture>> frames = animPixStore.GetFrames(texture_path, 0, 1, 4);
+            List<FrameData<Texture>> frames = mmStore.GetFrames(texture_path, 0, 1, 4);
 
             int frameIndex = (int)targetStat + (hasIt ? 1 : 0);
             Texture = frames[frameIndex].Content;
