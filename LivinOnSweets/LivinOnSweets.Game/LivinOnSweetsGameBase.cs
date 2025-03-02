@@ -114,6 +114,7 @@ namespace LivinOnSweets.Game
             AddFont(Resources, "Fonts/GyeonggiTitle/GyeonggiTitle-Bold");
             AddFont(Resources, "Fonts/Prompt/Prompt");
             AddFont(Resources, "Fonts/DNFBitBit/DNFBitBit");
+            AddFont(Resources, "Fonts/DNFBitBit/DNFBitBit-Italic");
         }
 
         // this might be insecure af but we balling with it anyways trust
