@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Containers;
+using LivinOnSweets.API.Data.Song;
 using LivinOnSweets.API.Enums;
 using LivinOnSweets.API.Sprites.UI;
+using LivinOnSweets.API.Stores;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -18,12 +20,14 @@ namespace LivinOnSweets.Game.StartScreens
 {
     // Used to preload resources for the first run, kinda similar to Loader from osu!lazer
     // Literally https://github.com/ppy/osu/blob/master/osu.Game/Screens/Loader.cs
+    // TODO: Add a status report (showing the remaining components to get ready)
     public partial class PreloaderScreen : SweetScreen
     {
         private SweetScreen nextScreen;
         private ShaderPrecompiler precompiler;
         private StutterComponent stutterChecker;
         private AccentLoaderComponent accentLoader;
+        private SongMetadataLoaderComponent songMetaLoader;
 
         private LoadingSpinner spinner;
         private ScheduledDelegate spinnerShow;
@@ -42,6 +46,8 @@ namespace LivinOnSweets.Game.StartScreens
             LoadComponentAsync(precompiler = CreateShaderPrecompiler(), AddInternal);
 
             LoadComponentAsync(accentLoader = CreateAccentLoader(), AddInternal);
+
+            LoadComponentAsync(songMetaLoader = CreateSongMetadaLoader(), AddInternal);
 
             LoadComponentAsync(nextScreen = CreateNextScreen());
 
@@ -76,6 +82,7 @@ namespace LivinOnSweets.Game.StartScreens
         private bool isReady => nextScreen?.LoadState == LoadState.Ready &&
                                     precompiler.FinishedCompiling &&
                                     accentLoader.AccentsReady &&
+                                    songMetaLoader.FinishedPreloading &&
                                     stutterChecker.IsStable;
 
         protected virtual SweetScreen CreateNextScreen() => new StartupScreen();
@@ -85,6 +92,8 @@ namespace LivinOnSweets.Game.StartScreens
         protected virtual StutterComponent CreateStutterChecker() => new();
 
         protected virtual AccentLoaderComponent CreateAccentLoader() => new();
+
+        protected virtual SongMetadataLoaderComponent CreateSongMetadaLoader() => new();
 
         // Literally https://github.com/ppy/osu/blob/master/osu.Game/Screens/Loader.cs#L117
         public partial class ShaderPrecompiler : Component
@@ -209,6 +218,52 @@ namespace LivinOnSweets.Game.StartScreens
 
                 if (AccentsReady)
                     Expire();
+            }
+        }
+
+        // Preload all the local song store assets
+        public partial class SongMetadataLoaderComponent : Component
+        {
+            [Resolved]
+            private SongStore songStore { get; set; }
+
+            // Target ids to preload
+            private string[] preloadMetas;
+
+            // simple flag to avoid running a foreach every update
+            private bool fired;
+            // Since we cannot access the local song store directly we will track the progress here
+            private List<SongMetadata> preloaded = [];
+
+            public bool FinishedPreloading { get; protected set; }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                preloadMetas = songStore.GetAvailableSongsByFormat().ToArray();
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                if (!fired)
+                {
+                    foreach (string songId in preloadMetas)
+                    {
+                        preloaded.Add(songStore.GetMetadata(songId));
+                    }
+
+                    fired = true;
+                }
+
+                if (preloaded.Count == preloadMetas.Length)
+                {
+                    FinishedPreloading = true;
+                    preloaded = []; // Empty the list since the local song store dictionary already has em saved
+                    Expire();
+                }
             }
         }
     }

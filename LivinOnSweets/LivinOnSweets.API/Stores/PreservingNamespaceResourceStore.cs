@@ -2,7 +2,7 @@
 
 namespace LivinOnSweets.API.Stores
 {
-    // https://github.com/ppy/osu-framework/blob/1022955ac5529357b8c29b4d9f54fe4d99ed9b68/osu.Framework/IO/Stores/NamespacedResourceStore.cs
+    // https://github.com/ppy/osu-framework/blob/master/osu.Framework/IO/Stores/NamespacedResourceStore.cs
     // Behaves like a NamespacedResourceStore but PRESERVES the namespace in the paths
     // You will ask me, "then why not just override the methods?" because when overriding something with "new" it doesnt override the inheritance calls afaik
     // So it would still behave with the old methods, not ideal
