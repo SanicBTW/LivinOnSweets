@@ -23,6 +23,7 @@ namespace LivinOnSweets.API.Stores
         public LocalSongStore(ResourceStore<byte[]> resources)
         {
             backingResStore = new PreservingNamespaceResourceStore<byte[]>(resources, "Songs");
+            var cock = backingResStore.GetAvailableResources();
         }
 
         public SongMetadata GetMetadata(string songId)
@@ -50,5 +51,12 @@ namespace LivinOnSweets.API.Stores
             backingResStore.GetAvailableResources()
                 .Where(s => s.EndsWith(".toml"))
                 .Select(s => Path.GetFileName(Path.GetDirectoryName(s)));
+
+        // Refer to AlbumSprite to know how to use the registered store
+        void ISongStore.RegisterAudioStores(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore) =>
+            trackStore.AddStore(backingResStore);
+
+        void ISongStore.UnregisterAudioStores(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore) =>
+            trackStore.RemoveStore(backingResStore);
     }
 }

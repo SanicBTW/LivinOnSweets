@@ -111,7 +111,7 @@ namespace LivinOnSweets.Game
 
         protected virtual void SetupSongStore(DependencyContainer container)
         {
-            SongStore songStore = new SongStore(Host.CacheStorage);
+            SongStore songStore = new SongStore(Host.CacheStorage, Audio);
             songStore.AddStore(new LocalSongStore(Resources));
             // Search for converters or song stores for modular imports, should be done inside song store
             // loading assemblies for sure, preloading will happen on the PreloadScreen
