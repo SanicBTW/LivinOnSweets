@@ -3,6 +3,7 @@ using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Interfaces;
 using LivinOnSweets.API.Sprites;
 using LivinOnSweets.API.Stores;
+using LivinOnSweets.Game.GameScreens;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -14,10 +15,12 @@ using osu.Framework.Screens;
 using osuTK;
 using osuTK.Input;
 
-namespace LivinOnSweets.Game.GameScreens
+namespace LivinOnSweets.Game.StartScreens
 {
+    // Renamed to GameLoadScreen since it loads the main game screen (MainMenuScreen)
+    // Which could be confused with the new LoadingScreen inside GameScreens namespace
     // TODO: Add logo and fix progression
-    public partial class LoadingScreen : SweetScreen, IKeyBindingHandler<ManiaAction>
+    public partial class GameLoadScreen : SweetScreen, IKeyBindingHandler<ManiaAction>
     {
         private SweetScreen nextScreen;
         private bool isReady() => nextScreen != null && nextScreen.LoadState == LoadState.Ready;
@@ -29,7 +32,7 @@ namespace LivinOnSweets.Game.GameScreens
         private Box fadeOverlay;
         private bool transitioning;
 
-        public LoadingScreen()
+        public GameLoadScreen()
         {
             ValidForResume = false;
         }
@@ -105,7 +108,6 @@ namespace LivinOnSweets.Game.GameScreens
                 }
             };
 
-
         }
 
         protected override void Update()
@@ -169,8 +171,6 @@ namespace LivinOnSweets.Game.GameScreens
 
         private void changeScreen()
         {
-
-
             transitioning = true;
             fadeOverlay.FadeInFromZero(1000D, Easing.OutQuint).OnComplete(_ =>
             {

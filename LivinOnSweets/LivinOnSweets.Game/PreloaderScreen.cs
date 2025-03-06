@@ -6,6 +6,7 @@ using LivinOnSweets.API.Data.Song;
 using LivinOnSweets.API.Enums;
 using LivinOnSweets.API.Sprites.UI;
 using LivinOnSweets.API.Stores;
+using LivinOnSweets.Game.StartScreens;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -16,7 +17,7 @@ using osu.Framework.Threading;
 using osu.Framework.Timing;
 using osu.Framework.Utils;
 
-namespace LivinOnSweets.Game.StartScreens
+namespace LivinOnSweets.Game
 {
     // Used to preload resources for the first run, kinda similar to Loader from osu!lazer
     // Literally https://github.com/ppy/osu/blob/master/osu.Game/Screens/Loader.cs
@@ -116,6 +117,7 @@ namespace LivinOnSweets.Game.StartScreens
                 loadTargets.Add(manager.Load(VertexShaderDescriptor.TEXTURE_2, @"HueSelectorBackground"));
 
                 loadTargets.Add(manager.Load(VertexShaderDescriptor.TEXTURE_2, @"CircularWipe"));
+                loadTargets.Add(manager.Load(@"Backdrop", @"Backdrop"));
             }
 
             protected override void Update()

@@ -337,7 +337,7 @@ namespace LivinOnSweets.Game.StartScreens
                     // Since the screens are part of the game and not the API package we pass a type reference to the next screen that will be created thru activator
                     // When entering the game, let the game load first then after its done loading, change the current screen
                     Type screenType = notInit
-                        ? typeof(LoadingScreen)
+                        ? typeof(GameLoadScreen)
                         : null;
                     Action onLoad = () => ScreenStack.Push(new SGameScreen(GameBgContainer.Remove, GameContainer));
                     Action onError = () => OnResuming(null); // when failing to create the next screen, call on resume to act like if we came back from another screen, resuming this context

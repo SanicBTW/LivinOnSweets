@@ -27,6 +27,7 @@ namespace LivinOnSweets.API.Sprites
         public bool DiscSpinning { get; protected set; }
 
         // I spent 2 hours trying to get the movement working, I'm going fnf way now
+        // In a couple of minutes I got the fnf alphabet movement working, fuck you
         public int TargetY = 0;
         public Vector2 StartPosition = Vector2.Zero;
         public Vector2 DistancePerItem = new(-124, 32);
