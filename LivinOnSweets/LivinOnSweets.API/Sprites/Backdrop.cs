@@ -1,11 +1,13 @@
 ﻿using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Sprites;
+using osuTK;
 
 namespace LivinOnSweets.API.Sprites
 {
@@ -14,14 +16,19 @@ namespace LivinOnSweets.API.Sprites
         protected override DrawNode CreateDrawNode() => new BackdropDrawNode(this);
 
         public bool Running { get; private set; }
-        public readonly double Duration;
+
+        // A bindable to be able to transform it
+        // A negative speed will go the opposite direction
+        // +x => left to right / -x => right to left | +y => up to down / -y => down to up
+        public Bindable<Vector2> ScrollSpeed = new();
 
         private bool startImmediately;
 
-        public Backdrop(double duration = 2000D, bool startOnLoad = false)
+        public Backdrop(float speed = 1F, bool startOnLoad = false)
         {
+            ScrollSpeed.Value = new Vector2(speed);
+
             RelativeSizeAxes = Axes.Both;
-            Duration = duration;
             startImmediately = startOnLoad;
         }
 
@@ -53,6 +60,9 @@ namespace LivinOnSweets.API.Sprites
         {
             base.LoadComplete();
 
+            // Invalidate every time the scroll speed changes
+            ScrollSpeed.BindValueChanged(_ => Invalidate(Invalidation.DrawNode));
+
             if (startImmediately)
                 Start();
         }
@@ -63,9 +73,8 @@ namespace LivinOnSweets.API.Sprites
             public new Backdrop Source => (Backdrop)base.Source;
 
             [CanBeNull] private IUniformBuffer<BackdropTileParameters> parametersBuffer;
-            private float tileScaleX = 1;
-            private float tileScaleY = 1;
-            private float scrollSpeed;
+            private Vector2 tileScale;
+            private Vector2 scrollSpeed;
 
             public BackdropDrawNode(Backdrop source) : base(source) { }
 
@@ -73,13 +82,15 @@ namespace LivinOnSweets.API.Sprites
             {
                 base.ApplyState();
 
-                tileScaleX = Source.DrawWidth / Texture.DisplayWidth;
-                tileScaleY = Source.DrawHeight / Texture.DisplayHeight;
+                tileScale = new Vector2(
+                    Source.DrawWidth / Texture.DisplayWidth,
+                    Source.DrawHeight / Texture.DisplayHeight
+                );
 
-                if (!Source.Running || Source.Duration <= 0)
-                    scrollSpeed = 0;
+                if (!Source.Running)
+                    scrollSpeed = Vector2.Zero;
                 else
-                    scrollSpeed = (0.001f / (float)(Source.Duration / 1000.0));
+                    scrollSpeed = Source.ScrollSpeed.Value * 0.001F;
             }
 
             protected override void BindUniformResources(IShader shader, IRenderer renderer)
@@ -89,8 +100,7 @@ namespace LivinOnSweets.API.Sprites
                 parametersBuffer ??= renderer.CreateUniformBuffer<BackdropTileParameters>();
                 parametersBuffer.Data = new BackdropTileParameters()
                 {
-                    TileScaleX = tileScaleX,
-                    TileScaleY = tileScaleY,
+                    TileScale = tileScale,
                     ScrollSpeed = scrollSpeed,
                     Time = (float)Source.Time.Current
                 };
@@ -107,12 +117,10 @@ namespace LivinOnSweets.API.Sprites
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
             private record struct BackdropTileParameters
             {
-                public UniformFloat TileScaleX; // 4
-                public UniformFloat TileScaleY; // 8
-                public UniformFloat ScrollSpeed; // 12
-                public UniformFloat Time; // 16
-                private readonly UniformPadding12 pad1; // 28
-                private readonly UniformPadding4 pad2; // 32
+                public UniformVector2 TileScale; // 8
+                public UniformVector2 ScrollSpeed; // 16
+                public UniformFloat Time; // 20
+                private readonly UniformPadding12 pad1; // 32
             }
         }
     }
