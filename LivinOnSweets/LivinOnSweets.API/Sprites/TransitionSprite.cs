@@ -14,8 +14,8 @@ using osuTK;
 namespace LivinOnSweets.API.Sprites
 {
     // Used for the transition animations, includes the circular wiping transition, this sprite should sit on top of the parent container
-    // TODO: Fix random blinking on some parts of the transitions
-    // they randomly happen, most likely to be the circular wipe shader but I don't really know
+    // TODO: If the GPU is busy on the frame, blinking might happen
+    // I managed to reduce the probability even more but now it depends on the GPU or ME
     public partial class TransitionSprite : CompositeDrawable
     {
         private bool useReisa;
@@ -24,13 +24,14 @@ namespace LivinOnSweets.API.Sprites
         public ScreenStack TargetScStack;
         public SweetScreen NextScreen;
 
+        private Drawable sprAnimation;
+
         // Mochi
         private CircularWipe bgCover;
         private CircularWipe mochiCover;
 
-        // For both Reisa and the Mochi animations
-        private CircularWipe transitionMask;
-        private ScreenStack fakeStack;
+        // Reisa
+        private CircularWipe reisaMask;
 
         public TransitionSprite(bool forceSpecial = false, bool preloading = false)
         {
@@ -53,34 +54,30 @@ namespace LivinOnSweets.API.Sprites
                 return;
             }
 
-            fakeStack = genScreenStack();
-
             RelativeSizeAxes = Axes.Both;
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
             Masking = true;
 
-            // I need to load the next screen UNDER this and then when finished change the context to the screenstack apparently
-            transitionMask = new CircularWipe()
+            reisaMask = new CircularWipe()
             {
                 Reveal = false,
                 Progress = 0,
 
-                Colour = Colour4.Transparent, // TODO: Find a way to wipe when the color is transparent
+                Colour = Colour4.White, // TODO: Find a way to wipe when the color is transparent
                 Alpha = 0,
 
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
             };
 
-            Drawable animation = (useReisa) ? new ReisaAnimation(changeReady) : new MochiAnimation(changeReady);
+            sprAnimation = (useReisa) ? new ReisaAnimation(changeReady) : new MochiAnimation(changeReady);
             if (useReisa)
             {
                 InternalChildren =
                 [
-                    animation, // reisa animation
-                    fakeStack, // the screen stack
-                    transitionMask, // the master transition
+                    sprAnimation, // reisa animation
+                    reisaMask, // the master transition
                 ];
             }
             else
@@ -114,10 +111,8 @@ namespace LivinOnSweets.API.Sprites
                 InternalChildren =
                 [
                     bgCover, // covers the background
-                    animation, // mochi animation
+                    sprAnimation, // mochi animation
                     mochiCover, // covers the mochi animation
-                    fakeStack, // on top of everything the fake stack
-                    transitionMask // on top the transition mask used to reveal the fake stack
                 ];
             }
         }
@@ -138,7 +133,7 @@ namespace LivinOnSweets.API.Sprites
             if (!useReisa)
                 bgCover.Size = mochiCover.Size = wipeSize;
 
-            transitionMask.Size = wipeSize;
+            reisaMask.Size = wipeSize;
         }
 
         private void changeReady()
@@ -148,7 +143,6 @@ namespace LivinOnSweets.API.Sprites
                 throw new InvalidOperationException();
 
             double startMask = 0D;
-            Colour4 nextColor = Colour4.White;
             if (!useReisa)
             {
                 bgCover.Alpha = 1;
@@ -161,59 +155,43 @@ namespace LivinOnSweets.API.Sprites
                     .Delay(delay)
                     .TransformTo("Progress", 1f, 800D);
 
-                nextColor = mochiCover.Colour;
+                startMask = (mochiCover.LatestTransformEndTime - mochiCover.TransformStartTime);
 
-                // - delay since we only want to take the progress transform duration
-                startMask = (mochiCover.LatestTransformEndTime - mochiCover.TransformStartTime) - delay;
+                Scheduler.AddDelayed(switchContext, startMask);
             }
-
-            // switch the screen context here i suppose
-            transitionMask
-                .Delay(startMask)
-                .FadeInFromZero()
-                .FadeColour(nextColor)
-                .TransformTo("Progress", 1f, 800D)
-                .OnComplete(_ => Schedule(switchContext));
-
-            fakeStack
-                .Delay(startMask)
-                .FadeInFromZero();
-        }
-
-        private ScreenStack genScreenStack()
-        {
-            if (!wasPreload && NextScreen == null)
-                throw new InvalidOperationException();
-            else if (wasPreload && NextScreen == null)
-                NextScreen = new SweetScreen();
-
-            ScreenStack stack = new ScreenStack()
+            else
             {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                RelativeSizeAxes = Axes.Both,
-                Alpha = 0,
-                Depth = 1
-            };
+                // when finished it calls "switchcontext" which for reisa it only cleans the animation, the real work is on change screen i believe
+                reisaMask
+                    .Delay(startMask)
+                    .FadeInFromZero()
+                    .TransformTo("Progress", 1f, 800D)
+                    .OnComplete(_ => Schedule(switchContext));
 
-            stack.Push(NextScreen);
-
-            return stack;
+                Scheduler.AddDelayed(() =>
+                {
+                    TargetScStack.Push(NextScreen);
+                    removeFromParent();
+                }, startMask);
+            }
         }
 
         // I spent like one hour fr trying to decouple the parent and shit while I just had to schedule the call :skull:
         private void switchContext()
         {
-            // SWITCH!
-            fakeStack.Remove(NextScreen, false);
-            RemoveInternal(fakeStack, false);
-            fakeStack = null;
+            RemoveInternal(sprAnimation, true);
 
-            NextScreen.ChangeLoadState(LoadState.Ready);
-            TargetScStack.Push(NextScreen);
+            if (!useReisa)
+            {
+                RemoveInternal(bgCover, true);
 
-            // Remove the transition from the current screen or container when done
-            Schedule(removeFromParent);
+                mochiCover.Reveal = false;
+                mochiCover.TransformTo("Progress", 0f)
+                    .TransformTo("Progress", 1f, 800D)
+                    .OnComplete(_ => removeFromParent()); // remove from the parent once its finished
+
+                TargetScStack.Push(NextScreen);
+            }
         }
 
         private void removeFromParent()
@@ -226,7 +204,7 @@ namespace LivinOnSweets.API.Sprites
 
             if (Parent is SweetScreen pScreen)
             {
-                pScreen.Remove(this, false);
+                pScreen.RemoveInternal(this, false);
                 return;
             }
         }

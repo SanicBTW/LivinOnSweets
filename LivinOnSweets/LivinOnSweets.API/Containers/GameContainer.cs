@@ -65,11 +65,8 @@ namespace LivinOnSweets.API.Containers
                 // All of the content will be sized as 1280x720, to avoid issues with positioning and scaling artifacts
                 // This could change in the future however, allowing the users to uncap the size of the screens
                 // thats actually great content for an update lmao
-                new DrawSizePreservingFillContainer()
+                new TransitionContainer()
                 {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both,
                     TargetDrawSize = TargetSize, // OMFG THIS SAVED MY LIFE, I LOVE YOU DRAW SIZE PRESERVING FILL CONTAINER
                     Strategy = Strategy,
                     Child = screenStack = new ScreenStack()
