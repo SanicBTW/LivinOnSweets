@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using LivinOnSweets.API.Data.Song.Metadata;
 
 namespace LivinOnSweets.API.Data.Song
 {
@@ -16,11 +17,6 @@ namespace LivinOnSweets.API.Data.Song
 
         // Have to think about how to dynamically import the charts for other diffs
         // For now I'm gonna keep it like this
-        public Dictionary<string, string> Charts { get; set; }
-
-        public SongMetadata()
-        {
-            Charts = new Dictionary<string, string>();
-        }
+        public Dictionary<string, string> Charts { get; set; } = [];
     }
 }

@@ -1,4 +1,5 @@
-﻿using osu.Framework.Platform;
+﻿using LivinOnSweets.API.Data.Song;
+using osu.Framework.Platform;
 
 namespace LivinOnSweets.API.Interfaces
 {
@@ -6,11 +7,8 @@ namespace LivinOnSweets.API.Interfaces
     {
         string Format { get; }
 
-        // If the chart format should be converted
-        bool CanConvert(string format);
-
         // Converts the chart to the native format
         // Will ALWAYS save the converted chart to the cache directory
-        object ConvertChart(object input, Storage cacheStorage);
+        SongChart ConvertChart(Stream input, Storage cacheStorage);
     }
 }

@@ -1,6 +1,6 @@
 ﻿using JetBrains.Annotations;
 
-namespace LivinOnSweets.API.Data.Song
+namespace LivinOnSweets.API.Data.Song.Metadata
 {
     public class AlbumTable
     {

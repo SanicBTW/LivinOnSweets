@@ -26,7 +26,7 @@ namespace LivinOnSweets.API.Stores
             cache = cacheStorage;
             audio = audioManager;
 
-            // The reason why we do this is because using GetTrackStore CREATES a new store with the provided ResourceStore
+            // The reason why we do this is because using GetTrackStore CREATES a new TrackStore with the provided ResourceStore
             // Making us having to access a saved variable of it while in other cases we MIGHT want to access the resources
             // through another place, for example injecting ITrackStore to BDL, since its not possible natively
             // we have to access the underlying resource stores to add our own stores to them
@@ -56,35 +56,34 @@ namespace LivinOnSweets.API.Stores
             return null;
         }
 
-        public object GetChart(string songId, string difficulty, string format = LocalSongStore.FORMAT)
+        public SongChart GetChart(string songId, string difficulty, string format = LocalSongStore.FORMAT)
         {
             lock (stores)
             {
                 foreach (ISongStore store in stores)
                 {
-                    if (format != LocalSongStore.FORMAT && store.Format != format)
+                    if (store.Format != format)
                         continue; // Only search on stores that support the format
 
-                    object chartStream = store.GetChart(songId, difficulty);
+                    Stream chartStream = store.GetChart(songId, difficulty);
                     if (chartStream == null)
                         continue;
-
-                    if (format == LocalSongStore.FORMAT)
-                        return chartStream;
 
                     lock (converters)
                     {
                         foreach (ISongConverter converter in converters)
                         {
-                            if (!converter.CanConvert(format))
-                                continue;
+                            if (converter.Format != format)
+                                continue; // Only search for the converter that supports the chart format
 
+                            // Call the conversion and if needed the converter will save the converted output in the cache storage
                             return converter.ConvertChart(chartStream, cache);
                         }
                     }
                 }
             }
 
+            // should return a test chart? instead of crashing or sum tbh
             return null;
         }
 

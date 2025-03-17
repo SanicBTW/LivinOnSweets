@@ -10,8 +10,8 @@ namespace LivinOnSweets.API.Interfaces
         // Returns the TOML Metadata
         SongMetadata GetMetadata(string songId);
 
-        // Implement soon
-        object GetChart(string songId, string difficulty);
+        // Returns a readable Stream that can be used for parsing if needed
+        Stream GetChart(string songId, string difficulty);
 
         // Returns a list of ids
         IEnumerable<string> GetAvailableSongs();

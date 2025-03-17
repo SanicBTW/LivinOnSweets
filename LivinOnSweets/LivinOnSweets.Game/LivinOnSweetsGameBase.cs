@@ -112,7 +112,11 @@ namespace LivinOnSweets.Game
         protected virtual void SetupSongStore(DependencyContainer container)
         {
             SongStore songStore = new SongStore(Host.CacheStorage, Audio);
+            // The local song store is dedicated to the chart format, as well as the lcfv1 chart converter
+            // The reason they aren't integrated into the system itself (songstore code) its to make it as modular as possible
             songStore.AddStore(new LocalSongStore(Resources));
+            songStore.AddConverter(new LocalSongConverter());
+
             // Search for converters or song stores for modular imports, should be done inside song store
             // loading assemblies for sure, preloading will happen on the PreloadScreen
             container.CacheAs(songStore);

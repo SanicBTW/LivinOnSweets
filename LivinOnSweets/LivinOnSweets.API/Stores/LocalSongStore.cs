@@ -23,7 +23,6 @@ namespace LivinOnSweets.API.Stores
         public LocalSongStore(ResourceStore<byte[]> resources)
         {
             backingResStore = new PreservingNamespaceResourceStore<byte[]>(resources, "Songs");
-            var cock = backingResStore.GetAvailableResources();
         }
 
         public SongMetadata GetMetadata(string songId)
@@ -40,9 +39,31 @@ namespace LivinOnSweets.API.Stores
             return meta;
         }
 
-        public object GetChart(string songId, string difficulty)
+        public Stream GetChart(string songId, string difficulty)
         {
-            throw new NotImplementedException();
+            // we using the meta/cached meta, to index the difficulties, if none exist then we check inside the same directory
+            // if we still cant find the chart, call it a fail
+            SongMetadata meta = GetMetadata(songId);
+
+            string chartPath;
+
+            // should analyze the chart path to see if its an absolute dir or something
+            // to properly open the stream
+            if (!meta.Charts.TryGetValue(difficulty, out chartPath))
+                throw new NotImplementedException();
+
+            if (chartPath.Length <= 0)
+            {
+                // hardcoded for now since im too lazy (2:16 am)
+                // should make the difficulty title cased bruh (2:21 am)
+                // I forgot the .net resource name rules, i'll think about a good file name
+                // or even better! just leave it as the difficulty bruh (2:23 am)
+                // TODO: Implement dynamic functionality
+                chartPath = $"Songs/{songId}/{difficulty}.toml";
+            }
+
+            Stream stream = backingResStore.GetStream(chartPath);
+            return stream;
         }
 
         // This hides Songs\ and the toml search target, the reason why we targetting the toml files
