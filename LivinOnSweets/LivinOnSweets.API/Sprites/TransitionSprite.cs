@@ -142,7 +142,6 @@ namespace LivinOnSweets.API.Sprites
             if (TargetScStack == null)
                 throw new InvalidOperationException();
 
-            double startMask = 0D;
             if (!useReisa)
             {
                 bgCover.Alpha = 1;
@@ -155,24 +154,22 @@ namespace LivinOnSweets.API.Sprites
                     .Delay(delay)
                     .TransformTo("Progress", 1f, 800D);
 
-                startMask = (mochiCover.LatestTransformEndTime - mochiCover.TransformStartTime);
+                double maskTime = (mochiCover.LatestTransformEndTime - mochiCover.TransformStartTime) - delay / 2;
 
-                Scheduler.AddDelayed(switchContext, startMask);
+                Scheduler.AddDelayed(switchContext, maskTime);
             }
             else
             {
-                // when finished it calls "switchcontext" which for reisa it only cleans the animation, the real work is on change screen i believe
+                // when the transition finishes, clean it up and schedule the screen changes as well as the removal of ourselves from the parent container
                 reisaMask
-                    .Delay(startMask)
                     .FadeInFromZero()
                     .TransformTo("Progress", 1f, 800D)
                     .OnComplete(_ => Schedule(switchContext));
 
-                Scheduler.AddDelayed(() =>
-                {
-                    TargetScStack.Push(NextScreen);
-                    removeFromParent();
-                }, startMask);
+                double maskTime = (reisaMask.LatestTransformEndTime - reisaMask.TransformStartTime);
+
+                Schedule(() => TargetScStack.Push(NextScreen));
+                Scheduler.AddDelayed(removeFromParent, maskTime);
             }
         }
 

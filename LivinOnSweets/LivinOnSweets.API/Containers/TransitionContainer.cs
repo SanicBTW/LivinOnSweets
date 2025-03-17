@@ -48,7 +48,7 @@ namespace LivinOnSweets.API.Containers
                     break;
 
                 case ScreenTransitionType.SPRITE_ANIMATED:
-                    Add(new TransitionSprite(true)
+                    Add(new TransitionSprite()
                     {
                         TargetScStack = screenStack,
                         NextScreen = ev.TransitionData.NextScreen

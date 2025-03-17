@@ -9,7 +9,6 @@ using osu.Framework.Logging;
 using LivinOnSweets.API.Overlays;
 #endif
 using LivinOnSweets.API.Input;
-using LivinOnSweets.Game.StartScreens;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 
