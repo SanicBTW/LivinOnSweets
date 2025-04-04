@@ -119,6 +119,9 @@ namespace LivinOnSweets.API.Containers
                         LoadComponentAsync(nextScreen, _ =>
                         {
                             screenStack.Push(nextScreen);
+                            screenStack
+                                .FadeTo(1, LoadingSpinner.TRANSITION_DURATION / 2, Easing.OutQuint)
+                                .ScaleTo(1, LoadingSpinner.TRANSITION_DURATION, Easing.OutQuart);
 
                             stateManager.GpState.Value = GameplayState.INITIALIZED;
                             enableBacking();
