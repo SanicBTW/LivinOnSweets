@@ -41,7 +41,6 @@ namespace LivinOnSweets.API.Containers
         // expose the spinner to indicate something is loading and its taking some time inside the game itself
         [Cached]
         private LoadingSpinner spinner;
-        private ScheduledDelegate spinnerShow;
 
         public GameContainer()
         {
@@ -104,9 +103,6 @@ namespace LivinOnSweets.API.Containers
                     break;
 
                 case GameplayState.UNINITIALIZED:
-                    // Only show the spinner if the game is uninitialized
-                    spinnerShow = Scheduler.AddDelayed(spinner.Show, 100);
-
                     // i disabled most of the animations on first load since its blocked by the transition background on startup screen & sgame screen
                     SweetScreen nextScreen = screenData.CreateScreen();
                     if (nextScreen == null)
@@ -115,7 +111,6 @@ namespace LivinOnSweets.API.Containers
                         // since we are not yet into the SGameScreen (middleware) we have to update the runtime state by ourselves and call on error which is the resume call from StartupScreen
                         stateManager.UpdateRuntimeState(true, true);
                         screenData.OnError?.Invoke();
-                        checkSpinner(null);
                         return;
                     }
 
@@ -123,7 +118,7 @@ namespace LivinOnSweets.API.Containers
                     {
                         LoadComponentAsync(nextScreen, _ =>
                         {
-                            checkSpinner(nextScreen);
+                            screenStack.Push(nextScreen);
 
                             stateManager.GpState.Value = GameplayState.INITIALIZED;
                             enableBacking();
@@ -142,29 +137,6 @@ namespace LivinOnSweets.API.Containers
         {
             stateManager.ProgressionBlock.SetDefault();
             stateManager.CanBack.SetDefault();
-        }
-
-        private void checkSpinner([CanBeNull] SweetScreen nextScreen)
-        {
-            spinnerShow?.Cancel();
-
-            if (spinner.State.Value == Visibility.Visible)
-            {
-                spinner.Hide();
-
-                if (nextScreen != null)
-                {
-                    screenStack.Push(nextScreen);
-                    screenStack
-                        .FadeTo(1, LoadingSpinner.TRANSITION_DURATION / 2, Easing.OutQuint)
-                        .ScaleTo(1, LoadingSpinner.TRANSITION_DURATION, Easing.OutQuart);
-                }
-            }
-            else
-            {
-                if (nextScreen != null)
-                    screenStack.Push(nextScreen);
-            }
         }
 
         // Made to cap the new screens to the target size (1280x720) while also masking them to
