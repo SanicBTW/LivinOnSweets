@@ -1,12 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Containers;
 using LivinOnSweets.API.Data;
 using LivinOnSweets.API.Enums;
+using LivinOnSweets.API.Extensions;
 using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Interfaces;
 using LivinOnSweets.API.Sprites;
+using LivinOnSweets.API.Sprites.UI;
 using LivinOnSweets.API.Stores;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.EnumExtensions;
@@ -16,8 +20,9 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Framework.Input.States;
 using osu.Framework.Screens;
-using osuTK;
+using osuTK.Input;
 
 namespace LivinOnSweets.Game.GameScreens
 {
@@ -39,7 +44,9 @@ namespace LivinOnSweets.Game.GameScreens
         protected DrawableTrack BgMusic;
         private Box fadeOverlay;
 
-        protected Container<CharacterParallaxBackground> Backgrounds;
+        protected AutoSizeOnceContainer<CharacterParallaxBackground> Backgrounds;
+
+        private bool selected;
         private int curSelected;
 
         protected int CurSelected
@@ -132,6 +139,32 @@ namespace LivinOnSweets.Game.GameScreens
 
                 case ManiaAction.CONFIRM:
                     handled = true;
+                    selected = true;
+                    switch (Backgrounds[CurSelected].TargetEntry)
+                    {
+                        case MainMenuEntry.PLAY:
+                            preloadNext(typeof(SongSelectionScreen), sc =>
+                            {
+                                this.TransformBindableTo(BgMusic.Volume, 0, 300D).OnComplete(_ => BgMusic.Stop());
+
+                                // Manually update the state
+                                stateManager.GpState.Value = GameplayState.SONG_SELECT;
+
+                                // trigger a transition event
+                                ScreenTransitionData transData =
+                                    new ScreenTransitionData(new ScreenTransitionType.SPRITE_ANIMATED(), this, sc);
+                                EventManager.TriggerGlobalEvent(new TransitionEvent(transData));
+                            });
+                            break;
+
+                        case MainMenuEntry.OPTION:
+                            selected = false;
+                            break;
+
+                        case MainMenuEntry.STORY:
+                            selected = false;
+                            break;
+                    }
                     break;
             }
 
