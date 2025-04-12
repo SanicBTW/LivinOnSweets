@@ -175,6 +175,6 @@ namespace LivinOnSweets.Game
         }
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) =>
-            gameDependencies = new(base.CreateChildDependencies(parent));
+            gameDependencies = new DependencyContainer(base.CreateChildDependencies(parent));
     }
 }

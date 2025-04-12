@@ -5,7 +5,7 @@
       "LivinOnSweets.Game\\LivinOnSweets.Game.csproj",
       "LivinOnSweets.API\\LivinOnSweets.API.csproj",
       "LivinOnSweets.Resources\\LivinOnSweets.Resources.csproj",
-      "LivinOnSweets.iOS\\LivinOnSweets.iOS.csproj"
+      "LivinOnSweets.Android\\LivinOnSweets.Android.csproj"
     ]
   }
 }

@@ -5,7 +5,6 @@
       "LivinOnSweets.Desktop\\LivinOnSweets.Desktop.csproj",
       "LivinOnSweets.Game\\LivinOnSweets.Game.csproj",
       "LivinOnSweets.API\\LivinOnSweets.API.csproj",
-      "LivinOnSweets.Editor\\LivinOnSweets.Editor.csproj",
       "LivinOnSweets.Game.Tests\\LivinOnSweets.Game.Tests.csproj",
       "LivinOnSweets.Resources\\LivinOnSweets.Resources.csproj"
     ]

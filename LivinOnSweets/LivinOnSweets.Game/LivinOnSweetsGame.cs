@@ -1,5 +1,5 @@
 ﻿#if DEBUG
-using LivinOnSweets.Editor;
+using LivinOnSweets.API.Overlays;
 #else
 using System;
 using System.IO;
@@ -50,7 +50,9 @@ namespace LivinOnSweets.Game
         {
             // The debug build has access to the package, thus providing the types, making it easier i believe
 #if DEBUG
-            LoadComponentAsync(new DebugContainer(screenStack), ActionContainer.Add);
+            // LoadComponentAsync(new DebugContainer(screenStack), ActionContainer.Add);
+            ActionContainer.Add(screenStack);
+            ActionContainer.Add(new ScreenshotOverlay());
 #else
             void defaultAdd()
             {

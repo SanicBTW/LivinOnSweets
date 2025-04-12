@@ -15,12 +15,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LivinOnSweets.Resources", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LivinOnSweets.API", "LivinOnSweets.API\LivinOnSweets.API.csproj", "{8040FD37-665F-42F1-ACDA-B8B1B84C9348}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LivinOnSweets.Editor", "LivinOnSweets\LivinOnSweets.Editor\LivinOnSweets.Editor.csproj", "{5A6EF85C-5245-42D5-9156-505FA024AF21}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LivinOnSweets.Android", "LivinOnSweets\LivinOnSweets.Android\LivinOnSweets.Android.csproj", "{DD5D8152-3BCD-4696-853B-729916CF656C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9AF9C164-2A9E-4958-BB12-0FEDC40F58EC}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		Directory.Build.props = Directory.Build.props
+		LivinOnSweets.Android.props = LivinOnSweets.Android.props
+		LivinOnSweets.iOS.props = LivinOnSweets.iOS.props
 		LivinOnSweets.sln.DotSettings = LivinOnSweets.sln.DotSettings
 	EndProjectSection
 EndProject
@@ -79,6 +81,12 @@ Global
 		{8040FD37-665F-42F1-ACDA-B8B1B84C9348}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8040FD37-665F-42F1-ACDA-B8B1B84C9348}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8040FD37-665F-42F1-ACDA-B8B1B84C9348}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD5D8152-3BCD-4696-853B-729916CF656C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD5D8152-3BCD-4696-853B-729916CF656C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD5D8152-3BCD-4696-853B-729916CF656C}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{DD5D8152-3BCD-4696-853B-729916CF656C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD5D8152-3BCD-4696-853B-729916CF656C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD5D8152-3BCD-4696-853B-729916CF656C}.Release|Any CPU.Deply.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

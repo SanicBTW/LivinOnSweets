@@ -9,7 +9,4 @@
   <ItemGroup>
     <PackageReference Include="ppy.osu.Framework" Version="2025.225.0" />
   </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-    <ProjectReference Include="..\LivinOnSweets.Editor\LivinOnSweets.Editor.csproj" />
-  </ItemGroup>
 </Project>

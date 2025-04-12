@@ -6,7 +6,6 @@ using LivinOnSweets.API.Data.Song;
 using LivinOnSweets.API.Enums;
 using LivinOnSweets.API.Sprites.UI;
 using LivinOnSweets.API.Stores;
-using LivinOnSweets.Game.StartScreens;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -74,7 +73,7 @@ namespace LivinOnSweets.Game
             if (spinner.State.Value == Visibility.Visible)
             {
                 spinner.Hide();
-                Scheduler.AddDelayed(() => ScreenStack.Push(nextScreen), LoadingSpinner.TRANSITION_DURATION * 2);
+                Scheduler.AddDelayed(ScreenStack.Push, nextScreen, LoadingSpinner.TRANSITION_DURATION * 2);
             }
             else
                 ScreenStack.Push(nextScreen);
@@ -86,7 +85,7 @@ namespace LivinOnSweets.Game
                                     songMetaLoader.FinishedPreloading &&
                                     stutterChecker.IsStable;
 
-        protected virtual SweetScreen CreateNextScreen() => new StartupScreen();
+        protected virtual SweetScreen CreateNextScreen() => new PlaceholderScreen();
 
         protected virtual ShaderPrecompiler CreateShaderPrecompiler() => new();
 
