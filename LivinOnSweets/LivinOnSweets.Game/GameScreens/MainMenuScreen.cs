@@ -24,7 +24,16 @@ namespace LivinOnSweets.Game.GameScreens
     // TODO: Save up the current selected entry for next runs
     public partial class MainMenuScreen : SweetScreen, IProgressReporter, IKeyBindingHandler<ManiaAction>
     {
+        [Resolved]
+        private LoadingSpinner gcSpinner { get; set; }
+
+        [Resolved]
+        private GameStateManager stateManager { get; set; }
+
         private List<Drawable> loadTargets = [];
+
+        // Saves the screen types that were preloaded
+        private List<Type> preloadedScreens = [];
 
         protected Container Content;
         protected DrawableTrack BgMusic;
@@ -40,31 +49,10 @@ namespace LivinOnSweets.Game.GameScreens
             {
                 // Get the previous and new selection indices
                 int prevIndex = curSelected;
-                curSelected += value;
-                wrap(ref curSelected, Backgrounds.Count);
+                curSelected = (curSelected + value).Wrap(Backgrounds.Count);
 
-                if (prevIndex == curSelected) return; // Prevent unnecessary updates
-
-                CharacterParallaxBackground prevSel = Backgrounds[prevIndex];
-                CharacterParallaxBackground curSel = Backgrounds[curSelected];
-
-                int nextEntry = curSelected + value;
-                wrap(ref nextEntry, Backgrounds.Count);
-                CharacterParallaxBackground nextSel = Backgrounds[nextEntry];
-
-                if (prevSel == curSel || curSel == nextSel || prevSel == nextSel)
-                    throw new UnreachableException();
-
-                bool slidingLeft = int.IsNegative(value);
-
-                // Slide out the previous entry
-                prevSel.SlideOut(slidingLeft);
-
-                // Slide in the new entry
-                curSel.SlideIn();
-
-                // Set the offscreen background to the correct position
-                nextSel.SlideOffscreen(slidingLeft);
+                Backgrounds[prevIndex].FadeOut(value);
+                Backgrounds[curSelected].FadeIn(value);
             }
         }
 
@@ -77,7 +65,7 @@ namespace LivinOnSweets.Game.GameScreens
                 AutoSizeAxes = Axes.Both,
             };
 
-            Content.Add(Backgrounds = new Container<CharacterParallaxBackground>()
+            Content.Add(Backgrounds = new AutoSizeOnceContainer<CharacterParallaxBackground>(Axes.Both)
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -100,36 +88,33 @@ namespace LivinOnSweets.Game.GameScreens
             ];
             Backgrounds.AddRange(bgs);
 
-            lock (loadLock)
-            {
-                loadTargets.Add(BgMusic);
-                loadTargets.AddRange(bgs);
-            }
-
             Content.Add(fadeOverlay = new Box()
             {
                 RelativeSizeAxes = Axes.Both,
                 Colour = Colour4.Black,
                 Depth = -99
             });
-        }
 
-        protected override void UpdateAfterAutoSize()
-        {
-            base.UpdateAfterAutoSize();
+            TransitionSprite[] transitions = [new(preloading: true), new(true, true)];
+            Content.AddRange(transitions);
 
-            // This is a hack I learnt while doing the editor, check ToolBar.cs
-            if (Backgrounds.AutoSizeAxes.HasFlagFast(Axes.Both))
+            lock (loadLock)
             {
-                Vector2 prevSize = Backgrounds.DrawSize;
-                Backgrounds.AutoSizeAxes = Axes.None;
-                Backgrounds.Size = prevSize;
+                loadTargets.Add(BgMusic);
+
+                loadTargets.AddRange(bgs);
+                foreach (CharacterParallaxBackground bg in bgs)
+                {
+                    loadTargets.AddRange(bg.Children);
+                }
+
+                loadTargets.AddRange(transitions);
             }
         }
 
         public bool OnPressed(KeyBindingPressEvent<ManiaAction> e)
         {
-            if (!Backgrounds[CurSelected].FinishedTransform)
+            if (!Backgrounds[CurSelected].FinishedTransform || selected)
                 return false;
 
             bool handled = false;
@@ -155,44 +140,99 @@ namespace LivinOnSweets.Game.GameScreens
 
         public void OnReleased(KeyBindingReleaseEvent<ManiaAction> e) { }
 
+        // I would like to add real dragging, like holding down the input and being able to move the slide but it sounds kinda hard
+        protected override bool OnDragStart(DragStartEvent e)
+        {
+            if (!Backgrounds[CurSelected].FinishedTransform || e.Button != MouseButton.Left)
+                return false;
+
+            if (e.Delta.X > 1)
+                CurSelected = 1;
+            else
+                CurSelected = -1;
+
+            return true;
+        }
+
+        protected override bool OnClick(ClickEvent e)
+        {
+            // Send a fake keypress, to avoid duplicating the code? since the confirm switch case already handles that
+            OnPressed(new KeyBindingPressEvent<ManiaAction>(new InputState(), ManiaAction.CONFIRM));
+            return true;
+        }
+
         public override void OnEntering(ScreenTransitionEvent e)
         {
             base.OnEntering(e);
 
-            fadeOverlay.FadeOutFromOne(1000D, Easing.OutQuint);
+            lock (loadLock)
+            {
+                loadTargets = null;
+            }
 
-            RepositionBackgrounds();
+            fadeOverlay.FadeOutFromOne(1000D, Easing.OutQuint);
 
             BgMusic.Volume.Value = 0;
             BgMusic.Start();
-            this.TransformBindableTo(BgMusic.Volume, BgMusic.Volume.Default, 200D);
-        }
+            this.TransformBindableTo(BgMusic.Volume, BgMusic.Volume.Default, 300D);
 
-        protected virtual void RepositionBackgrounds()
-        {
             for (int i = 0; i < Backgrounds.Count; i++)
             {
-                if (i == CurSelected)
-                    Backgrounds[i].MoveToX(0);
-                else if (i == (CurSelected - 1 + Backgrounds.Count) % Backgrounds.Count)
-                    Backgrounds[i].SlideOffscreen(true);
-                else if (i == (CurSelected + 1) % Backgrounds.Count)
-                    Backgrounds[i].SlideOffscreen(false);
+                CharacterParallaxBackground background = Backgrounds[i];
+                if (i != curSelected)
+                    background.Hide();
                 else
-                    Backgrounds[i].SlideOffscreen(true);
+                    background.Show();
             }
         }
 
-        private void wrap(ref int value, int totalCount)
+        public override void OnResuming(ScreenTransitionEvent e)
         {
-            if (totalCount <= 0)
-                value = 0;
+            base.OnResuming(e);
 
-            if (value < 0)
-                value = totalCount - 1;
+            selected = false;
+            fadeOverlay.FadeOutFromOne(1000D, Easing.OutQuint);
 
-            if (value >= totalCount)
-                value = 0;
+            BgMusic.Start();
+            this.TransformBindableTo(BgMusic.Volume, BgMusic.Volume.Default, 300D);
+        }
+
+        private void preloadNext(Type screenType, Action<SweetScreen> loaded)
+        {
+            bool shouldAnimate = !preloadedScreens.Contains(screenType);
+
+            if (shouldAnimate)
+                fadeOverlay.FadeTo(0.75f, 500D, Easing.OutQuint);
+
+            // create an underlying game screen data object cuz im extremely lazy to use reflect and more shit yknow
+            GameScreenData screenData = new GameScreenData(screenType);
+
+            SweetScreen nextScreen = screenData.CreateScreen();
+            if (nextScreen == null)
+            {
+                fadeOverlay.FadeOut(500D, Easing.OutQuint);
+                return;
+            }
+
+            if (!shouldAnimate)
+            {
+                loaded(nextScreen);
+                return;
+            }
+
+            // Only show the spinner when loading
+            gcSpinner.Show();
+            Scheduler.AddDelayed(loadScreen, 1000D); // delay it a little bit hehe :grin:
+
+            void loadScreen()
+            {
+                LoadComponentAsync(nextScreen, _ =>
+                {
+                    preloadedScreens.Add(screenType);
+                    gcSpinner.Hide();
+                    fadeOverlay.FadeOut(500D, Easing.OutQuint).OnComplete(_ => loaded(nextScreen));
+                });
+            }
         }
 
         // Lock object to prevent mutation exceptions (loadTargets gets modified on load and the function gets called asap)
