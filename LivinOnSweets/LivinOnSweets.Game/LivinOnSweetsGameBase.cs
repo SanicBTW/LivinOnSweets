@@ -42,6 +42,8 @@ namespace LivinOnSweets.Game
 
         protected SweetConfigManager SweetConfig { get; set; }
 
+        protected SingleThreadLoad SingleThreadLoad { get; set; }
+
         // language bs
         // https://github.com/ppy/osu/blob/master/osu.Game/OsuGameBase.cs#L171
         public Bindable<Language> CurrentLanguage { get; } = new();
@@ -54,6 +56,9 @@ namespace LivinOnSweets.Game
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager frameworkConfig)
         {
+            // Used to share the "loadComponentSingleFile" function to the children of this game, without having to access this entirely
+            base.Content.Add(SingleThreadLoad = new SingleThreadLoad());
+
             Resources.AddStore(new DllResourceStore(LivinOnSweetsResources.ResourceAssembly));
             SetupDependencies(gameDependencies);
             SetupFonts();
@@ -65,9 +70,6 @@ namespace LivinOnSweets.Game
             localisationParameters.BindValueChanged(_ => updateLanguage(), true);
 
             CurrentLanguage.BindValueChanged(val => frameworkLocale.Value = val.NewValue.ToCultureCode());
-
-            // Used to share the "loadComponentSingleFile" function to the children of this game, without having to access this entirely
-            base.Content.Add(new SingleThreadLoad());
 
             // Load up the action container
             ManiaActionContainer actionContainer = [];
@@ -97,6 +99,7 @@ namespace LivinOnSweets.Game
 
             container.CacheAs(new SessionConfig());
             container.CacheAs(SweetConfig);
+            container.CacheAs(SingleThreadLoad);
         }
 
         protected virtual void SetupFonts()

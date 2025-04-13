@@ -14,9 +14,6 @@ namespace LivinOnSweets.Game
 {
     public partial class LivinOnSweetsGame : LivinOnSweetsGameBase
     {
-        [Resolved]
-        private SingleThreadLoad singleThreadLoad { get; set; }
-
         private Bindable<bool> applySafeAreaConsiderations;
         private Bindable<float> uiScale;
 
@@ -54,6 +51,9 @@ namespace LivinOnSweets.Game
                     Child = ScreenStack = new ScreenStack { RelativeSizeAxes = Axes.Both, },
                 }
             ]);
+
+            // Can't access STL (Single Thread Load) through DPI, so we access the protected variable from inheritance,
+            // for descendants, it should be available already
 
             ScreenStack.Push(new PlaceholderScreen());
         }
