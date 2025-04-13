@@ -105,8 +105,11 @@ namespace LivinOnSweets.API.Overlays
                     Image<Rgba32> image = renderer.TakeScreenshotToImage();
                     clipboard.SetImage(image);
 
-                    Texture = renderer.CreateTexture(image.Width, image.Height);
-                    Texture.SetData(new TextureUpload(image));
+                    Schedule(() =>
+                    {
+                        Texture = renderer.CreateTexture(image.Width, image.Height);
+                        Texture.SetData(new TextureUpload(image));
+                    });
                 });
             }
         }
