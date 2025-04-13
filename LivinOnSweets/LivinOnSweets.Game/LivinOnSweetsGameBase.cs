@@ -155,6 +155,13 @@ namespace LivinOnSweets.Game
             SweetConfig = new SweetConfigManager(Storage);
         }
 
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+
+            SweetConfig?.Dispose();
+        }
+
         protected virtual Container CreateScalingContainer() => new DrawSizePreservingFillContainer();
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) =>

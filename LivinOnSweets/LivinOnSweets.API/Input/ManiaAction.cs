@@ -12,6 +12,7 @@ namespace LivinOnSweets.API.Input
         CONFIRM = 4,
         BACK,
         SCREENSHOT,
+        TOGGLE_FPS,
 
         // Now the debug actions are exposed!
         // If you add the keybind definition to your keybind files

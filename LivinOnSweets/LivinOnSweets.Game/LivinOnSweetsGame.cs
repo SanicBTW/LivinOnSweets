@@ -1,6 +1,7 @@
 ﻿using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Configuration;
 using LivinOnSweets.API.Containers;
+using LivinOnSweets.API.Graphics.UserInterface;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -25,6 +26,7 @@ namespace LivinOnSweets.Game
 
         protected ScreenStack ScreenStack { get; set; }
         protected ScalingContainer ScreenContainer { get; private set; }
+        protected GameOverlaysContainer OverlaysContainer { get; private set; }
 
         [BackgroundDependencyLoader]
         private void load()
@@ -43,17 +45,20 @@ namespace LivinOnSweets.Game
             LoadLocales();
 
             AddRange([
+                new GlobalManiaActionReceiver(),
                 ScreenContainer = new ScalingContainer(ScalingMode.ExcludeOverlays, ScalingContainerTargetDrawSize)
                 {
                     RelativeSizeAxes = Axes.Both,
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Child = ScreenStack = new ScreenStack { RelativeSizeAxes = Axes.Both, },
-                }
+                },
+                OverlaysContainer = new GameOverlaysContainer()
             ]);
 
             // Can't access STL (Single Thread Load) through DPI, so we access the protected variable from inheritance,
             // for descendants, it should be available already
+            SingleThreadLoad.ScheduleLoad(new FpsCounter(), d => OverlaysContainer.AddOverlay(OverlayContainerTarget.TopMost, d));
 
             ScreenStack.Push(new PlaceholderScreen());
         }
