@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LivinOnSweets.API.Components;
+using LivinOnSweets.API.Configuration;
 using LivinOnSweets.API.Extensions;
 using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Localisation;
@@ -16,14 +17,30 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Logging;
+using osu.Framework.Platform;
 using osuTK;
 
 namespace LivinOnSweets.Game
 {
     public partial class LivinOnSweetsGameBase : osu.Framework.Game
     {
-        protected override Container<Drawable> Content { get; }
+        protected override Container<Drawable> Content => content;
+        private ManiaActionContainer content;
+
         private DependencyContainer gameDependencies;
+
+        // Copied from lazer lol
+        protected SafeAreaContainer SafeAreaContainer { get; private set; }
+
+        /// <summary>
+        /// The <see cref="Edges"/> that the game should be drawn over at a top level.
+        /// Defaults to <see cref="Edges.None"/>.
+        /// </summary>
+        protected virtual Edges SafeAreaOverrideEdges => Edges.None;
+
+        protected Storage Storage { get; set; }
+
+        protected SweetConfigManager SweetConfig { get; set; }
 
         // language bs
         // https://github.com/ppy/osu/blob/master/osu.Game/OsuGameBase.cs#L171
@@ -34,20 +51,11 @@ namespace LivinOnSweets.Game
 
         private IBindable<LocalisationParameters> localisationParameters = null!;
 
-        protected LivinOnSweetsGameBase()
-        {
-            base.Content.Add(Content = new DrawSizePreservingFillContainer
-            {
-                TargetDrawSize = new Vector2(1280, 720)
-            });
-        }
-
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager frameworkConfig)
         {
             Resources.AddStore(new DllResourceStore(LivinOnSweetsResources.ResourceAssembly));
             SetupDependencies(gameDependencies);
-            SetupSongStore(gameDependencies);
             SetupFonts();
 
             frameworkLocale = frameworkConfig.GetBindable<string>(FrameworkSetting.Locale);
@@ -57,90 +65,49 @@ namespace LivinOnSweets.Game
             localisationParameters.BindValueChanged(_ => updateLanguage(), true);
 
             CurrentLanguage.BindValueChanged(val => frameworkLocale.Value = val.NewValue.ToCultureCode());
+
+            // Used to share the "loadComponentSingleFile" function to the children of this game, without having to access this entirely
+            base.Content.Add(new SingleThreadLoad());
+
+            // Load up the action container
+            ManiaActionContainer actionContainer = [];
+            gameDependencies.CacheAs(actionContainer);
+
+            base.Content.Add(SafeAreaContainer = new SafeAreaContainer
+            {
+                SafeAreaOverrideEdges = SafeAreaOverrideEdges,
+                RelativeSizeAxes = Axes.Both,
+                Child = CreateScalingContainer().WithChild(content = actionContainer)
+            });
+
+            base.Content.Add(new TouchInputInterceptor());
         }
 
         protected virtual void SetupDependencies(DependencyContainer container)
         {
             // Cache the storage variable from the host since it will be used inside the configuration managers
             // And make it accessible across the tree
-            container.CacheAs(Host.Storage);
+            container.CacheAs(Storage);
 
-            // Used to save states and react to them on some parts of the game
-            container.CacheAs(new GameStateManager());
-
-            // Used to pass an accent store through the dp container
-            container.CacheAs(new AccentStore(Resources));
-
-            // Used to pass down the accents and populate those who implement the target interface
-            AccentComponent component = new AccentComponent();
-            container.CacheAs(component);
-            Add(component);
-
-            // Used to pass the main menu resources across the dp container
-            container.CacheAs(new MainMenuStore(Host.Renderer, Resources));
-
-            // used to pass the rhythm game resources across the dp container
-            container.CacheAs(new RhythmGameStore(Host.Renderer, Resources, Audio));
-
+            // Used to save states and react to them on some part
             IResourceStore<TextureUpload> texUpload = Host.CreateTextureLoaderStore(Resources);
 
             LargeTextureStore largeTs = new(Host.Renderer, texUpload);
             container.CacheAs(largeTs);
 
-            // since the game is pixel art (most of the times except the story mode sprites) we make a pixel art store to set the filter mode to nearest
-            // Now the store is an animated one but can be fetched as a standard one or an animated one
-            AnimatedPixelArtTextureStore pixArtTs = new(Host.Renderer, texUpload);
-            container.CacheAs(typeof(PixelArtTextureStore), pixArtTs); // Cache as the derivative of PixelArtTextureStore
-            container.CacheAs(pixArtTs); // Cache as AnimatedPixelArtTextureStore
-
-            Action<IResourceStore<TextureUpload>>[] texLookups = [Textures.AddTextureSource, largeTs.AddTextureSource, pixArtTs.AddTextureSource];
-
-            // Add the resource stores to the texture lookups
-            container.CacheAs(AddToTextureLookup(new StoryModeStore(Resources), texLookups));
-            container.CacheAs(AddToTextureLookup(new StartupStore(Resources), texLookups));
-
-            // Add the namespaces to the texture lookups, in case the target store doesnt meet the needs of the moment
-            AddToTextureLookup(new MainMenuNamespace(Resources), texLookups);
-            AddToTextureLookup(new RhythmGameNamespace(Resources), texLookups);
-
-            // Load up the action container
-            ManiaActionContainer actionContainer = [];
-            container.CacheAs(actionContainer);
-            Content.Add(actionContainer);
-        }
-
-        protected virtual void SetupSongStore(DependencyContainer container)
-        {
-            SongStore songStore = new SongStore(Host.CacheStorage, Audio);
-            // The local song store is dedicated to the chart format, as well as the lcfv1 chart converter
-            // The reason they aren't integrated into the system itself (songstore code) its to make it as modular as possible
-            songStore.AddStore(new LocalSongStore(Resources));
-            songStore.AddConverter(new LocalSongConverter());
-
-            // Search for converters or song stores for modular imports, should be done inside song store
-            // loading assemblies for sure, preloading will happen on the PreloadScreen
-            container.CacheAs(songStore);
+            container.CacheAs(new SessionConfig());
+            container.CacheAs(SweetConfig);
         }
 
         protected virtual void SetupFonts()
         {
             AddFont(Resources, "Fonts/GyeonggiTitle/GyeonggiTitle");
             AddFont(Resources, "Fonts/GyeonggiTitle/GyeonggiTitle-Bold");
+
             AddFont(Resources, "Fonts/Prompt/Prompt");
+
             AddFont(Resources, "Fonts/DNFBitBit/DNFBitBit");
             AddFont(Resources, "Fonts/DNFBitBit/DNFBitBit-Italic");
-        }
-
-        // this might be insecure af but we balling with it anyways trust
-        protected virtual T AddToTextureLookup<T>(T store, Action<IResourceStore<TextureUpload>>[] addFuncs)
-            where T : IResourceStore<byte[]>
-        {
-            IResourceStore<TextureUpload> upload = Host.CreateTextureLoaderStore(store);
-
-            foreach (Action<IResourceStore<TextureUpload>> addFunc in addFuncs)
-                addFunc(upload);
-
-            return store;
         }
 
         // https://github.com/ppy/osu/blob/master/osu.Game/OsuGameBase.cs#L424
@@ -173,6 +140,19 @@ namespace LivinOnSweets.Game
 
             Localisation.AddLocaleMappings(mappings);
         }
+
+        public override void SetHost(GameHost host)
+        {
+            base.SetHost(host);
+
+            Storage ??= host.Storage;
+
+            // first run might not have a config file, once the settings panel is closed it will trigger a save to create it
+            // or any change to the settings will perform a save call, ill have to look into it
+            SweetConfig = new SweetConfigManager(Storage);
+        }
+
+        protected virtual Container CreateScalingContainer() => new DrawSizePreservingFillContainer();
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) =>
             gameDependencies = new DependencyContainer(base.CreateChildDependencies(parent));

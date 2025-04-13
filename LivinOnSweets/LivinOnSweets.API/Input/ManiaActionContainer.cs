@@ -1,20 +1,23 @@
 ﻿using LivinOnSweets.API.Configuration;
 using osu.Framework.Allocation;
+using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Platform;
 
 namespace LivinOnSweets.API.Input
 {
     // This class is added on top of the tree hierarchy, in order to pump down key presses effectively
-    public partial class ManiaActionContainer : KeyBindingContainer<ManiaAction>
+    public partial class ManiaActionContainer() : KeyBindingContainer<ManiaAction>(matchingMode: KeyCombinationMatchingMode.Modifiers), IHandleGlobalKeyboardInput
     {
+        protected override bool Prioritised => true;
+
         protected KeybindsConfig KbConfig;
         protected DependencyContainer GameDependencies;
 
-        public override IEnumerable<IKeyBinding> DefaultKeyBindings =>
-        [
-            // GLOBAL
+        public override IEnumerable<IKeyBinding> DefaultKeyBindings => globalKeyBindings.Concat(volumeKeyBindings).Concat(uiKeyBindings).Concat(noteKeyBindings);
 
+        private static IEnumerable<IKeyBinding> globalKeyBindings =>
+        [
             new KeyBinding(InputKey.Enter, ManiaAction.CONFIRM),
 
             new KeyBinding(InputKey.Escape, ManiaAction.BACK),
@@ -23,12 +26,13 @@ namespace LivinOnSweets.API.Input
 
             // If its a debug build we want it to add the default keybinds
             // if not the player will have to manually add them in order to use them with the editor dll
-            #if DEBUG
-            new KeyBinding(new KeyCombination([InputKey.LControl, InputKey.F4]), ManiaAction.EDITOR),
-            #endif
+#if DEBUG
+            new KeyBinding(new KeyCombination(InputKey.LControl, InputKey.F4), ManiaAction.EDITOR),
+#endif
+        ];
 
-            // VOLUME
-
+        private static IEnumerable<IKeyBinding> volumeKeyBindings =
+        [
             new KeyBinding(InputKey.KeypadPlus, ManiaAction.VOLUME_UP),
             new KeyBinding(InputKey.BracketRight, ManiaAction.VOLUME_UP), // usually the key next to the largest part of the enter key ig
 
@@ -37,9 +41,10 @@ namespace LivinOnSweets.API.Input
 
             new KeyBinding(InputKey.Keypad0, ManiaAction.VOLUME_MUTE),
             new KeyBinding(InputKey.Number0, ManiaAction.VOLUME_MUTE),
+        ];
 
-            // UI
-
+        private static IEnumerable<IKeyBinding> uiKeyBindings =
+        [
             new KeyBinding(InputKey.Left, ManiaAction.UI_LEFT),
 
             new KeyBinding(InputKey.Down, ManiaAction.UI_DOWN),
@@ -47,9 +52,11 @@ namespace LivinOnSweets.API.Input
             new KeyBinding(InputKey.Up, ManiaAction.UI_UP),
 
             new KeyBinding(InputKey.Right, ManiaAction.UI_RIGHT),
+        ];
 
-            // NOTE
-
+        // I don't really have any other way of alts so this is the best I can pull off
+        private static IEnumerable<IKeyBinding> noteKeyBindings =
+        [
             new KeyBinding(InputKey.D, ManiaAction.NOTE_LEFT),
             new KeyBinding(InputKey.Left, ManiaAction.NOTE_LEFT),
 
@@ -124,10 +131,9 @@ namespace LivinOnSweets.API.Input
         {
             List<InputKey> castedVal = defaultValue;
 
-            foreach (InputKey key in kb.Keys)
+            foreach (InputKey key in kb.Keys.Where(key => !castedVal.Contains(key)))
             {
-                if (!castedVal.Contains(key))
-                    castedVal.Add(key);
+                castedVal.Add(key);
             }
 
             return castedVal;
