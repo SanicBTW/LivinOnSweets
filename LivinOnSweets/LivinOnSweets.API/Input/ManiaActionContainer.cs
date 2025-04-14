@@ -24,12 +24,12 @@ namespace LivinOnSweets.API.Input
 
             new KeyBinding(InputKey.F2, ManiaAction.SCREENSHOT),
 
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.F5), ManiaAction.TOGGLE_FPS),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.F5), ManiaAction.TOGGLE_FPS),
 
             // If its a debug build we want it to add the default keybinds
             // if not the player will have to manually add them in order to use them with the editor dll
 #if DEBUG
-            new KeyBinding(new KeyCombination(InputKey.Control, InputKey.F4), ManiaAction.EDITOR),
+            new KeyBinding(new KeyCombination(InputKey.Shift, InputKey.F4), ManiaAction.EDITOR),
 #endif
         ];
 
