@@ -1,11 +1,9 @@
-﻿using osu.Framework.Allocation;
-using osu.Framework.Graphics;
+﻿using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 
 namespace LivinOnSweets.API.Containers
 {
-    // Quick class that wraps the containers that will have an overlay
-    [Cached]
+    // Quick wrapper class that unifies all the containers that act as an overlay, on 4 different depths
     public partial class GameOverlaysContainer : Container
     {
         private Container overlayContent;

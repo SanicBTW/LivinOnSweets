@@ -26,7 +26,7 @@ namespace LivinOnSweets.Game
 
         protected ScreenStack ScreenStack { get; set; }
         protected ScalingContainer ScreenContainer { get; private set; }
-        protected GameOverlaysContainer OverlaysContainer { get; private set; }
+        [Cached] protected GameOverlaysContainer OverlaysContainer { get; private set; } = new();
 
         [BackgroundDependencyLoader]
         private void load()
@@ -53,7 +53,7 @@ namespace LivinOnSweets.Game
                     Origin = Anchor.Centre,
                     Child = ScreenStack = new ScreenStack { RelativeSizeAxes = Axes.Both, },
                 },
-                OverlaysContainer = new GameOverlaysContainer()
+                OverlaysContainer
             ]);
 
             // Can't access STL (Single Thread Load) through DPI, so we access the protected variable from inheritance,
