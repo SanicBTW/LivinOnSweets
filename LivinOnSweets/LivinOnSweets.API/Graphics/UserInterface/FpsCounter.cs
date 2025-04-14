@@ -129,7 +129,7 @@ namespace LivinOnSweets.API.Graphics.UserInterface
             if (elapsedUpdateFrameTime > 10000)
                 return;
 
-            mainContent.Width = Math.Max(mainContent.Width, counters.DrawWidth);
+            mainContent.Width = Math.Max(mainContent.Width, counters.DrawWidth + counters.Margin.Right);
 
             // Handle the case where the window has become inactive or the user changed the
             // frame limiter (we want to show the FPS as it's changing, even if it isn't an outlier).
