@@ -1,5 +1,6 @@
 ﻿namespace LivinOnSweets.API.Configuration
 {
+    // TODO: Document
     public enum SweetSetting
     {
         // Locale is handled by the framework
@@ -36,6 +37,8 @@
         UserInterfaceScale,
 
         // Misc - Screenshot (Copied from lazer tbh)
+        SaveScreenshots,
+        HideOverlaysOnScreenshot,
         ScreenshotFormat,
 
         // Misc - Intro

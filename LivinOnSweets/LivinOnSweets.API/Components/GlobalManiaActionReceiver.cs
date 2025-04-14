@@ -9,6 +9,7 @@ using osu.Framework.Input.Events;
 namespace LivinOnSweets.API.Components
 {
     // Component which handles the global keypresses, since the game container isnt under ManiaActionContainer, we add this component to leverage the work
+    // But maybe I could use the IHandleGlobalKeyboardInput interface in game? I'll have to take a look into this
     public partial class GlobalManiaActionReceiver : Component, IKeyBindingHandler<ManiaAction>
     {
         [Resolved]

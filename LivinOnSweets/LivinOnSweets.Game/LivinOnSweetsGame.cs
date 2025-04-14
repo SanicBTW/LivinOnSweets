@@ -1,6 +1,7 @@
 ﻿using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Configuration;
 using LivinOnSweets.API.Containers;
+using LivinOnSweets.API.Graphics;
 using LivinOnSweets.API.Graphics.UserInterface;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -59,6 +60,7 @@ namespace LivinOnSweets.Game
             // Can't access STL (Single Thread Load) through DPI, so we access the protected variable from inheritance,
             // for descendants, it should be available already
             SingleThreadLoad.ScheduleLoad(new FpsCounter(), d => OverlaysContainer.AddOverlay(OverlayContainerTarget.TopMost, d));
+            SingleThreadLoad.ScheduleLoad(new ScreenshotManager(), d => OverlaysContainer.AddOverlay(OverlayContainerTarget.TopMost, d));
 
             ScreenStack.Push(new PlaceholderScreen());
         }

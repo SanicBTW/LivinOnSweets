@@ -1,4 +1,5 @@
-﻿using osu.Framework.Configuration;
+﻿using osu.Framework;
+using osu.Framework.Configuration;
 using osu.Framework.Platform;
 
 namespace LivinOnSweets.API.Configuration
@@ -38,6 +39,9 @@ namespace LivinOnSweets.API.Configuration
             SetDefault(SweetSetting.UserInterfaceScale, 1f, 0.8f, 1.6f, 0.01f);
 
             // Misc - Screenshot
+            // Overall mobile shouldn't be able to do screenshots IN GAME, so we flagging the saving only for desktop
+            SetDefault(SweetSetting.SaveScreenshots, !RuntimeInfo.IsMobile);
+            SetDefault(SweetSetting.HideOverlaysOnScreenshot, false);
             SetDefault(SweetSetting.ScreenshotFormat, ScreenshotFormat.Jpg);
 
             // Misc - Intro

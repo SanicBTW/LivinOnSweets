@@ -1,4 +1,5 @@
-﻿using LivinOnSweets.API.Input;
+﻿using LivinOnSweets.API.Graphics;
+using LivinOnSweets.API.Input;
 
 namespace LivinOnSweets.API.Configuration
 {
@@ -10,5 +11,11 @@ namespace LivinOnSweets.API.Configuration
         /// Used in touchscreen detection scenarios (<see cref="TouchInputInterceptor"/>).
         /// </summary>
         TouchInputActive,
+
+        /// <summary>
+        /// Whether there is currently a screenshot being shown.
+        /// Used inside <see cref="ScreenshotManager.ScreenshotSprite"/> to wait <see cref="ScreenshotManager.ScreenshotSprite.frames_to_wait"/> to hide the previous screenshot.
+        /// </summary>
+        ShowingScreenshot,
     }
 }
