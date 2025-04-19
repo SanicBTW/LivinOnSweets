@@ -7,6 +7,8 @@ namespace LivinOnSweets.API.Screens
     {
         private SweetScreenStack screenStack => (SweetScreenStack)Parent;
 
+        public bool IsSubScreenOpen => screenStack.IsSubScreenOpen;
+
         public SweetScreen()
         {
             Anchor = Origin = Anchor.Centre;
