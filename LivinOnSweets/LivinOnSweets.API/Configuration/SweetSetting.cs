@@ -7,7 +7,8 @@
 
         // Graphics
         ShowFpsDisplay,
-        IrodoriCanvasMv, // Shows the Music Video rather than the default background
+        IrodoriCanvasMv, // Shows the Irodori Canvas Music Video rather than the default background
+        TomodachiStepMv, // NOT IMPLEMENTED MISSING V3 CONTENT / Shows the Tomodachi Step Music Video
         SongBackgroundParallax, // If the band room should parallax (even if the slightest bg movement disturbs you)
 
         // Gameplay
@@ -46,5 +47,8 @@
 
         // Misc - Discord RPC
         DiscordRichPresence,
+
+        // Misc - Game Update Version
+        GameUpdate, // Depending on the selected version, some aspects of the game could change
     }
 }

@@ -15,6 +15,7 @@ namespace LivinOnSweets.API.Configuration
             // Graphics
             SetDefault(SweetSetting.ShowFpsDisplay, false);
             SetDefault(SweetSetting.IrodoriCanvasMv, false);
+            SetDefault(SweetSetting.TomodachiStepMv, false);
             SetDefault(SweetSetting.SongBackgroundParallax, true);
 
             // Gameplay
@@ -49,6 +50,10 @@ namespace LivinOnSweets.API.Configuration
 
             // Misc - Discord RPC
             SetDefault(SweetSetting.DiscordRichPresence, DiscordPresenceMode.Full);
+
+            // Misc - Game Update Version
+            // Progress of each update: v1 (the game was built on top of this): 40%, v2: 5%, v3: 0%
+            SetDefault(SweetSetting.GameUpdate, GameUpdateVersion.EventRelease);
         }
     }
 }
