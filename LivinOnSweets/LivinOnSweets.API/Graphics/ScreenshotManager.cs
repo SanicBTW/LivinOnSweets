@@ -1,6 +1,6 @@
 ﻿using JetBrains.Annotations;
 using LivinOnSweets.API.Configuration;
-using LivinOnSweets.API.Containers;
+using LivinOnSweets.API.Graphics.Containers;
 using LivinOnSweets.API.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;

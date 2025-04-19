@@ -9,7 +9,7 @@ using osu.Framework.Layout;
 using osu.Framework.Platform;
 using osuTK;
 
-namespace LivinOnSweets.API.Containers
+namespace LivinOnSweets.API.Graphics.Containers
 {
     // Ported over from https://github.com/ppy/osu/blob/master/osu.Game/Graphics/Containers/ScalingContainer.cs
     public partial class ScalingContainer : Container
