@@ -3,6 +3,8 @@ using LivinOnSweets.API.Configuration;
 using LivinOnSweets.API.Containers;
 using LivinOnSweets.API.Graphics;
 using LivinOnSweets.API.Graphics.UserInterface;
+using LivinOnSweets.API.Screens;
+using LivinOnSweets.Game.Screens;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -25,7 +27,7 @@ namespace LivinOnSweets.Game
         /// </summary>
         public virtual Bindable<Vector2> ScalingContainerTargetDrawSize { get; } = new(new Vector2(1280, 720));
 
-        protected ScreenStack ScreenStack { get; set; }
+        protected SweetScreenStack ScreenStack { get; set; }
         protected ScalingContainer ScreenContainer { get; private set; }
         [Cached] protected GameOverlaysContainer OverlaysContainer { get; private set; } = new();
 
@@ -52,7 +54,7 @@ namespace LivinOnSweets.Game
                     RelativeSizeAxes = Axes.Both,
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    Child = ScreenStack = new ScreenStack { RelativeSizeAxes = Axes.Both, },
+                    Child = ScreenStack = new SweetScreenStack { RelativeSizeAxes = Axes.Both, },
                 },
                 OverlaysContainer
             ]);
@@ -62,7 +64,7 @@ namespace LivinOnSweets.Game
             SingleThreadLoad.ScheduleLoad(new FpsCounter(), d => OverlaysContainer.AddOverlay(OverlayContainerTarget.TopMost, d));
             SingleThreadLoad.ScheduleLoad(new ScreenshotManager(), d => OverlaysContainer.AddOverlay(OverlayContainerTarget.TopMost, d));
 
-            ScreenStack.Push(new PlaceholderScreen());
+            ScreenStack.Push(new PreloadingScreen());
         }
 
         protected override Container CreateScalingContainer() =>
