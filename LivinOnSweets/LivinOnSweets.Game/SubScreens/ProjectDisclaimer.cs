@@ -85,7 +85,7 @@ namespace LivinOnSweets.Game.SubScreens
                 typeWriter.Start("This game is only a fan project\n" +
                                             "It's still heavily on work in progress\n" +
                                             "Please report any issues you might find\n\n" +
-                                            "All rights reserved to\n"+
+                                            "We are not associated with\n"+
                                             "NEXON Korea Corp. & NEXON Games Co., LTD", 25);
             }, 500);
         }
