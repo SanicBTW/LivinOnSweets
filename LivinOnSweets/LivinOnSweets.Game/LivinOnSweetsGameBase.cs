@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using AetherFramework;
 using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Configuration;
 using LivinOnSweets.API.Extensions;
@@ -18,7 +20,6 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
-using osuTK;
 
 namespace LivinOnSweets.Game
 {
@@ -52,6 +53,11 @@ namespace LivinOnSweets.Game
         private Bindable<string> frameworkLocale = null!;
 
         private IBindable<LocalisationParameters> localisationParameters = null!;
+
+        protected LivinOnSweetsGameBase()
+        {
+            ClassRegistry.RegisterOverridableClasses(Assembly.GetExecutingAssembly());
+        }
 
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager frameworkConfig)
@@ -89,17 +95,19 @@ namespace LivinOnSweets.Game
         {
             // Cache the storage variable from the host since it will be used inside the configuration managers
             // And make it accessible across the tree
-            container.CacheAs(Storage);
+            container.Cache(Storage);
 
-            // Used to save states and react to them on some part
+            // Create a new texture upload from the game resources store
             IResourceStore<TextureUpload> texUpload = Host.CreateTextureLoaderStore(Resources);
+            Textures.AddTextureSource(texUpload); // Add the newly created texture upload into the existing texture store
 
+            // Create a new large texture store, probably the only stuff we need
             LargeTextureStore largeTs = new(Host.Renderer, texUpload);
-            container.CacheAs(largeTs);
+            container.Cache(largeTs);
 
-            container.CacheAs(new SessionConfig());
-            container.CacheAs(SweetConfig);
-            container.CacheAs(SingleThreadLoad);
+            container.Cache(new SessionConfig());
+            container.Cache(SweetConfig);
+            container.Cache(SingleThreadLoad);
         }
 
         protected virtual void SetupFonts()
