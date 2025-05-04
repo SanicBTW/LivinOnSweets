@@ -16,10 +16,6 @@ namespace LivinOnSweets.Android
         // Will probably make an event for it with AetherFramework most likely
         [CanBeNull] private PowerManager.WakeLock activeWakeLock;
 
-        // The default for lazer is 1024 x 768 (https://github.com/ppy/osu/blob/master/osu.Game/OsuGame.cs#L822)
-        // But for android its different https://github.com/ppy/osu/blob/master/osu.Android/OsuGameAndroid.cs#L24
-        public override Bindable<Vector2> ScalingContainerTargetDrawSize => new(new Vector2(1280, 1280 * DrawHeight / DrawWidth));
-
         protected override void LoadComplete()
         {
             base.LoadComplete();
