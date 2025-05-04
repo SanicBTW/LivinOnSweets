@@ -42,7 +42,8 @@ namespace LivinOnSweets.API.Screens
         // If the SubScreen doesn't call exit on themselves (ScreenStack.Exit) you can use this on the parent screen which spawned the subscreen
         public void ExitSubScreen()
         {
-            if (!IsSubStack || !IsSubScreenOpen)
+            // If its a sub stack do not call sub stack exit since the sub stack is null
+            if (IsSubStack || !IsSubScreenOpen)
                 return;
 
             subStack.Exit();
