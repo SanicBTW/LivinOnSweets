@@ -23,9 +23,6 @@ namespace LivinOnSweets.API.Localisation
 
             EffectiveCulture = new CultureInfo(cultureCode);
             populate();
-
-            if (backingToml == null)
-                throw new NullReferenceException($"Backing TOML is null, cannot use Localisation {cultureCode}");
         }
 
         public string Get(string lookup)
@@ -66,7 +63,7 @@ namespace LivinOnSweets.API.Localisation
 
             using Stream stream = GetStream($"Localisation/{locale}.toml");
             if (stream == null) // Inside a try-catch
-                throw new ArgumentNullException();
+                throw new NullReferenceException($"Backing TOML is null, cannot use Localisation {locale}");
 
             using StreamReader reader = new StreamReader(stream);
             string content = reader.ReadToEnd();
@@ -76,27 +73,30 @@ namespace LivinOnSweets.API.Localisation
 
         private TomlTable gettable(string section, TomlTable searchTable = null)
         {
-            // If we dont have a search table use the backing one
-            TomlTable table = searchTable ?? backingToml;
-
-            int subIndex = section.IndexOf(sub_separator);
-
-            if (subIndex == -1)
+            while (true)
             {
-                // No more separators return the final table
-                return table.ContainsKey(section) ? table[section] as TomlTable : null;
+                // If we dont have a search table use the backing one
+                TomlTable table = searchTable ?? backingToml;
+
+                int subIndex = section.IndexOf(sub_separator);
+
+                if (subIndex == -1)
+                {
+                    // No more separators return the final table
+                    return table.TryGetValue(section, out var value) ? value as TomlTable : null;
+                }
+
+                // substring the section at the first separator
+                string currentSection = section[..subIndex];
+                string remainingSections = section[(subIndex + 1)..];
+
+                // verify if the current section exists before going recursive
+                if (!table.ContainsKey(currentSection) || table[currentSection] is not TomlTable nextTable) return null;
+
+                // recursive call for the next table section
+                section = remainingSections;
+                searchTable = nextTable;
             }
-
-            // substring the section at the first separator
-            string currentSection = section.Substring(0, subIndex);
-            string remainingSections = section.Substring(subIndex + 1);
-
-            // verify if the current section exists before going recursive
-            if (!table.ContainsKey(currentSection) || !(table[currentSection] is TomlTable nextTable))
-                return null;
-
-            // recursive call for the next table section
-            return gettable(remainingSections, nextTable);
         }
     }
 }
