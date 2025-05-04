@@ -49,7 +49,8 @@
         // Misc - Discord RPC
         DiscordRichPresence,
 
-        // Misc - Game Update Version
+        // Misc - Resource Packs
         GameUpdate, // Depending on the selected version, some aspects of the game could change
+        ResourcePack, // Will track the GameUpdate in case of not set by the user (explicitly set in game following GameUpdate)
     }
 }

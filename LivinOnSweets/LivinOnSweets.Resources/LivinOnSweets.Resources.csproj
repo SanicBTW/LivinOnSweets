@@ -9,6 +9,8 @@
     <EmbeddedResource Include="Tracks\**\*" />
     <EmbeddedResource Include="Shaders\**\*" />
 
+    <EmbeddedResource Include="ResourcePacks\**\*" />
+
     <EmbeddedResource Include="Localisation\**\*" />
 
     <EmbeddedResource Include="StoryMode\**\*" />

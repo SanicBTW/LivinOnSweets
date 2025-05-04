@@ -8,6 +8,7 @@ using LivinOnSweets.API.Configuration;
 using LivinOnSweets.API.Extensions;
 using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Localisation;
+using LivinOnSweets.API.Skinning;
 using LivinOnSweets.API.Stores;
 using LivinOnSweets.Resources;
 using osu.Framework.Allocation;
@@ -44,6 +45,8 @@ namespace LivinOnSweets.Game
         protected SweetConfigManager SweetConfig { get; set; }
 
         protected SingleThreadLoad SingleThreadLoad { get; set; }
+
+        protected ResourcePackManager ResourcePackManager { get; set; }
 
         // language bs
         // https://github.com/ppy/osu/blob/master/osu.Game/OsuGameBase.cs#L171
@@ -108,6 +111,9 @@ namespace LivinOnSweets.Game
             container.Cache(new SessionConfig());
             container.Cache(SweetConfig);
             container.Cache(SingleThreadLoad);
+
+            container.Cache(ResourcePackManager = new ResourcePackManager(Storage, Host, Resources, Audio, SweetConfig));
+            container.CacheAs<IResourcePackSource>(ResourcePackManager);
         }
 
         protected virtual void SetupFonts()

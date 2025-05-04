@@ -1,5 +1,6 @@
 ﻿using osu.Framework;
 using osu.Framework.Configuration;
+using osu.Framework.Extensions;
 using osu.Framework.Platform;
 
 namespace LivinOnSweets.API.Configuration
@@ -52,9 +53,10 @@ namespace LivinOnSweets.API.Configuration
             // Misc - Discord RPC
             SetDefault(SweetSetting.DiscordRichPresence, DiscordPresenceMode.Full);
 
-            // Misc - Game Update Version
-            // Progress of each update: v1 (the game was built on top of this): 40%, v2: 5%, v3: 0%
-            SetDefault(SweetSetting.GameUpdate, GameUpdateVersion.EventRelease);
+            // Misc - Resource Packs
+            // Progress of each update: v1 (the game was built on top of this): 40%, v2: 5%, v3: 0%, v4: 0%
+            SetDefault(SweetSetting.GameUpdate, GameUpdateVersion.SugarRush);
+            SetDefault(SweetSetting.ResourcePack, GameUpdateVersion.SugarRush.GetDescription()); // Defaults to the default GameUpdate
         }
     }
 }
