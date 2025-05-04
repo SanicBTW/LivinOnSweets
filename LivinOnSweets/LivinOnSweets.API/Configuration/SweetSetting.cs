@@ -21,6 +21,7 @@
         AudioOffset,
         // Map specific, not an easter egg, implemented in vanilla
         IrodoriCanvasVoices, // Can be changed in the song select menu
+        TomodachiStepVoices, // Can be changed in the song select menu
 
         // Input settings are handled by the framework (mostly mouse ones, keybindings are managed by us)
 

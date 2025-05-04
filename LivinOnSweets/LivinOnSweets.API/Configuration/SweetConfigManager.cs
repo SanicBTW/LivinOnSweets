@@ -26,6 +26,7 @@ namespace LivinOnSweets.API.Configuration
             SetDefault(SweetSetting.VolumeInactive, 0.25, 0, 1, 0.01);
             SetDefault(SweetSetting.AudioOffset, 0, -2.0, 2.0, 0.1);
             SetDefault(SweetSetting.IrodoriCanvasVoices, false);
+            SetDefault(SweetSetting.TomodachiStepVoices, false);
 
             // Scaling
             SetDefault(SweetSetting.Scaling, ScalingMode.Off);
