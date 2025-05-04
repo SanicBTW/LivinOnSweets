@@ -37,6 +37,6 @@
     </ItemGroup>
     <ItemGroup>
 	    <PackageReference Include="Microsoft.Maui.Essentials" Version="10.0.0-preview.3.25208.1" />
-      <PackageReference Include="ppy.osu.Framework.Android" Version="2025.321.0" />
+      <PackageReference Include="ppy.osu.Framework.Android" Version="2025.419.0" />
     </ItemGroup>
 </Project>
