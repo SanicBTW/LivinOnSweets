@@ -229,8 +229,12 @@ namespace LivinOnSweets.API.Skinning
         // Will call the other get texture function which already looks for the alias
         public Texture GetTexture(string componentName) => GetTexture(componentName, default, default);
 
-        public virtual Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) =>
-            CurrentPack.Value.GetTexture(componentName, wrapModeS, wrapModeT);
+        public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) =>
+            GetTexture(componentName, wrapModeS, wrapModeT, true);
+
+        public virtual Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT,
+            bool useAtlas, bool? manualMipmaps = null, TextureFilteringMode? filteringMode = null) =>
+            CurrentPack.Value.GetTexture(componentName, wrapModeS, wrapModeT, useAtlas, manualMipmaps, filteringMode);
 
         public string GetPath(string componentName) => CurrentPack.Value.GetPath(componentName);
 

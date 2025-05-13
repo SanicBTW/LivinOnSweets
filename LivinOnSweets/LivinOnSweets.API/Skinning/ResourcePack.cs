@@ -25,7 +25,7 @@ namespace LivinOnSweets.API.Skinning
         /// <summary>
         /// A texture store which can be used to perform user file lookups for this resource pack.
         /// </summary>
-        protected TextureStore Textures { get; }
+        protected ResourcePackTextureStore Textures { get; }
 
         /// <summary>
         /// A sample store which can be used to perform user file lookups for this resource pack.
@@ -68,7 +68,7 @@ namespace LivinOnSweets.API.Skinning
 
             // The reason why we use pack resources and not bind the store itself, its because we want the texture lookup to fail
             // so it fallbacks to the nested stores, reusing some texture cache and texture atlases from them
-            Textures = new TextureStore(resources.Renderer, resources.CreateTextureLoaderStore(packResources));
+            Textures = new ResourcePackTextureStore(resources.Renderer, resources.CreateTextureLoaderStore(packResources));
 
             if (string.IsNullOrWhiteSpace(PackInfo.Metadata.Fallback)) return;
             addFallback();
@@ -100,8 +100,12 @@ namespace LivinOnSweets.API.Skinning
         // Will call the other get texture function which already looks for the alias
         public Texture GetTexture(string componentName) => GetTexture(componentName, default, default);
 
-        public virtual Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) =>
-            Textures.Get(GetPath(componentName), wrapModeS, wrapModeT);
+        public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) =>
+            GetTexture(componentName, wrapModeS, wrapModeT, true);
+
+        public virtual Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT,
+            bool useAtlas, bool? manualMipmaps = null, TextureFilteringMode? filteringMode = null) =>
+            Textures.Get(componentName, wrapModeS, wrapModeT, useAtlas, manualMipmaps, filteringMode);
 
         // Will look for aliases inside the table, if none it will return the given argument
         // In reality, aliases are just a sweetened way of overriding

@@ -24,7 +24,25 @@ namespace LivinOnSweets.API.Skinning
         /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <returns>A matching texture, or null if unavailable.</returns>
-        Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT);
+        Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) =>
+            GetTexture(componentName, wrapModeS, wrapModeT, true);
+
+        /// <summary>
+        /// Retrieves a <see cref="Texture"/>.
+        /// </summary>
+        /// <param name="componentName">The name of the texture.</param>
+        /// <param name="wrapModeS">The texture wrap mode in horizontal direction.</param>
+        /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
+        /// <param name="useAtlas">True if it should try to add the texture to the internal Atlas.</param>
+        /// <param name="manualMipmaps">True if it should retrieve the texture without any mipmaps.
+        ///     <remarks>If <paramref name="useAtlas"/> is true this won't take effect.</remarks>
+        /// </param>
+        /// <param name="filteringMode">The texture filtering mode.
+        ///     <remarks>If <paramref name="useAtlas"/> is true this won't take effect.</remarks>
+        /// </param>
+        /// <returns>The texture.</returns>
+        Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT,
+            bool useAtlas, bool? manualMipmaps = null, TextureFilteringMode? filteringMode = null);
 
         /// <summary>
         /// Retrieve a <see cref="SampleChannel"/>.
