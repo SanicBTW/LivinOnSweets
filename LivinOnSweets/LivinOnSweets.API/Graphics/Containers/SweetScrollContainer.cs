@@ -22,7 +22,7 @@ namespace LivinOnSweets.API.Graphics.Containers
         public const float SCROLL_BAR_WIDTH = 10;
         public const float SCROLL_BAR_PADDING = 3;
 
-        public BindableColour4 ScrollBarColour = new(Colour4.Black);
+        public BindableColour4 ScrollBarColour = new(Colour4.White);
         public BindableFloat ScrollBarAlpha = new(1f);
         public BindableFloat ScrollBarMaxAlpha = new(1f);
         public double AlphaDuration = 200;
@@ -91,7 +91,7 @@ namespace LivinOnSweets.API.Graphics.Containers
             protected override float MinimumDimSize => SCROLL_BAR_WIDTH * 3;
 
             // used to fade the scroll bar after being inactive for too long
-            private const double max_idle_time = 1000;
+            private const double max_idle_time = 2000;
 
             private Colour4 hoverColour = Colour4.Gray;
             private Colour4 defaultColour = Colour4.Black;
@@ -102,6 +102,8 @@ namespace LivinOnSweets.API.Graphics.Containers
 
             private float defaultBarAlpha = 1f;
             private bool transitioning;
+            private bool hovering;
+            private bool handling;
 
             private readonly Box box;
 
@@ -112,14 +114,12 @@ namespace LivinOnSweets.API.Graphics.Containers
                 CornerRadius = 5;
                 Size = new Vector2(SCROLL_BAR_WIDTH);
 
-                const float margin = 3;
-
                 Margin = new MarginPadding
                 {
-                    Left = scrollDir == Direction.Vertical ? margin : 0,
-                    Right = scrollDir == Direction.Vertical ? margin : 0,
-                    Top = scrollDir == Direction.Horizontal ? margin : 0,
-                    Bottom = scrollDir == Direction.Horizontal ? margin : 0,
+                    Left = scrollDir == Direction.Vertical ? SCROLL_BAR_PADDING : 0,
+                    Right = scrollDir == Direction.Vertical ? SCROLL_BAR_PADDING : 0,
+                    Top = scrollDir == Direction.Horizontal ? SCROLL_BAR_PADDING : 0,
+                    Bottom = scrollDir == Direction.Horizontal ? SCROLL_BAR_PADDING : 0,
                 };
 
                 Masking = true;
@@ -132,6 +132,80 @@ namespace LivinOnSweets.API.Graphics.Containers
 
                 bool hasChanged = !Parent.ScrollBlocked.Value && !Precision.AlmostEquals(lastScrollPos, Y);
 
+                triggerShow(hasChanged);
+
+                lastScrollPos = Y;
+
+                // If hovering the scroll bar we want to keep it active, trigger show fill just fade in the bar
+                // but it will keep getting called with false on here, so when that happens while hovering,
+                // we need to reset the scroll time to avoid hiding
+                if (hovering || handling)
+                    lastScrollTime = 0;
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                Parent.ScrollBarColour.BindValueChanged(ev =>
+                {
+                    box.Colour = ev.NewValue;
+                    defaultColour = ev.NewValue;
+                }, true);
+
+                Parent.ScrollBarMaxAlpha.BindValueChanged(ev => defaultBarAlpha = ev.NewValue, true);
+                Child.Alpha = defaultBarAlpha;
+            }
+
+            public override void ResizeTo(float val, int duration = 0, Easing easing = Easing.None)
+            {
+                // trigger the fade in when changing from 1 (hidden) to the desired size (not 1) and if its coming from not being present (visible)
+                // so far this approach works correctly an as intended
+                if (!IsPresent && Precision.AlmostEquals(val, 1, 0.1))
+                    triggerShow(true);
+
+                this.ResizeTo(new Vector2(SCROLL_BAR_WIDTH)
+                {
+                    [(int)ScrollDirection] = val
+                }, duration, easing);
+            }
+
+            protected override bool OnHover(HoverEvent e)
+            {
+                this.FadeColour(hoverColour, 100);
+                triggerShow(true);
+                return hovering = true;
+            }
+
+            protected override void OnHoverLost(HoverLostEvent e)
+            {
+                this.FadeColour(defaultColour, 100);
+                hovering = false;
+            }
+
+            protected override bool OnMouseDown(MouseDownEvent e)
+            {
+                if (!base.OnMouseDown(e)) return false;
+
+                // note that we are changing the colour of the box here as to not interfere with the hover effect.
+                box.FadeColour(highlightColour, 100);
+                // hovering the scrollbar triggers the fade in, no need to trigger here again
+                return handling = true;
+            }
+
+            protected override void OnMouseUp(MouseUpEvent e)
+            {
+                if (e.Button != MouseButton.Left) return;
+
+                box.FadeColour(defaultColour, 100);
+
+                handling = false;
+
+                base.OnMouseUp(e);
+            }
+
+            private void triggerShow(bool hasChanged)
+            {
                 switch (hasChanged)
                 {
                     case true:
@@ -146,7 +220,7 @@ namespace LivinOnSweets.API.Graphics.Containers
                         break;
                     }
 
-                    case false when lastScrollTime <= max_idle_time:
+                    case false when lastScrollTime < max_idle_time:
                         lastScrollTime += Clock.ElapsedFrameTime;
                         break;
 
@@ -160,55 +234,6 @@ namespace LivinOnSweets.API.Graphics.Containers
                         lastScrollTime = max_idle_time;
                         break;
                 }
-
-                lastScrollPos = Y;
-            }
-
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
-
-                Parent.ScrollBarColour.BindValueChanged((ev) => box.Colour = ev.NewValue, true);
-
-                Parent.ScrollBarMaxAlpha.BindValueChanged((ev) => defaultBarAlpha = ev.NewValue, true);
-                Child.Alpha = defaultBarAlpha;
-            }
-
-            public override void ResizeTo(float val, int duration = 0, Easing easing = Easing.None)
-            {
-                this.ResizeTo(new Vector2(SCROLL_BAR_WIDTH)
-                {
-                    [(int)ScrollDirection] = val
-                }, duration, easing);
-            }
-
-            protected override bool OnHover(HoverEvent e)
-            {
-                this.FadeColour(hoverColour, 100);
-                return true;
-            }
-
-            protected override void OnHoverLost(HoverLostEvent e)
-            {
-                this.FadeColour(defaultColour, 100);
-            }
-
-            protected override bool OnMouseDown(MouseDownEvent e)
-            {
-                if (!base.OnMouseDown(e)) return false;
-
-                // note that we are changing the colour of the box here as to not interfere with the hover effect.
-                box.FadeColour(highlightColour, 100);
-                return true;
-            }
-
-            protected override void OnMouseUp(MouseUpEvent e)
-            {
-                if (e.Button != MouseButton.Left) return;
-
-                box.FadeColour(Colour4.White, 100);
-
-                base.OnMouseUp(e);
             }
         }
     }
