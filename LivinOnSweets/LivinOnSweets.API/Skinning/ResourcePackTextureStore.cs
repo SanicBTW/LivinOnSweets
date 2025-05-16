@@ -20,7 +20,7 @@ namespace LivinOnSweets.API.Skinning
         private readonly Dictionary<string, Task> retrievalCompletionSources = [];
 
         private readonly ResourceStore<TextureUpload> uploadStore = new();
-        private readonly List<ITextureStore> nestedStores = [];
+        private readonly List<ResourcePackTextureStore> nestedStores = [];
 
         private readonly IRenderer renderer;
 
@@ -54,14 +54,14 @@ namespace LivinOnSweets.API.Skinning
         public virtual void RemoveTextureStore(IResourceStore<TextureUpload> store) => uploadStore.RemoveStore(store);
 
         /// <inheritdoc cref="TextureStore.AddStore(ITextureStore)"/>
-        public virtual void AddStore(ITextureStore store)
+        public virtual void AddStore(ResourcePackTextureStore store)
         {
             lock (nestedStores)
                 nestedStores.Add(store);
         }
 
         /// <inheritdoc cref="TextureStore.RemoveStore(ITextureStore)"/>
-        public virtual void RemoveStore(ITextureStore store)
+        public virtual void RemoveStore(ResourcePackTextureStore store)
         {
             lock (nestedStores)
                 nestedStores.Remove(store);
@@ -123,9 +123,13 @@ namespace LivinOnSweets.API.Skinning
             if (texture != null) return texture;
             lock (nestedStores)
             {
+                // The reason why we don't use ITextureStore its because we are missing the custom methods
+                // that we implement here, the custom mipmaps setting, filtering etc, will fall under the
+                // default texture get function, so if the first lookup returns null, the nested stores
+                // will just use the default function which lacks the custom params
                 foreach (var nested in nestedStores)
                 {
-                    if ((texture = nested.Get(name, wrapModeS, wrapModeT)) != null)
+                    if ((texture = nested.Get(name, wrapModeS, wrapModeT, useAtlas, manualMipmaps, filteringMode)) != null)
                         break;
                 }
             }
