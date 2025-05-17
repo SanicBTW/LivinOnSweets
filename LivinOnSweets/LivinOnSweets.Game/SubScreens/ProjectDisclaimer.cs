@@ -1,17 +1,16 @@
 ﻿using LivinOnSweets.API.Graphics.UserInterface;
-using LivinOnSweets.API.Screens;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Screens;
+using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 using osuTK;
 
 namespace LivinOnSweets.Game.SubScreens
 {
-    public partial class ProjectDisclaimer : SweetSubScreen
+    public partial class ProjectDisclaimer : DrawSizePreservingFillContainer
     {
         private const double transition_duration = 500;
 
@@ -20,81 +19,77 @@ namespace LivinOnSweets.Game.SubScreens
         private CircularProgress timeLeft;
         private bool exiting;
 
+        public ProjectDisclaimer()
+        {
+            // Followed my design instinct (figma) and used its sizes
+            TargetDrawSize = new Vector2(826, 592);
+        }
+
         [BackgroundDependencyLoader]
         private void load()
         {
-            Size = DrawSize / 2;
             Alpha = 0;
 
-            InternalChild = mainContent = new Container
+            InternalChild = mainContent = new DrawSizePreservingFillContainer
             {
+                TargetDrawSize = TargetDrawSize,
                 Scale = new Vector2(0.8F),
-                RelativeSizeAxes = Axes.Both,
                 Masking = true,
                 CornerRadius = 5,
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Children =
-                [
-                    new Box
-                    {
-                        Colour = Colour4.DarkGray.Darken(8F),
-                        RelativeSizeAxes = Axes.Both,
-                    },
-                    new SpriteIcon
-                    {
-                        Icon = FontAwesome.Solid.Exclamation,
-                        Size = new Vector2(48F),
-                        Anchor = Anchor.TopCentre,
-                        Origin = Anchor.TopCentre,
-                        Margin = new MarginPadding(8)
-                    },
-                    typeWriter = new TypeWriterText
-                    {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre
-                    },
-                    timeLeft = new CircularProgress
-                    {
-                        Size = new Vector2(32),
-                        Anchor = Anchor.BottomRight,
-                        Origin = Anchor.BottomRight,
-                        Margin = new MarginPadding(8),
-                        Alpha = 0,
-                        InnerRadius = 0.2F
-                    }
-                ]
+                Child = new Container
+                {
+                    Size = TargetDrawSize,
+                    Position = new Vector2(10, -6),
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Scale = new Vector2(0.71F),
+                    Children =
+                    [
+                        new SpriteIcon
+                        {
+                            Icon = FontAwesome.Solid.Exclamation,
+                            Size = new Vector2(48F),
+                            Anchor = Anchor.TopLeft,
+                            Origin = Anchor.TopLeft,
+                            Margin = new MarginPadding { Top = 16, Left = 4 }
+                        },
+                        typeWriter = new TypeWriterText
+                        {
+                            Anchor = Anchor.TopLeft,
+                            Origin = Anchor.TopLeft,
+                            Margin = new MarginPadding { Top = 12, Left = 56 }, // (icon) Margin.Left + Width + sum lil extra margin to look good
+                            Padding = new MarginPadding { Right = 58 }, // the same left margin but with sum more extra to look wrap text correctly
+                            AutoSizeAxes = Axes.None,
+                            RelativeSizeAxes = Axes.Both,
+                        },
+                        timeLeft = new CircularProgress
+                        {
+                            Size = new Vector2(48),
+                            Anchor = Anchor.BottomLeft,
+                            Origin = Anchor.BottomLeft,
+                            Margin = new MarginPadding(12),
+                            Alpha = 0,
+                            InnerRadius = 0.2F
+                        }
+                    ]
+                }
             };
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            RelativeSizeAxes = Axes.None; // Disable relative sizes since scaling wont take any affect (we dont want that!!)
-        }
 
-        public override void OnEntering(ScreenTransitionEvent e)
-        {
-            // Not really visible but aight
-            mainContent.ScaleTo(1, transition_duration, Easing.OutQuint);
-            this.FadeIn(transition_duration * 2, Easing.OutQuint);
-
-            Scheduler.AddDelayed(() =>
+            using (BeginDelayedSequence(500))
             {
-                // Translatable string gang
-                typeWriter.Start("This game is only a fan project\n" +
-                                            "It's still heavily on work in progress\n" +
-                                            "Please report any issues you might find\n\n" +
-                                            "We are not associated with\n"+
-                                            "NEXON Korea Corp. & NEXON Games Co., LTD", 25);
-            }, 500);
-        }
+                // Not really visible but aight
+                mainContent.ScaleTo(1, transition_duration, Easing.OutQuint);
+                this.FadeIn(transition_duration * 2, Easing.OutQuint);
 
-        public override bool OnExiting(ScreenExitEvent e)
-        {
-            mainContent.ScaleTo(0.8F, transition_duration / 2, Easing.In);
-            this.FadeOut(transition_duration, Easing.OutQuint);
-            return base.OnExiting(e);
+                Scheduler.AddDelayed(() => typeWriter.Start(new TranslatableString("startup:disclaimer", "placeholder placeholder"), 20), 500);
+            }
         }
 
         protected override void Update()
@@ -105,8 +100,24 @@ namespace LivinOnSweets.Game.SubScreens
             if (!typeWriter.IsFinished || exiting) return;
 
             exiting = true;
-            Scheduler.AddDelayed(Exit, 5000D);
-            timeLeft.FadeIn(500D, Easing.OutQuint).ProgressTo(1D, 5000D, Easing.OutQuart);
+            timeLeft.FadeIn(500D, Easing.OutQuint).ProgressTo(1D, 5000D, Easing.OutQuint).OnComplete(_ => exit());
+        }
+
+        private void exit()
+        {
+            mainContent.ScaleTo(0.8F, transition_duration / 2, Easing.In);
+            this.FadeOut(transition_duration, Easing.OutQuint);
+        }
+
+        protected override bool OnMouseDown(MouseDownEvent e)
+        {
+            this.TransformBindableTo(typeWriter.Speed, 10, 250D);
+            return true;
+        }
+
+        protected override void OnMouseUp(MouseUpEvent e)
+        {
+            this.TransformBindableTo(typeWriter.Speed, typeWriter.Speed.Default, 250D);
         }
     }
 }

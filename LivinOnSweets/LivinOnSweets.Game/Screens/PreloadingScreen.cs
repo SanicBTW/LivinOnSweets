@@ -1,14 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using LivinOnSweets.API.Configuration;
 using LivinOnSweets.API.Screens;
+using LivinOnSweets.API.Skinning;
 using LivinOnSweets.Game.SubScreens;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 using osu.Framework.Screens;
+using osuTK;
 
 namespace LivinOnSweets.Game.Screens
 {
@@ -18,10 +23,14 @@ namespace LivinOnSweets.Game.Screens
         [Resolved]
         private SweetConfigManager config { get; set; }
 
+        [Resolved]
+        private IResourcePackSource pack { get; set; }
+
         private SweetScreen nextScreen;
         private ShaderPrecompiler precompiler;
 
         private FillFlowContainer<PreloaderTextTracker> trackers;
+        [CanBeNull] private ProjectDisclaimer disclaimer;
 
         public PreloadingScreen()
         {
@@ -32,10 +41,31 @@ namespace LivinOnSweets.Game.Screens
         {
             base.OnEntering(e);
 
-            if (!config.Get<bool>(SweetSetting.SkipProjectDisclaimer))
-                PushSubScreen(new ProjectDisclaimer());
+            bool skipDisclaimer = config.Get<bool>(SweetSetting.SkipProjectDisclaimer);
+            if (!skipDisclaimer)
+            {
+                AddRangeInternal([
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Colour4.FromHex("#e1ddd7")
+                    },
+                    // the reason why we do this instead of just filling the entire screen with the texture its because it
+                    // gets stretched on both axes lookin kinda weird, fill looks fine? kinda what im looking for (no stretch, just filling the screen)
+                    new Sprite
+                    {
+                        Texture = pack.GetTexture("Startup/UI/RewardsBG.png", WrapMode.None, WrapMode.None, false, true),
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.Both,
+                        Size = Vector2.One,
+                        FillMode = FillMode.Fill,
+                    },
+                    disclaimer = new ProjectDisclaimer(),
+                ]);
+            }
 
-            AddInternal(trackers = new FillFlowContainer<PreloaderTextTracker>()
+            AddInternal(trackers = new FillFlowContainer<PreloaderTextTracker>
             {
                 Direction = FillDirection.Vertical,
                 RelativeSizeAxes = Axes.X,
@@ -47,6 +77,7 @@ namespace LivinOnSweets.Game.Screens
                 AutoSizeEasing = Easing.OutQuint,
                 LayoutDuration = 500F,
                 LayoutEasing = Easing.OutQuint,
+                Colour = skipDisclaimer ? Colour4.White : Colour4.Black
             });
             trackers.FadeTo(0.5F, 1000D, Easing.InOutQuart).Then().FadeTo(0.9F, 1000D, Easing.InOutQuart).Loop();
 
@@ -61,7 +92,7 @@ namespace LivinOnSweets.Game.Screens
 
         private void checkIfLoaded()
         {
-            if (trackers.Count > 0 || IsSubScreenOpen)
+            if (trackers.Count > 0 || disclaimer is { IsPresent: true })
             {
                 Schedule(checkIfLoaded);
                 return;
@@ -110,6 +141,8 @@ namespace LivinOnSweets.Game.Screens
         public partial class ShaderPrecompiler : Component, IPreloadable
         {
             private readonly List<IShader> loadTargets = [];
+
+            // rarely crashes
             protected virtual bool AllLoaded => loadTargets.All(s => s.IsLoaded);
 
             [BackgroundDependencyLoader]
