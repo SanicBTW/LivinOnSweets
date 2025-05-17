@@ -1,4 +1,6 @@
-﻿using osu.Framework.Allocation;
+﻿using JetBrains.Annotations;
+using LivinOnSweets.API.Graphics.Sprites;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -17,6 +19,7 @@ namespace LivinOnSweets.API.Graphics.UserInterface
         protected LocalisationManager Localisation { get; private set; }
 
         private TextFlowContainer text;
+        public Action<SweetSpriteText> CreationParameters;
 
         private string endText = "";
         private int currentIndex;
@@ -41,8 +44,10 @@ namespace LivinOnSweets.API.Graphics.UserInterface
             init => base.AutoSizeAxes = value;
         }
 
-        public TypeWriterText()
+        public TypeWriterText([CanBeNull] Action<SweetSpriteText> defaultCreationParameters = null)
         {
+            CreationParameters = defaultCreationParameters ?? (spr => spr.Font = font);
+
             AutoSizeAxes = Axes.Both;
             AutoSizeDuration = 500F;
             AutoSizeEasing = Easing.OutQuint;
@@ -51,7 +56,7 @@ namespace LivinOnSweets.API.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load()
         {
-            InternalChild = text = new TextFlowContainer(spr => spr.Font = font) { AutoSizeAxes = AutoSizeAxes, RelativeSizeAxes = RelativeSizeAxes };
+            InternalChild = text = new TextFlowContainer { AutoSizeAxes = AutoSizeAxes, RelativeSizeAxes = RelativeSizeAxes };
         }
 
         public void Start(string typeText, double speed = 50D)
@@ -77,7 +82,7 @@ namespace LivinOnSweets.API.Graphics.UserInterface
 
             while (now - lastTime >= Speed.Value && currentIndex < endText.Length)
             {
-                text.AddText(endText[currentIndex].ToString());
+                text.AddText(endText[currentIndex].ToString(), CreationParameters);
                 currentIndex++;
                 lastTime += Speed.Value;
             }
