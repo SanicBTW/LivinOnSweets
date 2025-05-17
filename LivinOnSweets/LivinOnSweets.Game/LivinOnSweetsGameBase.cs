@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using AetherFramework;
@@ -180,5 +181,12 @@ namespace LivinOnSweets.Game
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) =>
             gameDependencies = new DependencyContainer(base.CreateChildDependencies(parent));
+
+        protected override IDictionary<FrameworkSetting, object> GetFrameworkConfigDefaults() => new Dictionary<FrameworkSetting, object>
+        {
+            // Setting the default locale to en to populate the object on first run instead of having an emtpy string and falling back on localisable strings
+            { FrameworkSetting.Locale, "en" },
+            { FrameworkSetting.WindowedSize, new Size(1280, 720) }
+        };
     }
 }

@@ -16,13 +16,8 @@ namespace LivinOnSweets.API.Extensions
             if (TryParseCultureCode(frameworkLocale, out var language))
                 return language;
 
-            if (localisationParameters.Store != null)
-            {
-                if (TryParseCultureCode(localisationParameters.Store.EffectiveCulture.Name, out language))
-                    return language;
-            }
-
-            return Language.en;
+            if (localisationParameters.Store == null) return Language.en;
+            return TryParseCultureCode(localisationParameters.Store.EffectiveCulture.Name, out language) ? language : Language.en;
         }
     }
 }
