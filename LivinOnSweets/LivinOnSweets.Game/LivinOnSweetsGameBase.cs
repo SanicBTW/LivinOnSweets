@@ -97,6 +97,9 @@ namespace LivinOnSweets.Game
 
         protected virtual void SetupDependencies(DependencyContainer container)
         {
+            // Used to save states and react to them on some parts of the game
+            container.Cache(new GameStateManager());
+
             // Cache the storage variable from the host since it will be used inside the configuration managers
             // And make it accessible across the tree
             container.Cache(Storage);
