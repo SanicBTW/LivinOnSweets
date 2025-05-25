@@ -27,8 +27,8 @@ namespace LivinOnSweets.Game
 {
     public partial class LivinOnSweetsGameBase : osu.Framework.Game
     {
-        protected override Container<Drawable> Content => content;
-        private ManiaActionContainer content;
+        protected override Container<Drawable> Content => ActionContainer;
+        protected ManiaActionContainer ActionContainer;
 
         private DependencyContainer gameDependencies;
 
@@ -82,14 +82,14 @@ namespace LivinOnSweets.Game
             CurrentLanguage.BindValueChanged(val => frameworkLocale.Value = val.NewValue.ToCultureCode());
 
             // Load up the action container
-            ManiaActionContainer actionContainer = [];
-            gameDependencies.CacheAs(actionContainer);
+            ActionContainer = [];
+            gameDependencies.CacheAs(ActionContainer);
 
             base.Content.Add(SafeAreaContainer = new SafeAreaContainer
             {
                 SafeAreaOverrideEdges = SafeAreaOverrideEdges,
                 RelativeSizeAxes = Axes.Both,
-                Child = CreateScalingContainer().WithChild(content = actionContainer)
+                Child = CreateScalingContainer().WithChild(ActionContainer)
             });
 
             base.Content.Add(new TouchInputInterceptor());
