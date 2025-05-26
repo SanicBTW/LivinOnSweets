@@ -7,13 +7,14 @@
 
         // Graphics
         ShowFpsDisplay,
-        IrodoriCanvasMv, // Shows the Irodori Canvas Music Video rather than the default background
+        IrodoriCanvasMv, // NOT IMPLEMENTED GAMEPLAY NOT DONE / Shows the Irodori Canvas Music Video rather than the default background
         TomodachiStepMv, // NOT IMPLEMENTED MISSING V3 CONTENT / Shows the Tomodachi Step Music Video
         SongBackgroundParallax, // If the band room should parallax (even if the slightest bg movement disturbs you)
 
         // Gameplay
         DownScroll, // By default its true to follow the vanilla aspect
         ScrollSpeed, // Can be changed in the song select menu
+        NoGameplayContextChange, // Disables the transition to a fullscreen context when focusing gameplay
 
         // Master (universal), BGM (music) and SE (effect) handled by the framework config
         // Audio

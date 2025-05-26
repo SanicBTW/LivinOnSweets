@@ -22,6 +22,7 @@ namespace LivinOnSweets.API.Configuration
             // Gameplay
             SetDefault(SweetSetting.DownScroll, true);
             SetDefault(SweetSetting.ScrollSpeed, 1, 0.5, 10, 0.5);
+            SetDefault(SweetSetting.NoGameplayContextChange, false);
 
             // Audio
             SetDefault(SweetSetting.VolumeInactive, 0.25, 0, 1, 0.01);

@@ -110,7 +110,7 @@ namespace LivinOnSweets.API.Graphics.Containers
             public SweetScrollbar(Direction scrollDir)
                 : base(scrollDir)
             {
-                Blending = BlendingParameters.Additive;
+                // Blending = BlendingParameters.Additive;
                 CornerRadius = 5;
                 Size = new Vector2(SCROLL_BAR_WIDTH);
 
