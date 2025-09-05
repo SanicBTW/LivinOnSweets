@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Configuration;
 using LivinOnSweets.API.Graphics;
@@ -15,6 +16,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.Events;
+using osu.Framework.Screens;
 using osuTK;
 using osuTK.Graphics;
 
@@ -81,6 +83,9 @@ namespace LivinOnSweets.Game
             {
                 if (mode.NewValue != OverlayActivation.All) CloseAllOverlays();
             };
+
+            ScreenStack.ScreenPushed += ScreenStackOnScreenPushed;
+            ScreenStack.ScreenExited += ScreenStackOnScreenExited;
 
             ScreenStack.Push(new PreloadingScreen());
         }
@@ -171,5 +176,29 @@ namespace LivinOnSweets.Game
 
             return base.OnPressed(e);
         }
+
+        protected virtual void ScreenChanged([CanBeNull] ISweetScreen current, [CanBeNull] ISweetScreen newScreen)
+        {
+            if (current != null)
+            {
+                OverlayActivationMode.UnbindFrom(current.OverlayActivationMode);
+            }
+
+            if (newScreen != null)
+            {
+                OverlayActivationMode.BindTo(newScreen.OverlayActivationMode);
+            }
+        }
+
+        private void ScreenStackOnScreenExited(IScreen lastScreen, IScreen newScreen) =>  ScreenChanged((SweetScreen)lastScreen, (SweetScreen)newScreen);
+
+        private void ScreenStackOnScreenPushed(IScreen lastScreen, IScreen newScreen)
+        {
+            ScreenChanged((SweetScreen)lastScreen, (SweetScreen)newScreen);
+
+            if (newScreen == null)
+                Exit();
+        }
+
     }
 }

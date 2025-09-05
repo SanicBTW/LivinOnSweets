@@ -1,17 +1,32 @@
-﻿using osu.Framework.Graphics;
+﻿using LivinOnSweets.API.Overlays;
+using osu.Framework.Bindables;
+using osu.Framework.Graphics;
 using osu.Framework.Screens;
 
 namespace LivinOnSweets.API.Screens
 {
-    public partial class SweetScreen : Screen
+    public partial class SweetScreen : Screen, ISweetScreen
     {
         protected SweetScreenStack ScreenStack => (SweetScreenStack)Parent;
 
-        public bool IsSubScreenOpen => ScreenStack.IsSubScreenOpen;
+        /// <summary>
+        /// The initial overlay activation mode to use when this screen is entered for the first time.
+        /// </summary>
+        protected virtual OverlayActivation InitialOverlayActivationMode => OverlayActivation.All;
 
-        public SweetScreen()
+        /// <summary>
+        /// Whether overlays should be able to be opened when this screen is current.
+        /// </summary>
+        public readonly Bindable<OverlayActivation> OverlayActivationMode;
+
+        IBindable<OverlayActivation> ISweetScreen.OverlayActivationMode => OverlayActivationMode;
+
+        protected bool IsSubScreenOpen => ScreenStack.IsSubScreenOpen;
+
+        protected SweetScreen()
         {
             Anchor = Origin = Anchor.Centre;
+            OverlayActivationMode = new Bindable<OverlayActivation>(InitialOverlayActivationMode);
         }
 
         public override bool OnExiting(ScreenExitEvent e)
