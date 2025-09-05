@@ -7,6 +7,7 @@ using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
@@ -37,6 +38,8 @@ namespace LivinOnSweets.API.Skinning
 
         private readonly IResourceStore<byte[]> resources;
 
+        private readonly Storage storage;
+
         private readonly Dictionary<string, ResourcePack> loadedPacks = new();
 
         public IEnumerable<ResourcePack> LoadedPacks => loadedPacks.Values;
@@ -52,29 +55,50 @@ namespace LivinOnSweets.API.Skinning
         /// </summary>
         public readonly Bindable<ResourcePack> CurrentPack = new();
 
+        public readonly Logger Logger;
+
         public ResourcePackManager(Storage storage, GameHost host, ResourceStore<byte[]> resources,
             AudioManager audio, SweetConfigManager sweetConfig)
         {
             this.audio = audio;
             this.host = host;
             this.resources = resources;
+            this.storage = storage.GetStorageForDirectory("resourcepacks");
+
+            Logger = Logger.GetLogger("resources");
+            Logger.Add("Resource Pack Manager instantiated", LogLevel.Debug);
 
             // It will follow a resource pack id, the way to retrieve the resource pack name should be by getting the pack then pack info, metadata and name
             resourcePack = sweetConfig.GetBindable<string>(SweetSetting.ResourcePack);
             gameUpdate = sweetConfig.GetBindable<GameUpdateVersion>(SweetSetting.GameUpdate);
 
             loadEmbedded();
-            loadExternal(storage);
+            loadExternal();
 
             bool isOfficial = OFFICIAL_RESOURCE_PACKS.Contains(resourcePack.Value); // Checks if the set resource pack is coming from the official resources
             bool sameUpdatePack = gameUpdate.Value.GetDescription() == resourcePack.Value; // Checks if the set game update resource pack id is the same as the resource pack set
+
+            // this edge case was found within the editor, when changing alone the resource pack it would need
+            // to change the game update version too but since it doesnt the packs were mismatching thus crashing the game
+            // this is a quick fix in case of forgetting to change the value
+            bool isForcedPack = isOfficial && !sameUpdatePack; // Checks if the provided resource pack is a listed one AND the game update isnt equal (mismatch!)
+            if (isForcedPack)
+            {
+                int packIndex = OFFICIAL_RESOURCE_PACKS.ToList().IndexOf(resourcePack.Value);
+                GameUpdateVersion convVer = (GameUpdateVersion)packIndex;
+                gameUpdate.Value = convVer;
+
+                // should re-evaluate some flags
+                sameUpdatePack = gameUpdate.Value.GetDescription() == resourcePack.Value;
+                Logger.Add("Forced to reset the GameUpdate to match ResourcePack", LogLevel.Debug);
+            }
 
             // Run immediately if: is not official OR its the same res pack id
             bool runImmediately = !isOfficial || sameUpdatePack;
             resourcePack.BindValueChanged(ev => updateCurrentPack(ev.NewValue), runImmediately);
 
             // This binds to any change the game update bindable has, doesnt run immediately since its
-            //  most likely to  already have the same value in the resource pack bindable
+            // most likely to already have the same value in the resource pack bindable
             gameUpdate.BindValueChanged(ev =>
             {
                 resourcePack.Value = ev.NewValue.GetDescription();
@@ -102,7 +126,7 @@ namespace LivinOnSweets.API.Skinning
                 using Stream metaStream = res.GetStream($"{packId}/metadata.toml");
                 if (metaStream == null)
                 {
-                    Logger.Log($"Failed to retrieve {packId}", "resources", LogLevel.Error);
+                    Logger.Add($"Failed to retrieve {packId}", LogLevel.Error);
                     continue;
                 }
 
@@ -111,10 +135,10 @@ namespace LivinOnSweets.API.Skinning
             }
         }
 
-        private void loadExternal(Storage storage)
+        private void loadExternal()
         {
             // Will look for resource packs inside the user storage
-            using StorageBackedResourceStore extResourcePacks = new StorageBackedResourceStore(storage.GetStorageForDirectory("resourcepacks"));
+            using StorageBackedResourceStore extResourcePacks = new StorageBackedResourceStore(storage);
             string[] extTomls = extResourcePacks.GetAvailableResources().Where(s => s.EndsWith(".toml")).ToArray();
             if (extTomls.Length == 0)
                 return;
@@ -124,7 +148,7 @@ namespace LivinOnSweets.API.Skinning
                 using Stream metaStream = extResourcePacks.GetStream(extToml);
                 if (metaStream == null) // This shouldn't really happen since its like, looping through the files that it retrieved so its weird
                 {
-                    Logger.Log($"{extToml} shouldn't return a null stream.", "resources", LogLevel.Error);
+                    Logger.Add($"{extToml} returned a null stream.", LogLevel.Error);
                     continue;
                 }
 
@@ -139,30 +163,35 @@ namespace LivinOnSweets.API.Skinning
             if (!Toml.TryToModel(metaContent, out ResourcePackInfo packInfo,
                     out DiagnosticsBag diagnostics, options: default_toml_options))
             {
-                Logger.Log("Failed while parsing the TOML model, please revise the log file for more information.", "resources", LogLevel.Error);
-                Logger.Log(diagnostics.ToString(), "resources", LogLevel.Verbose, false);
+                Logger.Add("Failed while parsing the TOML model, please check the log file for more information",
+                    LogLevel.Error);
+                Logger.Add(diagnostics.ToString(), outputToListeners: false);
                 return;
             }
 
             loadedPacks[packInfo.Metadata.Id] = new ResourcePack(packInfo, this);
-            Logger.Log($"Cached {packInfo.Metadata.Id}", "resources");
+            Logger.Add($"Cached {packInfo.Metadata.Id}");
         }
 
         private void updateCurrentPack(string newPackId)
         {
-            Logger.Log($"Changing to {newPackId} resource pack", "resources");
+            Logger.Add($"Changing to {newPackId} resource pack");
             ResourcePack nextPack = GetPackById(newPackId);
             if (nextPack == null)
             {
-                Logger.Log("Failed to change, nextPack was null", "resources", LogLevel.Error);
+                NullReferenceException exception =
+                    new NullReferenceException($"Couldn't set {nameof(nextPack)} to {newPackId}");
+
+                Logger.Add("Failed to change, nextPack was null", LogLevel.Error, exception);
+
                 // Throwing here is safer since everything else is probably gonna throw too because they're accessing CurrentPack.Value
-                throw new NullReferenceException($"Couldn't set {nameof(nextPack)} to {newPackId}");
+                throw exception;
             }
 
             // Null probably; it has the default value which is currently null
             if (CurrentPack.IsDefault)
             {
-                Logger.Log("There's no current pack set, applying new pack instantly", "resources", LogLevel.Important);
+                Logger.Add("There's no current pack set, applying new pack instantly", LogLevel.Important);
                 CurrentPack.Value = nextPack;
                 return;
             }
@@ -170,17 +199,20 @@ namespace LivinOnSweets.API.Skinning
             ResourcePack current = CurrentPack.Value;
             if (current == nextPack)
             {
-                Logger.Log("Attempted to change to the same pack", "resources", LogLevel.Error);
+                Logger.Add("Attempted to change to the same pack", LogLevel.Error);
                 return;
             }
 
             if (!canChangePacks(current.PackInfo, nextPack.PackInfo))
                 return;
 
-            Logger.Log($"Successfully changed to the {newPackId}", "resources", LogLevel.Important);
+            Logger.Add($"Successfully changed to {newPackId}", LogLevel.Important);
             CurrentPack.Value = nextPack;
         }
 
+        // after a couple of iterations now this has changed, with the addition of reloadable sprites, the sprite itself
+        // can get re-created upon pack change but this leads to some edge cases where you cant change the pack on runtime
+        // avoiding some runtime performance issues maybe
         private static bool canChangePacks(ResourcePackInfo currentInfo, ResourcePackInfo nextInfo)
         {
             // TODO: Implement soft restart (restarting the game as a whole or re-create the screen stack, game instance, not the app to make it simpler)
@@ -212,6 +244,7 @@ namespace LivinOnSweets.API.Skinning
         IRenderer IStorageResourceProvider.Renderer => host.Renderer;
         AudioManager IStorageResourceProvider.AudioManager => audio;
         IResourceStore<byte[]> IStorageResourceProvider.Resources => resources;
+        Storage IStorageResourceProvider.Storage => storage;
         IResourceStore<TextureUpload> IStorageResourceProvider.CreateTextureLoaderStore(IResourceStore<byte[]> underlyingStore) => host.CreateTextureLoaderStore(underlyingStore);
 
         #endregion
@@ -219,6 +252,8 @@ namespace LivinOnSweets.API.Skinning
         #region IResourcePackSource
 
         public event Action SourceChanged;
+
+        public ResourcePackInfo PackInfo => CurrentPack.Value.PackInfo;
 
         // Quick wrappers but its only to satisfy the interface, it should implement lookups or fallbacks for the available skins
         // But that is managed by the resource pack itself...

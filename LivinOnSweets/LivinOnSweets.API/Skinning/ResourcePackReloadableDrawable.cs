@@ -60,8 +60,8 @@ namespace LivinOnSweets.API.Skinning
         /// <summary>
         /// Called when a change is made to the resource pack.
         /// </summary>
-        /// <param name="pack">The new resource pack.</param>
-        protected virtual void PackChanged(IResourcePackSource pack) { }
+        /// <param name="newPack">The new resource pack.</param>
+        protected virtual void PackChanged(IResourcePackSource newPack) { }
 
         private void onChange()
         {

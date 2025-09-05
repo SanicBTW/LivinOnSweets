@@ -1,4 +1,5 @@
-﻿using LivinOnSweets.API.Audio;
+﻿using JetBrains.Annotations;
+using LivinOnSweets.API.Audio;
 using LivinOnSweets.API.IO;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
@@ -16,7 +17,9 @@ namespace LivinOnSweets.API.Skinning
     /// </summary>
     public class ResourcePack : IDisposable, IResourcePack
     {
-        public readonly ResourcePackInfo PackInfo;
+        public ResourcePackInfo PackInfo { get; protected set; }
+
+        [CanBeNull] public ResourcePack Fallback { get; protected set; }
 
         private readonly ResourcePackManager resourcePackManager;
 
@@ -54,9 +57,7 @@ namespace LivinOnSweets.API.Skinning
 
             PackInfo = resourcePack;
 
-            // The ID should be passed down but uhh I added it to the resource pack metadata, just to make the future a little bit brighter
-            // Namespace formed like: ResourcePack/id/... not like id/... dumb ass - to myself sanco
-            NamespacedResourceStore<byte[]> packResources = new NamespacedResourceStore<byte[]>(resources.Resources, $"ResourcePacks/{PackInfo.Metadata.Id}");
+            IResourceStore<byte[]> packResources = RetrievePackResources();
             store.AddStore(packResources);
 
             // both audio stores will share the same store, adding any other store to this will affect the backing audio store
@@ -77,16 +78,89 @@ namespace LivinOnSweets.API.Skinning
         private void addFallback()
         {
             // Instead of creating a whole new store and shi, we retrieve the pack from the manager to add their stores to this pack
-            ResourcePack fallbackPack = resourcePackManager.GetPackById(PackInfo.Metadata.Fallback);
-            if (fallbackPack == null)
+            Fallback = resourcePackManager.GetPackById(PackInfo.Metadata.Fallback);
+            if (Fallback == null)
             {
                 Logger.Log($"Failed to retrieve the fallback {PackInfo.Metadata.Fallback}", "resources", LogLevel.Error);
                 return;
             }
 
-            store.AddStore(fallbackPack.store);
-            Textures.AddStore(fallbackPack.Textures); // This is done to avoid having atlases per each resource pack and properly retrieving cache
-            Logger.Log($"Mapped {PackInfo.Metadata.Id} stores to fallback to {PackInfo.Metadata.Fallback} stores", "resources", LogLevel.Debug);
+            store.AddStore(Fallback.store);
+            Textures.AddStore(Fallback.Textures); // This is done to avoid having atlases per each resource pack and properly retrieving cache
+            resourcePackManager.Logger.Add($"Mapped {PackInfo.Metadata.Id} stores to fallback to {PackInfo.Metadata.Fallback} stores");
+            ApplyFallbackMetadata();
+        }
+
+        // you could say its sanitizing the data rather than applying a fallback but uh yeah, this is bad practice i should move the sanitization to another method
+        /// <summary>
+        /// Applies the fallback metadata to this <see cref="ResourcePack"/>
+        /// </summary>
+        protected virtual void ApplyFallbackMetadata()
+        {
+            resourcePackManager.Logger.Add($"Applying {PackInfo.Metadata.Fallback} metadata to the current pack ({PackInfo.Metadata.Id})");
+
+            ResourcePackInfo fallbackInfo = Fallback!.PackInfo;
+
+            // i honestly dont know if we should inherit aliases ehh
+
+            if (PackInfo.Songs == null)
+            {
+                // in the best cases we should only need to inherit the fallback entirely
+                // cases like livin on sweets using the same songs as sugar rush
+                // for extra antique seraphim this is different since it ADDS songs to the fallback
+                PackInfo.Songs = fallbackInfo.Songs;
+            }
+            else // we need to sanitize some
+            {
+                // check extra antique seraphim song table
+                if (PackInfo.Songs.Format == "")
+                    PackInfo.Songs.Format = fallbackInfo.Songs.Format;
+
+                PackInfo.Songs.Separator ??= fallbackInfo.Songs.Separator;
+
+                // here we need to check if the fallback pack IS compatible with the current pack
+                // this is because livin on sweets and before do not need multilist, however antique seraphim and newer
+                // need multilist, extra antique seraphim inherits from antique seraphim soo
+                bool isPackCompatible = PackInfo.Engine.CompatibleWith.Contains(fallbackInfo.Metadata.Id);
+                if (isPackCompatible && PackInfo.Songs.MultiList != fallbackInfo.Songs.MultiList)
+                    PackInfo.Songs.MultiList = fallbackInfo.Songs.MultiList;
+
+                List<string> fallbackSongs = fallbackInfo.Songs.Available;
+
+                // ["...", "twinkle_magic"] returns 0
+                int indexOfSpread = PackInfo.Songs.Available.IndexOf("...");
+                if (indexOfSpread == -1)
+                    return;
+
+                // ["twinkle_magic"]
+                PackInfo.Songs.Available.RemoveAt(indexOfSpread);
+
+                // ["tomodachi_onestep", "tremendous_celebration", "twinkle_magic"] best approach
+                PackInfo.Songs.Available.InsertRange(indexOfSpread, fallbackSongs);
+            }
+
+        }
+
+        public IResourceStore<byte[]> RetrievePackResources()
+        {
+            // should make some function to assert the convertion and retrieval
+            IStorageResourceProvider resources = resourcePackManager;
+            if (resources == null)
+                throw new NullReferenceException();
+
+            string packNamespace = $"ResourcePacks/{PackInfo.Metadata.Id}";
+            IResourceStore<byte[]> packResources;
+            bool isInResources = resources.Resources.GetAvailableResources().Any(str => str.StartsWith(packNamespace)); // bruh
+            if (isInResources)
+            {
+                // The ID should be passed down but uhh I added it to the resource pack metadata, just to make the future a little bit brighter
+                // Namespace formed like: ResourcePacks/id/... not like id/... dumb ass - to myself sanco
+                packResources = new NamespacedResourceStore<byte[]>(resources.Resources, $"ResourcePacks/{PackInfo.Metadata.Id}");
+            }
+            else
+                packResources = new StorageBackedResourceStore(resources.Storage.GetStorageForDirectory(PackInfo.Metadata.Id));
+
+            return packResources;
         }
 
         #region IResourcePack
@@ -108,7 +182,8 @@ namespace LivinOnSweets.API.Skinning
             Textures.Get(componentName, wrapModeS, wrapModeT, useAtlas, manualMipmaps, filteringMode);
 
         // Will look for aliases inside the table, if none it will return the given argument
-        // In reality, aliases are just a sweetened way of overriding
+        // In reality, aliases are just a sweetened way of overriding paths without minding the real file structure
+        // so as long as you know the path call you can change it
         public string GetPath(string componentName)
         {
             Dictionary<string, string> aliases = PackInfo.Aliases;
@@ -154,5 +229,4 @@ namespace LivinOnSweets.API.Skinning
 
         #endregion
     }
-
 }

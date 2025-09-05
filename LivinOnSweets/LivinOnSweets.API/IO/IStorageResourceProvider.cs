@@ -2,6 +2,7 @@
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
+using osu.Framework.Platform;
 
 namespace LivinOnSweets.API.IO
 {
@@ -22,6 +23,11 @@ namespace LivinOnSweets.API.IO
         /// Access the Resource Pack files.
         /// </summary>
         IResourceStore<byte[]> Resources { get; }
+
+        /// <summary>
+        /// Access to the user folder scoped inside the "resourcepacks" directory.
+        /// </summary>
+        Storage Storage { get; }
 
         /// <summary>
         /// Create a texture loader store based on an underlying data store.

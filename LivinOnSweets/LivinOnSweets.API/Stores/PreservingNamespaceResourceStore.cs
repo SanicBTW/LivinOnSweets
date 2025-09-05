@@ -9,12 +9,10 @@ namespace LivinOnSweets.API.Stores
     public class PreservingNamespaceResourceStore<T>(IResourceStore<T> store, string ns) : ResourceStore<T>(store)
         where T : class
     {
-        public string Namespace = ns;
-
         // custom filenames implementation since the possible paths it might use can start with the namespace itself, if thats the case dont make a string, just use the name
-        protected override IEnumerable<string> GetFilenames(string name) => name.StartsWith(Namespace) ? base.GetFilenames(name) : base.GetFilenames($@"{Namespace}/{name}");
+        protected override IEnumerable<string> GetFilenames(string name) => name.StartsWith(ns) ? base.GetFilenames(name) : base.GetFilenames($"{ns}/{name}");
 
         public override IEnumerable<string> GetAvailableResources() => base.GetAvailableResources()
-                                                                            .Where(x => x.StartsWith($"{Namespace}/", StringComparison.Ordinal));
+                                                                            .Where(x => x.StartsWith($"{ns}/", StringComparison.Ordinal));
     }
 }

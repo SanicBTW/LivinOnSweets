@@ -11,6 +11,11 @@ namespace LivinOnSweets.API.Skinning
     public interface IResourcePack
     {
         /// <summary>
+        /// Returns this pack <see cref="ResourcePackInfo"/>.
+        /// </summary>
+        ResourcePackInfo PackInfo { get; }
+
+        /// <summary>
         /// Retrieve a <see cref="Texture"/>.
         /// </summary>
         /// <param name="componentName">The requested texture.</param>
