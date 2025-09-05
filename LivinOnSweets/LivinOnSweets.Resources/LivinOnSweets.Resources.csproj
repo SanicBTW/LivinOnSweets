@@ -18,6 +18,5 @@
     <EmbeddedResource Include="MainMenu\**\*" />
 
     <EmbeddedResource Include="RhythmGame\**\*" />
-    <EmbeddedResource Include="Songs\**\*" />
   </ItemGroup>
 </Project>
