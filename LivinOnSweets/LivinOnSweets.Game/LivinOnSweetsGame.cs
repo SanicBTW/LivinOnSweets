@@ -63,7 +63,6 @@ namespace LivinOnSweets.Game
             LoadLocales();
 
             AddRange([
-                new GlobalManiaActionReceiver(),
                 ScreenContainer = new ScalingContainer(ScalingMode.ExcludeOverlays, ScalingContainerTargetDrawSize)
                 {
                     RelativeSizeAxes = Axes.Both,

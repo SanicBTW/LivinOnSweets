@@ -1,10 +1,12 @@
 ﻿using LivinOnSweets.API.Configuration;
+using LivinOnSweets.API.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Framework.Platform;
 using osu.Framework.Timing;
@@ -14,9 +16,12 @@ using osuTK;
 namespace LivinOnSweets.API.Graphics.UserInterface
 {
     // Another copy of lazer but customized lmao
-    public partial class FpsCounter : VisibilityContainer
+    public partial class FpsCounter : VisibilityContainer, IKeyBindingHandler<ManiaAction>
     {
         private readonly BindableBool showFpsDisplay = new(true);
+
+        // this is to be able to receive action events on this sprite without having to resort to a component (previously with GlobalManiaActionReceiver)
+        public override bool PropagateNonPositionalInputSubTree => true;
 
         private const double min_time_between_updates = 10;
         private const double spike_time_ms = 20;
@@ -227,5 +232,17 @@ namespace LivinOnSweets.API.Graphics.UserInterface
             requestDisplay();
             base.OnHoverLost(e);
         }
+
+        public bool OnPressed(KeyBindingPressEvent<ManiaAction> e)
+        {
+            if (e.Action != ManiaAction.TOGGLE_FPS)
+                return false;
+
+            ToggleVisibility();
+
+            return true;
+        }
+
+        public void OnReleased(KeyBindingReleaseEvent<ManiaAction> e) { }
     }
 }
