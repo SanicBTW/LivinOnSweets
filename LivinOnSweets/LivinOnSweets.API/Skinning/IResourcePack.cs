@@ -2,6 +2,7 @@
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.IO.Stores;
 
 namespace LivinOnSweets.API.Skinning
 {
@@ -69,5 +70,12 @@ namespace LivinOnSweets.API.Skinning
         /// <param name="componentName">The requested asset.</param>
         /// <returns><paramref name="componentName"/> or a path which was overriden by an alias inside the <see cref="ResourcePack"/>.</returns>
         string GetPath(string componentName);
+
+        /// <summary>
+        /// Retrieve a usable <see cref="Stream"/> from the <see cref="ResourcePack"/> <see cref="ResourceStore{T}"/>.
+        /// </summary>
+        /// <param name="componentName">The requested asset file, passed through <see cref="GetPath"/> to use a possible alias of the asset.</param>
+        /// <returns>The stream of <paramref name="componentName"/> or null if unavailable.</returns>
+        Stream GetStream(string componentName);
     }
 }

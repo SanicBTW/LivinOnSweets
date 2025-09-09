@@ -271,7 +271,9 @@ namespace LivinOnSweets.API.Skinning
             bool useAtlas, bool? manualMipmaps = null, TextureFilteringMode? filteringMode = null) =>
             CurrentPack.Value.GetTexture(componentName, wrapModeS, wrapModeT, useAtlas, manualMipmaps, filteringMode);
 
-        public string GetPath(string componentName) => CurrentPack.Value.GetPath(componentName);
+        public virtual string GetPath(string componentName) => CurrentPack.Value.GetPath(componentName);
+
+        public virtual Stream GetStream(string componentName) => CurrentPack.Value.GetStream(componentName);
 
         #endregion
 

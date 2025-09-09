@@ -184,7 +184,7 @@ namespace LivinOnSweets.API.Skinning
         // Will look for aliases inside the table, if none it will return the given argument
         // In reality, aliases are just a sweetened way of overriding paths without minding the real file structure
         // so as long as you know the path call you can change it
-        public string GetPath(string componentName)
+        public virtual string GetPath(string componentName)
         {
             Dictionary<string, string> aliases = PackInfo.Aliases;
             if (aliases.Count == 0)
@@ -194,6 +194,9 @@ namespace LivinOnSweets.API.Skinning
                 ? overridenPath
                 : componentName;
         }
+
+        // Fancy quick function to retrieve a Stream from THIS ResourcePack and ITS fallback
+        public virtual Stream GetStream(string componentName) => store.GetStream(GetPath(componentName));
 
         #endregion
 

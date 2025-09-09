@@ -1,6 +1,5 @@
 ﻿using JetBrains.Annotations;
 using LivinOnSweets.API.Configuration;
-using LivinOnSweets.API.LosDebug;
 using LivinOnSweets.API.Skinning;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -13,7 +12,7 @@ using osuTK;
 namespace LivinOnSweets.API.Graphics.Sprites
 {
     // Old code with improvements, adding support to the new resource pack system
-    public partial class StartupDisc : ResourcePackReloadableDrawable, IQuickDebugInterface
+    public partial class StartupDisc : ResourcePackReloadableDrawable
     {
         [CanBeNull] private Container cd;
 
@@ -156,14 +155,5 @@ namespace LivinOnSweets.API.Graphics.Sprites
                 }
             }
         }
-
-        // Should add a label actually for the element
-        IDictionary<string, Action> IQuickDebugInterface.GetDebugMethods() => new Dictionary<string, Action>
-        {
-            { "Spin", () => Start() },
-            { "Stop spin", Stop },
-            { "Slide out", () => Slide() },
-            { "Slide in", () => Slide(false) },
-        };
     }
 }
