@@ -94,7 +94,6 @@ namespace LivinOnSweets.Game
 
         #region IOverlayManager
 
-        // TODO: Should be bound to the screen pushed
         IBindable<OverlayActivation> IOverlayManager.OverlayActivationMode => OverlayActivationMode;
 
         private void updateBlockingOverlayFade() =>
