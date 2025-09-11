@@ -1,9 +1,10 @@
 ﻿using JetBrains.Annotations;
+using LivinOnSweets.API.Audio;
 using LivinOnSweets.API.Configuration;
 using LivinOnSweets.API.Graphics.Containers;
 using LivinOnSweets.API.Input;
+using LivinOnSweets.API.Skinning;
 using osu.Framework.Allocation;
-using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -37,9 +38,9 @@ namespace LivinOnSweets.API.Graphics
         private SessionConfig sessionConfig { get; set; }
 
         private Storage screenshotsStorage;
-        [CanBeNull] private Sample shutter;
+        [CanBeNull] private ISample shutter;
 
-        private Box flash;
+        private readonly Box flash;
         private ScreenshotSprite lastScreenshot;
 
         public ScreenshotManager()
@@ -55,10 +56,19 @@ namespace LivinOnSweets.API.Graphics
         }
 
         [BackgroundDependencyLoader]
-        private void load(Storage storage, AudioManager audio)
+        private void load(Storage storage, ResourcePackManager packManager)
         {
             screenshotsStorage = storage.GetStorageForDirectory("screenshots");
-            shutter = audio.Samples.Get("UI/shutter");
+
+            // ui related stuff is under the sugar rush folder
+            ResourcePack sugarPack = packManager.GetPackById(ResourcePackManager.OFFICIAL_RESOURCE_PACKS[0]);
+            if (sugarPack == null)
+            {
+                packManager.Logger.Add($"Failed to retrieve {ResourcePackManager.OFFICIAL_RESOURCE_PACKS[0]}, did it get loaded correctly?");
+                return;
+            }
+
+            shutter = sugarPack.GetSample(new ShutterAudioInfo());
         }
 
         public bool OnPressed(KeyBindingPressEvent<ManiaAction> e)
@@ -108,6 +118,13 @@ namespace LivinOnSweets.API.Graphics
             RemoveInternal(spr, true);
         }
 
+        private partial class ShutterAudioInfo : IAudioInfo
+        {
+            IEnumerable<string> IAudioInfo.LookupNames => ["UserInterface/Samples/shutter.mp3"];
+
+            int IAudioInfo.Volume => 100;
+        }
+
         private partial class ScreenshotSprite : CompositeDrawable
         {
             // We need to wait for at most 3 draw nodes to be drawn, following which we can be assured at least one DrawNode has been generated/drawn with the set value
@@ -133,7 +150,7 @@ namespace LivinOnSweets.API.Graphics
             [Resolved]
             private GameOverlaysContainer overlays { get; set; }
 
-            private Sprite spr;
+            private readonly Sprite spr;
 
             [CanBeNull]
             public Texture Texture
@@ -143,7 +160,7 @@ namespace LivinOnSweets.API.Graphics
             }
 
             // Its resolved on the manager and passed in as a ref
-            private Storage storage;
+            private readonly Storage storage;
 
             public ScreenshotSprite(Vector2 drawSize, ref Storage storage, float scaleFactor = 4)
             {
