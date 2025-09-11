@@ -43,6 +43,7 @@
         SaveScreenshots,
         HideOverlaysOnScreenshot,
         ScreenshotFormat,
+        ScreenshotCaptureCursor,
 
         // Misc - Intro
         SkipProjectDisclaimer, // Skips the disclaimer shown to the user upon startup

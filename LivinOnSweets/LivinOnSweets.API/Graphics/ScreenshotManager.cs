@@ -6,6 +6,7 @@ using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Skinning;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Sample;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Rendering;
@@ -33,6 +34,14 @@ namespace LivinOnSweets.API.Graphics
     {
         private static readonly object filename_reservation_lock = new();
         private static volatile int screenshotTasks;
+
+        private readonly BindableBool cursorVisibility = new(true);
+
+        /// <summary>
+        /// Changed when screenshots are being or have finished being taken, to control whether cursors should be visible.
+        /// If cursors should not be visible, cursors have 3 frames to hide themselves.
+        /// </summary>
+        public IBindable<bool> CursorVisibility => cursorVisibility;
 
         [Resolved]
         private SessionConfig sessionConfig { get; set; }
@@ -69,6 +78,8 @@ namespace LivinOnSweets.API.Graphics
             }
 
             shutter = sugarPack.GetSample(new ShutterAudioInfo());
+
+            sessionConfig.BindWith(SessionSetting.ScreenshotCursorVisibility, cursorVisibility);
         }
 
         public bool OnPressed(KeyBindingPressEvent<ManiaAction> e)
@@ -132,25 +143,21 @@ namespace LivinOnSweets.API.Graphics
 
             private const int jpeg_quality = 92;
 
-            [Resolved]
-            private GameHost host { get; set; }
+            [Resolved] private GameHost host { get; set; }
 
-            [Resolved]
-            private Clipboard clipboard { get; set; }
+            [Resolved] private Clipboard clipboard { get; set; }
 
-            [Resolved]
-            private IRenderer renderer { get; set; }
+            [Resolved] private IRenderer renderer { get; set; }
 
-            [Resolved]
-            private SweetConfigManager config { get; set; }
+            [Resolved] private SweetConfigManager config { get; set; }
 
-            [Resolved]
-            private SessionConfig sessionConfig { get; set; }
+            [Resolved] private SessionConfig sessionConfig { get; set; }
 
-            [Resolved]
-            private GameOverlaysContainer overlays { get; set; }
+            [Resolved] private GameOverlaysContainer overlays { get; set; }
 
             private readonly Sprite spr;
+
+            private BindableBool cursorVisibility = new(true);
 
             [CanBeNull]
             public Texture Texture
@@ -190,6 +197,7 @@ namespace LivinOnSweets.API.Graphics
             protected override void LoadComplete()
             {
                 base.LoadComplete();
+                sessionConfig.BindWith(SessionSetting.ScreenshotCursorVisibility, cursorVisibility);
                 takeScreenshotAsync();
             }
 
@@ -235,10 +243,15 @@ namespace LivinOnSweets.API.Graphics
                 if (hideOverlays)
                     scheduleOnUpdate(overlays.Hide);
 
-                // Nothing to wait for if not showing anything on screen and not hiding overlays
+                bool captureCursor = config.Get<bool>(SweetSetting.ScreenshotCaptureCursor);
+
+                // Nothing to wait for if not showing anything on top of the content to hide
                 bool showingScreenshot = sessionConfig.Get<bool>(SessionSetting.ShowingScreenshot);
-                if (!showingScreenshot && !hideOverlays)
+                if (!showingScreenshot && !hideOverlays && captureCursor)
                     return;
+
+                if (!captureCursor)
+                    cursorVisibility.Value = false;
 
                 int framesWaited = 0;
 
@@ -262,6 +275,10 @@ namespace LivinOnSweets.API.Graphics
                 bool hideOverlays = config.Get<bool>(SweetSetting.HideOverlaysOnScreenshot);
                 if (hideOverlays)
                     scheduleOnUpdate(overlays.Show);
+
+                bool captureCursor = config.Get<bool>(SweetSetting.ScreenshotCaptureCursor);
+                if (!captureCursor)
+                    cursorVisibility.Value = true;
             }
 
             private void rescaleImage(in Image<Rgba32> image)

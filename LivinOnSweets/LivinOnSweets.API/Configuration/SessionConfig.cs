@@ -15,6 +15,7 @@ namespace LivinOnSweets.API.Configuration
         {
             SetDefault(SessionSetting.TouchInputActive, RuntimeInfo.IsMobile);
             SetDefault(SessionSetting.ShowingScreenshot, false);
+            SetDefault(SessionSetting.ScreenshotCursorVisibility, true);
         }
 
         protected override void PerformLoad() { }

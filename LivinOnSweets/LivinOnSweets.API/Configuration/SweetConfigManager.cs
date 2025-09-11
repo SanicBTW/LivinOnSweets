@@ -47,6 +47,7 @@ namespace LivinOnSweets.API.Configuration
             SetDefault(SweetSetting.SaveScreenshots, !RuntimeInfo.IsMobile);
             SetDefault(SweetSetting.HideOverlaysOnScreenshot, false);
             SetDefault(SweetSetting.ScreenshotFormat, ScreenshotFormat.Jpg);
+            SetDefault(SweetSetting.ScreenshotCaptureCursor, true);
 
             // Misc - Intro
             SetDefault(SweetSetting.SkipProjectDisclaimer, false);

@@ -17,5 +17,10 @@ namespace LivinOnSweets.API.Configuration
         /// Used inside <see cref="ScreenshotManager.ScreenshotSprite"/> to wait <see cref="ScreenshotManager.ScreenshotSprite.frames_to_wait"/> to hide the previous screenshot.
         /// </summary>
         ShowingScreenshot,
+
+        /// <summary>
+        /// Whether the cursor is visible or not when taking a screenshot.
+        /// </summary>
+        ScreenshotCursorVisibility,
     }
 }

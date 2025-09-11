@@ -6,6 +6,7 @@ using System.Reflection;
 using AetherFramework;
 using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Configuration;
+using LivinOnSweets.API.Cursor;
 using LivinOnSweets.API.Extensions;
 using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Localisation;
@@ -27,7 +28,9 @@ namespace LivinOnSweets.Game
 {
     public partial class LivinOnSweetsGameBase : osu.Framework.Game
     {
-        protected override Container<Drawable> Content => ActionContainer;
+        protected override Container<Drawable> Content => content;
+        private Container content;
+
         protected ManiaActionContainer ActionContainer;
 
         private DependencyContainer gameDependencies;
@@ -81,17 +84,14 @@ namespace LivinOnSweets.Game
 
             CurrentLanguage.BindValueChanged(val => frameworkLocale.Value = val.NewValue.ToCultureCode());
 
-            // Load up the action container
-            ActionContainer = [];
-            gameDependencies.CacheAs(ActionContainer);
-
             base.Content.Add(SafeAreaContainer = new SafeAreaContainer
             {
                 SafeAreaOverrideEdges = SafeAreaOverrideEdges,
                 RelativeSizeAxes = Axes.Both,
-                Child = CreateScalingContainer().WithChild(ActionContainer)
+                Child = CreateScalingContainer().WithChild(ActionContainer = new ManiaActionContainer().WithChild(content = new ModularCursorDisplay() { RelativeSizeAxes = Axes.Both }))
             });
 
+            gameDependencies.CacheAs(ActionContainer);
             base.Content.Add(new TouchInputInterceptor());
         }
 
