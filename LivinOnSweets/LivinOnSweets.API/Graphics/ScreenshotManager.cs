@@ -69,7 +69,7 @@ namespace LivinOnSweets.API.Graphics
         {
             screenshotsStorage = storage.GetStorageForDirectory("screenshots");
 
-            // ui related stuff is under the sugar rush folder
+            // ui related stuff is under the sugar rush resource pack
             ResourcePack sugarPack = packManager.GetPackById(ResourcePackManager.OFFICIAL_RESOURCE_PACKS[0]);
             if (sugarPack == null)
             {

@@ -33,8 +33,8 @@ namespace LivinOnSweets.API.Cursor
             AddRangeInternal(
             [
                 Content = new Container { RelativeSizeAxes = Axes.Both },
-                Cursor = new ModularCursorContainer { State = { Value = Visibility.Hidden } },
                 effectManager = new CursorEffectManager(),
+                Cursor = new ModularCursorContainer { State = { Value = Visibility.Hidden } },
             ]);
         }
 

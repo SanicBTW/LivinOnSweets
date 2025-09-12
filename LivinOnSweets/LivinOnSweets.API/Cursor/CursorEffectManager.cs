@@ -1,5 +1,10 @@
 ﻿using JetBrains.Annotations;
+using LivinOnSweets.API.Configuration;
+using osu.Framework;
+using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Input.Events;
 
@@ -8,64 +13,73 @@ namespace LivinOnSweets.API.Cursor
     /// <summary>
     /// Class that manages various effects related to the mouse/touch input, completely modular and plugged into <see cref="ModularCursorDisplay"/>.
     /// </summary>
-    public partial class CursorEffectManager : Component
+    public partial class CursorEffectManager : CompositeDrawable
     {
-        private readonly List<ICursorEffect> effects = [];
-        private readonly List<ICursorReceiverEffect> receiverEffects = [];
-        private readonly List<IClickableCursorEffect> clickableEffects = [];
+        private readonly List<ICursorReceiver> receiverEffects = [];
+        private readonly List<ICursorPressEffect> clickableEffects = [];
         private readonly List<ICursorMovementEffect> movementEffects = [];
 
         [CanBeNull] private CursorContainer currentCursor;
+
+        [Resolved] private SessionConfig sessionConfig { get; set; }
+
+        private Bindable<bool> touchActive = new(RuntimeInfo.IsMobile);
 
         public CursorEffectManager()
         {
             RelativeSizeAxes = Axes.Both;
         }
 
-        // the effects will have on cursor changed called with the current cursor
-        // to manipulate its content, add or delete it, in this case
-        // add will pass the current cursor as new cursor to add new content
-        // and remove will pass the current cursor as old to delete the added content
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            sessionConfig.BindWith(SessionSetting.TouchInputActive, touchActive);
+        }
 
+        // because of touch related issues, now the manager acts like a container that holds the effects inside it rather than using
+        // the passed container through cursor changed, the reason is because when triggering a touch event, the cursor will hide
+        // and since the effect gets added into the cursor container, then theres no effects, only showing up once a click is triggered
         public void AddEffect(ICursorEffect effect)
         {
-            effects.Add(effect);
-
-            if (effect is ICursorReceiverEffect receiver)
+            if (effect is ICursorReceiver receiver)
             {
                 receiverEffects.Add(receiver);
                 if (currentCursor != null)
                     receiver.OnCursorChanged(null, currentCursor);
             }
 
-            if (effect is IClickableCursorEffect clickable)
+            if (effect is ICursorPressEffect clickable)
                 clickableEffects.Add(clickable);
 
             if (effect is ICursorMovementEffect movement)
                 movementEffects.Add(movement);
+
+            if (effect is CompositeDrawable drawable)
+                AddInternal(drawable);
         }
 
         public void RemoveEffect(ICursorEffect effect)
         {
-            effects.Remove(effect);
-
-            if (effect is ICursorReceiverEffect receiver)
+            if (effect is ICursorReceiver receiver)
             {
                 receiverEffects.Remove(receiver);
                 if (currentCursor != null)
                     receiver.OnCursorChanged(null, currentCursor);
             }
 
-            if (effect is IClickableCursorEffect clickable)
+            if (effect is ICursorPressEffect clickable)
                 clickableEffects.Remove(clickable);
 
             if (effect is ICursorMovementEffect movement)
                 movementEffects.Remove(movement);
+
+            if (effect is CompositeDrawable drawable)
+                RemoveInternal(drawable, false);
         }
 
         public void ChangedCursor(CursorContainer newCursor)
         {
-            foreach (ICursorReceiverEffect effect in receiverEffects)
+            foreach (ICursorReceiver effect in receiverEffects)
                 effect.OnCursorChanged(currentCursor, newCursor);
 
             currentCursor = newCursor;
@@ -73,46 +87,69 @@ namespace LivinOnSweets.API.Cursor
 
         protected override bool OnMouseDown(MouseDownEvent e)
         {
-            if (currentCursor == null || clickableEffects.Count <= 0)
+            if (currentCursor == null || clickableEffects.Count <= 0 || touchActive.Value)
                 return base.OnMouseDown(e);
 
-            foreach (IClickableCursorEffect eff in clickableEffects)
+            foreach (ICursorPressEffect eff in clickableEffects)
                 eff.OnMouseDown(e, currentCursor);
 
             return base.OnMouseDown(e);
         }
 
-        protected override bool OnDoubleClick(DoubleClickEvent e)
+        protected override bool OnTouchDown(TouchDownEvent e)
         {
-            if (currentCursor == null || clickableEffects.Count <= 0)
-                return base.OnDoubleClick(e);
+            // probably redundant, since you cannot really trigger a touch event from a click
+            if (currentCursor == null || clickableEffects.Count <= 0 || !touchActive.Value)
+                return base.OnTouchDown(e);
 
-            foreach (IClickableCursorEffect eff in clickableEffects)
-                eff.OnDoubleClick(e, currentCursor);
+            foreach (ICursorPressEffect eff in clickableEffects)
+                eff.OnTouchDown(e, currentCursor);
 
-            return base.OnDoubleClick(e);
+            return base.OnTouchDown(e);
         }
 
         protected override void OnMouseUp(MouseUpEvent e)
         {
-            if (currentCursor == null || clickableEffects.Count <= 0)
+            if (currentCursor == null || clickableEffects.Count <= 0 || touchActive.Value)
                 return;
 
-            foreach (IClickableCursorEffect eff in clickableEffects)
+            foreach (ICursorPressEffect eff in clickableEffects)
                 eff.OnMouseUp(e, currentCursor);
 
             base.OnMouseUp(e);
         }
 
+        protected override void OnTouchUp(TouchUpEvent e)
+        {
+            if (currentCursor == null || clickableEffects.Count <= 0 || !touchActive.Value)
+                return;
+
+            foreach (ICursorPressEffect eff in clickableEffects)
+                eff.OnTouchUp(e, currentCursor);
+
+            base.OnTouchUp(e);
+        }
+
         protected override bool OnMouseMove(MouseMoveEvent e)
         {
-            if (currentCursor == null || movementEffects.Count <= 0)
+            if (currentCursor == null || movementEffects.Count <= 0 || touchActive.Value)
                 return base.OnMouseMove(e);
 
             foreach (ICursorMovementEffect eff in movementEffects)
                 eff.OnMouseMove(e, currentCursor);
 
             return base.OnMouseMove(e);
+        }
+
+        protected override void OnTouchMove(TouchMoveEvent e)
+        {
+            if (currentCursor == null || movementEffects.Count <= 0 || !touchActive.Value)
+                return;
+
+            foreach (ICursorMovementEffect eff in movementEffects)
+                eff.OnTouchMove(e, currentCursor);
+
+            base.OnTouchMove(e);
         }
     }
 }
