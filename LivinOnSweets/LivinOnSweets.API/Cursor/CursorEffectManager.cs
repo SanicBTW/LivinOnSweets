@@ -15,6 +15,7 @@ namespace LivinOnSweets.API.Cursor
     /// </summary>
     public partial class CursorEffectManager : CompositeDrawable
     {
+        private readonly List<ICursorEffect> effects = [];
         private readonly List<ICursorReceiver> receiverEffects = [];
         private readonly List<ICursorPressEffect> clickableEffects = [];
         private readonly List<ICursorMovementEffect> movementEffects = [];
@@ -41,6 +42,8 @@ namespace LivinOnSweets.API.Cursor
         // and since the effect gets added into the cursor container, then theres no effects, only showing up once a click is triggered
         public void AddEffect(ICursorEffect effect)
         {
+            effects.Add(effect);
+
             if (effect is ICursorReceiver receiver)
             {
                 receiverEffects.Add(receiver);
@@ -58,8 +61,24 @@ namespace LivinOnSweets.API.Cursor
                 AddInternal(drawable);
         }
 
+        // this function thinks we only have ONE effect of the given type, but if more were to exist
+        // then it will remove all the effects of the given type
+        public void RemoveEffect(Type type)
+        {
+            foreach (ICursorEffect effect in effects)
+            {
+                Type efType = effect.GetType();
+                if (efType != type)
+                    continue;
+
+                Schedule(() => RemoveEffect(effect));
+            }
+        }
+
         public void RemoveEffect(ICursorEffect effect)
         {
+            effects.Remove(effect);
+
             if (effect is ICursorReceiver receiver)
             {
                 receiverEffects.Remove(receiver);
