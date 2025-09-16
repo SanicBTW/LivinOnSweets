@@ -23,7 +23,7 @@ namespace LivinOnSweets.Game.Screens
         private SweetScreen nextScreen;
         private ShaderPrecompiler precompiler;
 
-        private Box overlay; // quick overlay to hide the content loading behind
+        [CanBeNull] private Box overlay; // quick overlay to hide the content loading behind
         private FillFlowContainer<PreloaderTextTracker> trackers;
         [CanBeNull] private ProjectDisclaimer disclaimer;
 
@@ -84,7 +84,7 @@ namespace LivinOnSweets.Game.Screens
         {
             base.OnEntering(e);
 
-            overlay.FadeOut(500D, Easing.OutQuint);
+            overlay?.FadeOut(500D, Easing.OutQuint);
 
             // run the fade!
             trackers.FadeTo(0.5F, 1000D, Easing.InOutQuart).Then().FadeTo(0.9F, 1000D, Easing.InOutQuart).Loop();
