@@ -20,15 +20,10 @@ namespace LivinOnSweets.Game.Screens
     // First screen ever visible in game, it preloads the resources the game will need
     public partial class PreloadingScreen : SweetScreen
     {
-        [Resolved]
-        private SweetConfigManager config { get; set; }
-
-        [Resolved]
-        private IResourcePackSource pack { get; set; }
-
         private SweetScreen nextScreen;
         private ShaderPrecompiler precompiler;
 
+        private Box overlay; // quick overlay to hide the content loading behind
         private FillFlowContainer<PreloaderTextTracker> trackers;
         [CanBeNull] private ProjectDisclaimer disclaimer;
 
@@ -37,10 +32,9 @@ namespace LivinOnSweets.Game.Screens
             ValidForResume = false;
         }
 
-        public override void OnEntering(ScreenTransitionEvent e)
+        [BackgroundDependencyLoader]
+        private void load(SweetConfigManager config, IResourcePackSource pack)
         {
-            base.OnEntering(e);
-
             bool skipDisclaimer = config.Get<bool>(SweetSetting.SkipProjectDisclaimer);
             if (!skipDisclaimer)
             {
@@ -62,6 +56,11 @@ namespace LivinOnSweets.Game.Screens
                         FillMode = FillMode.Fill,
                     },
                     disclaimer = new ProjectDisclaimer(),
+                    overlay = new Box()
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Colour4.Black
+                    },
                 ]);
             }
 
@@ -79,8 +78,16 @@ namespace LivinOnSweets.Game.Screens
                 LayoutEasing = Easing.OutQuint,
                 Colour = skipDisclaimer ? Colour4.White : Colour4.Black
             });
-            trackers.FadeTo(0.5F, 1000D, Easing.InOutQuart).Then().FadeTo(0.9F, 1000D, Easing.InOutQuart).Loop();
+        }
 
+        public override void OnEntering(ScreenTransitionEvent e)
+        {
+            base.OnEntering(e);
+
+            overlay.FadeOut(500D, Easing.OutQuint);
+
+            // run the fade!
+            trackers.FadeTo(0.5F, 1000D, Easing.InOutQuart).Then().FadeTo(0.9F, 1000D, Easing.InOutQuart).Loop();
             LoadComponentAsync(precompiler = CreateShaderPrecompiler(), AddInternal);
             LoadComponentAsync(nextScreen = CreateNextScreen());
 
