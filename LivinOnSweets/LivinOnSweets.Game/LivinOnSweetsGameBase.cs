@@ -33,7 +33,7 @@ namespace LivinOnSweets.Game
 
         protected ManiaActionContainer ActionContainer;
 
-        private DependencyContainer gameDependencies;
+        protected DependencyContainer GameDependencies;
 
         // Copied from lazer lol
         protected SafeAreaContainer SafeAreaContainer { get; private set; }
@@ -73,7 +73,7 @@ namespace LivinOnSweets.Game
             base.Content.Add(SingleThreadLoad = new SingleThreadLoad());
 
             Resources.AddStore(new DllResourceStore(LivinOnSweetsResources.ResourceAssembly));
-            SetupDependencies(gameDependencies);
+            SetupDependencies(GameDependencies);
             SetupFonts();
 
             frameworkLocale = frameworkConfig.GetBindable<string>(FrameworkSetting.Locale);
@@ -91,7 +91,7 @@ namespace LivinOnSweets.Game
                 Child = CreateScalingContainer().WithChild(ActionContainer = new ManiaActionContainer().WithChild(content = new ModularCursorDisplay() { RelativeSizeAxes = Axes.Both }))
             });
 
-            gameDependencies.CacheAs(ActionContainer);
+            GameDependencies.CacheAs(ActionContainer);
             base.Content.Add(new TouchInputInterceptor());
         }
 
@@ -183,7 +183,7 @@ namespace LivinOnSweets.Game
         protected virtual Container CreateScalingContainer() => new DrawSizePreservingFillContainer();
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) =>
-            gameDependencies = new DependencyContainer(base.CreateChildDependencies(parent));
+            GameDependencies = new DependencyContainer(base.CreateChildDependencies(parent));
 
         protected override IDictionary<FrameworkSetting, object> GetFrameworkConfigDefaults() => new Dictionary<FrameworkSetting, object>
         {

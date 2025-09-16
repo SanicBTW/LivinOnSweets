@@ -48,6 +48,8 @@ namespace LivinOnSweets.Game
         [BackgroundDependencyLoader]
         private void load()
         {
+            GameDependencies.Cache(this);
+
             uiScale = SweetConfig.GetBindable<float>(SweetSetting.UserInterfaceScale);
 
             applySafeAreaConsiderations = SweetConfig.GetBindable<bool>(SweetSetting.SafeAreaConsiderations);
