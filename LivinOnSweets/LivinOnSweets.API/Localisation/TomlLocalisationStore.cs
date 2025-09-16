@@ -27,6 +27,9 @@ namespace LivinOnSweets.API.Localisation
 
         public string Get(string lookup)
         {
+            if (lookup == "")
+                return null; // fallback since the object didnt want to lookup any localised string
+
             string[] split = lookup.Split(":");
 
             string section = split[0];
