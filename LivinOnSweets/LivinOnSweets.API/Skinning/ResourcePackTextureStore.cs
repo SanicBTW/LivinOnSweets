@@ -109,10 +109,10 @@ namespace LivinOnSweets.API.Skinning
         /// <param name="wrapModeT">The texture wrap mode in vertical direction.</param>
         /// <param name="useAtlas">True if it should try to add the texture to the internal Atlas.</param>
         /// <param name="manualMipmaps">True if it should retrieve the texture without any mipmaps.
-        ///     <remarks>If <paramref name="useAtlas"/> is true this won't take effect.</remarks>
+        ///     <para>If <paramref name="useAtlas"/> is true this won't take effect.</para>
         /// </param>
         /// <param name="filteringMode">The texture filtering mode.
-        ///     <remarks>If <paramref name="useAtlas"/> is true this won't take effect.</remarks>
+        ///     <para>If <paramref name="useAtlas"/> is true this won't take effect.</para>
         /// </param>
         /// <returns>The texture.</returns>
         public virtual Texture Get(string name, WrapMode wrapModeS, WrapMode wrapModeT,
