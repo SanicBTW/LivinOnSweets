@@ -2,10 +2,11 @@
   "solution": {
     "path": "LivinOnSweets.sln",
     "projects": [
+      "LivinOnSweets.Android\\LivinOnSweets.Android.csproj",
       "LivinOnSweets.Game\\LivinOnSweets.Game.csproj",
       "LivinOnSweets.API\\LivinOnSweets.API.csproj",
+      "LivinOnSweets.Editor\\LivinOnSweets.Editor.csproj",
       "LivinOnSweets.Resources\\LivinOnSweets.Resources.csproj",
-      "LivinOnSweets.Android\\LivinOnSweets.Android.csproj"
     ]
   }
 }

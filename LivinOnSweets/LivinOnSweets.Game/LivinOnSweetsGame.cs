@@ -8,6 +8,9 @@ using LivinOnSweets.API.Graphics.UserInterface;
 using LivinOnSweets.API.Graphics.Containers;
 using LivinOnSweets.API.Overlays;
 using LivinOnSweets.API.Screens;
+#if DEBUG
+using LivinOnSweets.Editor;
+#endif
 using LivinOnSweets.Game.Screens;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -78,6 +81,11 @@ namespace LivinOnSweets.Game
             // for descendants, it should be available already
             SingleThreadLoad.ScheduleLoad(new FpsCounter(), d => OverlaysContainer.AddOverlay(OverlayContainerTarget.TopMost, d));
             SingleThreadLoad.ScheduleLoad(new ScreenshotManager(), d => OverlaysContainer.AddOverlay(OverlayContainerTarget.TopMost, d));
+
+            // The editor overlay itself will be added through the overlay manager, the debug container is only the key listener
+#if DEBUG
+            SingleThreadLoad.ScheduleLoad(new DebugContainer(ScreenStack), Add);
+#endif
 
             OverlayActivationMode.ValueChanged += mode =>
             {

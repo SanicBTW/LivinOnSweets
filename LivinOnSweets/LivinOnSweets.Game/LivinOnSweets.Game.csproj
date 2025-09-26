@@ -5,6 +5,7 @@
   <ItemGroup>
     <ProjectReference Include="..\LivinOnSweets.Resources\LivinOnSweets.Resources.csproj" />
     <ProjectReference Include="..\LivinOnSweets.API\LivinOnSweets.API.csproj" />
+    <ProjectReference Include="..\LivinOnSweets.Editor\LivinOnSweets.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ppy.osu.Framework" Version="2025.903.0" />
