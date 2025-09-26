@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using LivinOnSweets.API.Rendering;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Rendering;
 
@@ -7,11 +6,6 @@ namespace LivinOnSweets.API.Graphics.TextFx
 {
     public interface ITextEffect
     {
-        /// <summary>
-        /// Indicates in which phase the effect will take place.
-        /// </summary>
-        DrawingPhase Phase { get; }
-
         // I should look into this more in-depth, default effects as in SpriteTextDrawNode get added to the default list
         // but maybe get updated twice and incorrectly, so the best choice here is to manually update specific effects
 

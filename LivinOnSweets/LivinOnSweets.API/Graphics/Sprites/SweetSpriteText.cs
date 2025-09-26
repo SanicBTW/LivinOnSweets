@@ -2,6 +2,7 @@
 using LivinOnSweets.API.Graphics.TextFx;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Utils;
 using osuTK.Graphics;
@@ -77,33 +78,40 @@ namespace LivinOnSweets.API.Graphics.Sprites
             protected new SweetSpriteText Source => (SweetSpriteText)base.Source;
 
             public bool Outline { get; private set; }
-            protected OutlineEffect OutlineEffect;
+            protected ITextEffect OutlineEffect;
 
             public override void ApplyState()
             {
+                Outline = Source.Outline; // set the state here since when calling base it will call update fx at the end
+
                 base.ApplyState();
-
-                Outline = Source.Outline;
-                if (!Outline)
-                {
-                    if (OutlineEffect != null)
-                        Effects.Remove(OutlineEffect);
-
-                    return;
-                }
-
-                UpdateOutline();
             }
 
-            protected virtual void UpdateOutline()
+            protected override void ApplyPreDrawFx(IRenderer renderer, ScreenSpaceCharacterPart part)
+            {
+                // calling base draws the shadow by default
+                base.ApplyPreDrawFx(renderer, part);
+
+                if (Outline)
+                    OutlineEffect.Apply(renderer, part, DrawColourInfo.Colour);
+            }
+
+            protected override void UpdateFx()
+            {
+                base.UpdateFx(); // required to call the base implementation to update the shadow
+                if (Outline)
+                    updateOutline();
+            }
+
+            private void updateOutline()
             {
                 ColourInfo outlineColour = Source.OutlineColour;
                 float outlineSize = Source.OutlineSize;
 
                 if (OutlineEffect == null)
-                    Effects.Add(OutlineEffect = new OutlineEffect(outlineColour, outlineSize));
+                    OutlineEffect = new OutlineEffect(outlineColour, outlineSize);
                 else
-                    ((ITextEffect)OutlineEffect).Update(outlineColour, outlineSize);
+                    OutlineEffect.Update(outlineColour, outlineSize);
             }
         }
     }

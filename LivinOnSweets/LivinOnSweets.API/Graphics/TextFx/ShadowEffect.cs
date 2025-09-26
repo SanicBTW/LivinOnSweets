@@ -1,5 +1,4 @@
-﻿using LivinOnSweets.API.Rendering;
-using osu.Framework.Graphics.Colour;
+﻿using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osuTK;
@@ -12,8 +11,6 @@ namespace LivinOnSweets.API.Graphics.TextFx
         private ColourInfo shadowColour = shadowColour;
         private Vector2 shadowOffset = shadowOffset;
         private ColourInfo finalShadowColour;
-
-        DrawingPhase ITextEffect.Phase => DrawingPhase.PreDraw;
 
         void ITextEffect.Update(params dynamic[] updated)
         {
