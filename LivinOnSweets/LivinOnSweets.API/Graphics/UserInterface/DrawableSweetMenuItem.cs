@@ -48,6 +48,13 @@ namespace LivinOnSweets.API.Graphics.UserInterface
             item.Padding = new MarginPadding { Left = cap.DrawWidth + SPACING, Right = cap.DrawWidth + SPACING, Vertical = CORNER_RADIUS };
         }
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            Item.Action.BindDisabledChanged(_ => updateState(), true);
+        }
+
         protected override bool OnHover(HoverEvent e)
         {
             updateState();
