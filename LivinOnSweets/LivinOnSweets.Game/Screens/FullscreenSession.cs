@@ -52,6 +52,7 @@ namespace LivinOnSweets.Game.Screens
         {
             fadeOverlay.FadeOutFromOne(500D, Easing.OutQuint);
             gameSession.InputEnabled.Value = true;
+            ScheduleAfterChildren(() => gameSession.RequestGameFocus()); // not alive here, schedule it after children since its alive then
         }
 
         public bool OnPressed(KeyBindingPressEvent<ManiaAction> e)
@@ -88,6 +89,7 @@ namespace LivinOnSweets.Game.Screens
 
         private void goBack()
         {
+            gameSession.RequestGameFocus(false);
             // first exit this screen and then update the runtime to properly execute the transitions and resets
             gameSession.OwnershipLocked.Value = false;
             // manually remove without disposing to avoid binding again

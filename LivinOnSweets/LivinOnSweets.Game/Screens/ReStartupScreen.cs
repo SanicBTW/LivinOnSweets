@@ -223,6 +223,7 @@ namespace LivinOnSweets.Game.Screens
 
                 if (noContextChange.Value)
                 {
+                    gameSession.RequestGameFocus(false);
                     focusOverlay.FadeOut(500D, Easing.OutQuint);
                     gameFrame.FadeBannersTo(1, 500D, Easing.OutQuint);
                 }
@@ -247,6 +248,7 @@ namespace LivinOnSweets.Game.Screens
                 if (noContextChange.Value)
                 {
                     gameSession.InputEnabled.Value = true;
+                    gameSession.RequestGameFocus();
                     focusOverlay.FadeTo(0.75F, 500D, Easing.OutQuint);
                     gameFrame.FadeBannersTo(0.5F, 500D, Easing.OutQuint);
                     return;
