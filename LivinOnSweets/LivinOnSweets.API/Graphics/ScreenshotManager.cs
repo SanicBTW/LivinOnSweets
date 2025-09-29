@@ -308,7 +308,7 @@ namespace LivinOnSweets.API.Graphics
             // Loads the image pixels into a texture
             private void uploadScreenshot(in Image<Rgba32> image)
             {
-                Texture = renderer.CreateTexture(image.Width, image.Height);
+                Texture = renderer.CreateTexture(image.Width, image.Height, true);
                 Texture?.SetData(new TextureUpload(image));
             }
 
