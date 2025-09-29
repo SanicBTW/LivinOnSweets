@@ -72,6 +72,14 @@ namespace LivinOnSweets.API.Components
 
         private void setupGameplayTransitions()
         {
+            GameplayMachine.SetTransition(GameplayState.NotReady, backing =>
+            {
+                if (ProgressionBlock.Value || backing && !CanBack.Value)
+                    return null;
+
+                return backing ? null : GameplayState.Ready;
+            });
+
             GameplayMachine.SetTransition(GameplayState.PlayingSong, backing =>
             {
                 if (ProgressionBlock.Value || backing && !CanBack.Value)
@@ -96,21 +104,18 @@ namespace LivinOnSweets.API.Components
                 return backing ? GameplayState.StorySelect : null;
             });
 
-            // these 2 should be handled appropiately, not just the backing, when moving to the next state it should
-            // transition to playing song and reading chapter respectively, data transmission otherwise should be
-            // handled by the screen, for now its gonna stay like this since i have no idea on how it works really
-            GameplayMachine.SetTransition(GameplayState.SongSelect, goToMainMenu);
-            GameplayMachine.SetTransition(GameplayState.StorySelect, goToMainMenu);
+            GameplayMachine.SetTransition(GameplayState.SongSelect, (backing) => goToMainMenu(backing, GameplayState.PlayingSong));
+            GameplayMachine.SetTransition(GameplayState.StorySelect, (backing) => goToMainMenu(backing, GameplayState.ReadingChapter));
 
-            GameplayMachine.SetTransition(GameplayState.GameOptions, goToMainMenu);
+            GameplayMachine.SetTransition(GameplayState.GameOptions, (backing) => goToMainMenu(backing));
         }
 
-        private GameplayState? goToMainMenu(bool backing)
+        private GameplayState? goToMainMenu(bool backing, GameplayState? nextState = null)
         {
             if (ProgressionBlock.Value || backing && !CanBack.Value)
                 return null;
 
-            return backing ? GameplayState.Ready : null;
+            return backing ? GameplayState.Ready : nextState;
         }
 
         public void UpdateStates(bool backing)
