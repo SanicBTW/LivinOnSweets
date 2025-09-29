@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using LivinOnSweets.API.Components;
+﻿using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Configuration;
 using LivinOnSweets.API.Data;
 using LivinOnSweets.API.Screens;
@@ -9,7 +8,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Lists;
 using osuTK;
 
 namespace LivinOnSweets.API.Graphics.Containers
@@ -20,16 +18,11 @@ namespace LivinOnSweets.API.Graphics.Containers
     /// </summary>
     public partial class GameView : CompositeDrawable
     {
-        // i didnt want to come to this but i have no other option really
-        private static readonly PropertyInfo bindings_field = typeof(Bindable<bool>)
-            .GetProperty("Bindings", BindingFlags.Instance | BindingFlags.NonPublic);
-
         [Resolved] private GameStateManager stateManager { get; set; }
         [Resolved] private GameSession gameSession { get; set; }
 
         // Used to block the propagation of input events in the screen when unwanted
         private readonly BindableBool propagateInput = new();
-        private LockedWeakList<Bindable<bool>> propBindings;
         public override bool PropagateNonPositionalInputSubTree => propagateInput.Value;
         public override bool PropagatePositionalInputSubTree => propagateInput.Value;
 
