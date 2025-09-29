@@ -110,7 +110,7 @@ namespace LivinOnSweets.Game.Screens
 
         protected virtual ShaderPrecompiler CreateShaderPrecompiler() => new();
 
-        protected virtual SweetScreen CreateNextScreen() => new StartupScreen();
+        protected virtual SweetScreen CreateNextScreen() => new ReStartupScreen();
 
         public partial class PreloaderTextTracker : SpriteText
         {

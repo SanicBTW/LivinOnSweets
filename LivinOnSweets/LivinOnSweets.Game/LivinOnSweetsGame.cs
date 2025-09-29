@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Configuration;
 using LivinOnSweets.API.Graphics;
 using LivinOnSweets.API.Graphics.UserInterface;
@@ -53,6 +54,13 @@ namespace LivinOnSweets.Game
         {
             GameDependencies.Cache(this);
 
+            // need to load it like this since stl doesnt properly populate and loads too late
+            LoadComponentAsync(new GameSession(), sesh =>
+            {
+                Add(sesh);
+                GameDependencies.Cache(sesh);
+            });
+
             uiScale = SweetConfig.GetBindable<float>(SweetSetting.UserInterfaceScale);
 
             applySafeAreaConsiderations = SweetConfig.GetBindable<bool>(SweetSetting.SafeAreaConsiderations);
@@ -81,7 +89,6 @@ namespace LivinOnSweets.Game
             // for descendants, it should be available already
             SingleThreadLoad.ScheduleLoad(new FpsCounter(), d => OverlaysContainer.AddOverlay(OverlayContainerTarget.TopMost, d));
             SingleThreadLoad.ScheduleLoad(new ScreenshotManager(), d => OverlaysContainer.AddOverlay(OverlayContainerTarget.TopMost, d));
-
             // The editor overlay itself will be added through the overlay manager, the debug container is only the key listener
 #if DEBUG
             SingleThreadLoad.ScheduleLoad(new DebugContainer(ScreenStack), Add);

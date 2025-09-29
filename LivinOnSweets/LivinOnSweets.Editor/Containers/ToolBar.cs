@@ -37,6 +37,7 @@ internal partial class ToolBar : AutoSizeOnceContainer
                 [
                     new ResourcePackExplorer(),
                     new SongTestWindow(),
+                    new GameSessionExplorer(),
                     new RestartCurrentScreen(),
                 ]
             }

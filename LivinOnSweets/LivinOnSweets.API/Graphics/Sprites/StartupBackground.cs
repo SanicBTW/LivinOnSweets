@@ -4,6 +4,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osuTK;
 
 namespace LivinOnSweets.API.Graphics.Sprites
 {
@@ -17,8 +18,6 @@ namespace LivinOnSweets.API.Graphics.Sprites
         {
             Anchor = Origin = Anchor.Centre;
             RelativeSizeAxes = Axes.X;
-            AutoSizeAxes = Axes.Y;
-            Alpha = 0;
         }
 
         protected override void PackChanged(IResourcePackSource pack)
@@ -29,20 +28,20 @@ namespace LivinOnSweets.API.Graphics.Sprites
 
             // we running below antique seraphim
             string bgTex = (gameVer < (int)GameUpdateVersion.AntiqueSeraphim) ? "Startup/UI/Background.png" : "Startup/UI/Background.jpg"; // ironic right?
+            Texture tex = pack.GetTexture(bgTex, WrapMode.None, WrapMode.None, false, true);
+            tex.ScaleAdjust = 4;
+
             // stretching might happen but its probably the best looking approach, will revisit soon surely
+            // i think its still working the same way blame my brain for it
             InternalChild = new Sprite
             {
-                Texture = pack.GetTexture(bgTex, WrapMode.None, WrapMode.None, false, true),
+                Texture = tex,
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                RelativeSizeAxes = Axes.X,
-                Width = 1.5F,
-                //RelativeSizeAxes = Axes.Both,
-                //Size = Vector2.One,
-                // FillMode = FillMode.Fill,
+                RelativeSizeAxes = Axes.Both,
+                Size = Vector2.One,
+                FillMode = FillMode.Fill,
             };
-
-            this.FadeIn(500D);
         }
     }
 

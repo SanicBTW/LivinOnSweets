@@ -19,11 +19,6 @@ namespace LivinOnSweets.API.Graphics.Sprites
         [Resolved]
         private SweetConfigManager sweetConfig { get; set; }
 
-        // I don't really like this but uhh whatever it works, until the layout update I won't be tweaking this anymore hopefully
-        private int gameUpdate;
-        private bool notAntiqueSeraphim => gameUpdate < (int)GameUpdateVersion.AntiqueSeraphim;
-        private float visPos => notAntiqueSeraphim ? 0 : -22;
-
         /// <summary>
         /// If set to false, the disc will be visible upon load, otherwise it will load outside of screen, having to call <see cref="Slide"/> or set the Y position manually.
         /// </summary>
@@ -39,7 +34,7 @@ namespace LivinOnSweets.API.Graphics.Sprites
         }
 
         // Starts spinning the disc on the previous rotatiob
-        public void Start(double duration = 8000D)
+        private void start(double duration = 8000D)
         {
             if (IsSpinning)
                 return;
@@ -49,7 +44,7 @@ namespace LivinOnSweets.API.Graphics.Sprites
         }
 
         // Stops the loop function by forcing another transform
-        public void Stop()
+        private void stop()
         {
             if (!IsSpinning)
                 return;
@@ -60,22 +55,24 @@ namespace LivinOnSweets.API.Graphics.Sprites
 
         public void Slide(bool isTransIn = true, double duration = 2400D)
         {
-            float dest = isTransIn ? visPos : -cd!.DrawHeight / 2;
+            float dest = isTransIn ? 0 : -cd!.DrawHeight / 2;
 
             this.MoveToY(dest, duration, Easing.OutQuint);
 
             if (isTransIn)
-                Start();
+                start();
             else
-                Stop();
+                stop();
         }
 
         // this will stop the current cd spin, recreate the child inside the container then spin again
+        // make this animated?
         protected override void PackChanged(IResourcePackSource pack)
         {
-            Stop();
+            bool wasVisible = IsSpinning; // we track the is spinning since it can only be set through slide which hides the disc either way
+            stop();
 
-            gameUpdate = (int)sweetConfig.Get<GameUpdateVersion>(SweetSetting.GameUpdate);
+            int gameUpdate = (int)sweetConfig.Get<GameUpdateVersion>(SweetSetting.GameUpdate);
 
             cd ??= new Container
             {
@@ -90,26 +87,34 @@ namespace LivinOnSweets.API.Graphics.Sprites
 
             MarginPadding curMargin = Margin;
             curMargin.Left = cd.Child.DrawWidth;
-            if (notAntiqueSeraphim)
+
+            // I don't really like this but uhh whatever it works, until the layout update I won't be tweaking this anymore hopefully
+            if (gameUpdate < (int)GameUpdateVersion.AntiqueSeraphim)
+            {
                 curMargin.Left += 24;
+                curMargin.Top = -10;
+            }
             else
-                curMargin.Left /= 1.35F;
+            {
+                curMargin.Left /= 1.1F;
+                curMargin.Top = -40;
+            }
             Margin = curMargin;
 
-            if (PositionOutsideView)
+            if (!wasVisible && PositionOutsideView) // this should happen whenever the cd is not playing or if its the first run
                 Y = -cd.DrawHeight / 2;
 
-            if (Y >= visPos)
-                Y = visPos;
+            if (wasVisible)
+                Y = 0; // reset the pos in case its visible
 
-            Start();
+            start();
         }
 
         // Custom sprite which modifies the texture inflation to make the antique seraphim cd texture look correctly
         // instead of having cut off shadow edges (kinda lame fix but its better than the raw one)
         private partial class CdSprite(int gameUpdate) : Sprite
         {
-            private int gameUpdate = gameUpdate;
+            private readonly int gameUpdate = gameUpdate;
 
             protected override DrawNode CreateDrawNode() => new CdDrawNode(this);
 

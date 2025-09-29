@@ -12,7 +12,7 @@ namespace LivinOnSweets.API.Graphics.Containers
     public partial class SweetScrollContainer : SweetScrollContainer<Drawable>
     {
         public SweetScrollContainer() { }
-        public SweetScrollContainer(Direction direction, bool startBlocked) : base(direction, startBlocked) { }
+        public SweetScrollContainer(Direction direction, bool startBlocked = false) : base(direction, startBlocked) { }
     }
 
     // Mix of OsuScrollContainer and the old SweetScrollContainer
@@ -136,7 +136,7 @@ namespace LivinOnSweets.API.Graphics.Containers
 
                 lastScrollPos = Y;
 
-                // If hovering the scroll bar we want to keep it active, trigger show fill just fade in the bar
+                // If hovering the scroll bar we want to keep it active, trigger show will just fade in the bar
                 // but it will keep getting called with false on here, so when that happens while hovering,
                 // we need to reset the scroll time to avoid hiding
                 if (hovering || handling)
