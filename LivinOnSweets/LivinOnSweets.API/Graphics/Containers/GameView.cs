@@ -8,6 +8,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Platform;
 using osuTK;
 
 namespace LivinOnSweets.API.Graphics.Containers
@@ -18,6 +19,7 @@ namespace LivinOnSweets.API.Graphics.Containers
     /// </summary>
     public partial class GameView : CompositeDrawable
     {
+        [Resolved] private GameHost host { get; set; }
         [Resolved] private GameStateManager stateManager { get; set; }
         [Resolved] private GameSession gameSession { get; set; }
 
@@ -69,14 +71,7 @@ namespace LivinOnSweets.API.Graphics.Containers
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Masking = true,
-                        Child = screenStack = new SweetScreenStack
-                        {
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                            RelativeSizeAxes = Axes.Both,
-                            Alpha = 0,
-                            Scale = new Vector2(0.8F), // for da transition (not entirely visible actually)
-                        },
+                        Child = screenStack = createScreenStack(),
                     }
                 }
             ];
@@ -149,10 +144,43 @@ namespace LivinOnSweets.API.Graphics.Containers
             }
         }
 
+        public void Reset()
+        {
+            // i should add a fade out to the music playing but that would require getting access to the GLOBAL sound manager and do it there, not too fond of that
+            stateManager.GameplayMachine.CurrentState.SetDefault();
+            screenStack.ScaleTo(Vector2.Zero, 1000D, Easing.OutQuint).FadeOutFromOne(800D, Easing.OutQuint).OnComplete(_ =>
+            {
+                Container maskingContainer = (Container)screenStack.Parent;
+                maskingContainer!.Remove(screenStack, true);
+                maskingContainer.Add(screenStack = createScreenStack());
+            });
+        }
+
         private void enableBacking()
         {
             stateManager.ProgressionBlock.SetDefault();
             stateManager.CanBack.SetDefault();
+        }
+
+        private SweetScreenStack createScreenStack() => new()
+        {
+            Anchor = Anchor.Centre,
+            Origin = Anchor.Centre,
+            RelativeSizeAxes = Axes.Both,
+            Alpha = 0,
+            Scale = new Vector2(0.8F), // for da transition (not entirely visible actually)
+        };
+
+        // im so sorry ppy, bdach, frenzibyte, smoogi, susko, the entire fucking osu!framework team, for pulling this off
+        protected override void Dispose(bool isDisposing)
+        {
+            if (host.ExecutionState == ExecutionState.Running)
+            {
+                gameSession.RequestOwnership(typeof(GameView), null);
+                return;
+            }
+
+            base.Dispose(isDisposing);
         }
     }
 }

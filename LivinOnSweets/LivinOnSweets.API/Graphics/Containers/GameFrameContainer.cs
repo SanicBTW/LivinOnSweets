@@ -3,17 +3,17 @@ using LivinOnSweets.API.Configuration;
 using LivinOnSweets.API.Data;
 using LivinOnSweets.API.Graphics.Sprites.Startup;
 using LivinOnSweets.API.Skinning;
+using LivinOnSweets.API.StateMachines;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input.Events;
 using osuTK;
-using osuTK.Input;
 
 namespace LivinOnSweets.API.Graphics.Containers
 {
@@ -33,15 +33,21 @@ namespace LivinOnSweets.API.Graphics.Containers
 
         private Container content;
         private FillFlowContainer flowContainer;
+
+        private StudentPool students;
         private Sprite frame;
         // this is such a horrible hack omg
         // since the frame container now has a fill flow container for the banners n shit
         // now when showing the banners the frame shifts a little bit, so we use a margin which doubles that amount
         // to reshift the container while doing the sliding on the banners, not my favorite trick but looks good
         private readonly BindableMarginPadding frameMargin = new();
+
         private Sprite logo;
         private Bindable<GameView> gameView = new();
-        private StudentPool students;
+        private readonly GameEnterZone gameEnterZone = new()
+        {
+            Action = onGameEnter
+        };
 
         [BackgroundDependencyLoader]
         private void load()
@@ -70,7 +76,7 @@ namespace LivinOnSweets.API.Graphics.Containers
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Direction = FillDirection.Horizontal,
-                        Spacing = new Vector2(0, 0), // initial spacing for good measure
+                        Spacing = Vector2.Zero, // initial spacing for good measure
                         Children =
                         [
                             students = new StudentPool()
@@ -85,16 +91,19 @@ namespace LivinOnSweets.API.Graphics.Containers
                             },
                         ]
                     },
-
                     logo = new Sprite
                     {
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre,
                     },
+                    gameEnterZone,
                 ]
             };
 
+            content.ChangeChildDepth(gameEnterZone, -1); // cannot set it manually on the load function of the container
             students.SetTargetContainer(flowContainer);
+
+            gameView.ValueChanged += resetZoneBind;
             gameSession.RequestOwnership(typeof(GameFrameContainer), content, gameView);
 
             frameMargin.BindValueChanged((ev) => frame.Margin = ev.NewValue);
@@ -109,8 +118,8 @@ namespace LivinOnSweets.API.Graphics.Containers
                 ScheduleAfterChildren(() => flowContainer.FinishTransforms(true));
             }
 
-            // execute the update layout here for the first time its loaded since pack changed is too eager and the value is not on the bindable yet
-            gameView.Value?.UpdateLayout(gameUpdate);
+            // schedule the execution of the layout update here for the first time its loaded since pack changed is too eager and the value is not on the bindable yet
+            ScheduleAfterChildren(() => gameView.Value?.UpdateLayout(gameUpdate));
         }
 
         protected override void PackChanged(IResourcePackSource pack)
@@ -184,25 +193,13 @@ namespace LivinOnSweets.API.Graphics.Containers
                 frameMargin.SetDefault();
         }
 
-        protected override bool OnClick(ClickEvent e)
-        {
-            // actually this should only happen when clicking the game itself, not the entire container.
-            if (e.Button == MouseButton.Left)
-            {
-                onGameEnter();
-                return true;
-            }
-
-            return false;
-        }
-
         // Silly additions
         public void FadeBannersTo(float alpha, double duration = 0D, Easing easing = Easing.None) => students.FadeBannersTo(alpha, duration, easing);
-
         public void PushScreen(GameScreenData screenData) => gameView.Value?.PushScreen(screenData);
         public void ResetOwnership()
         {
             gameView.ValueChanged += resetGameVisuals;
+            gameView.ValueChanged += resetZoneBind;
             gameSession.RequestOwnership(typeof(GameFrameContainer), content, gameView);
 
             Scheduler.AddOnce(() =>
@@ -223,6 +220,23 @@ namespace LivinOnSweets.API.Graphics.Containers
             gameView.ValueChanged -= resetGameVisuals;
         }
 
+        private void resetZoneBind(ValueChangedEvent<GameView> ev)
+        {
+            if (ev.NewValue == null)
+            {
+                GameView game = ev.OldValue;
+                gameEnterZone.ContainerSize.UnbindFrom(game.ContainerSize);
+                gameEnterZone.ContainerMargin.UnbindFrom(game.GameMargin);
+                gameView.ValueChanged -= resetZoneBind;
+            }
+            else
+            {
+                GameView game = ev.NewValue;
+                gameEnterZone.ContainerSize.BindTo(game.ContainerSize);
+                gameEnterZone.ContainerMargin.BindTo(game.GameMargin);
+            }
+        }
+
         // this should be handled by the startup screen but in order to make it more reusable this is gonna handle it
         public override void Show()
         {
@@ -231,7 +245,11 @@ namespace LivinOnSweets.API.Graphics.Containers
 
             this.TransformBindableTo(frameMargin, frameMargin.Default, 1000, Easing.OutQuint);
             students.Show();
+            ShowEnterZone();
         }
+
+        // the show call should handle showing the enter zone or not, ignoring the state of the students bro
+        public void ShowEnterZone() => gameEnterZone.Show();
 
         public override void Hide()
         {
@@ -240,14 +258,14 @@ namespace LivinOnSweets.API.Graphics.Containers
 
             this.TransformBindableTo(frameMargin, new MarginPadding(0), 1000, Easing.OutQuint);
             students.Hide();
+            HideEnterZone();
         }
+
+        public void HideEnterZone() => gameEnterZone.Hide();
 
         public MenuItem[] ContextMenuItems =>
         [
-            new("reset session", () =>
-            {
-
-            }),
+            new("finish session", () => gameView.Value?.Reset()),
             // i would like these to be inside the student pool but thats too much work (checking the moouse input inside the banner bounds)
 #if DEBUG
             new("show banners", Show),
@@ -257,5 +275,116 @@ namespace LivinOnSweets.API.Graphics.Containers
             new($"{students.CountExcessConstructed} banner excess")
 #endif
         ];
+
+        private partial class GameEnterZone : ClickableContainer
+        {
+            private const double fade_time = 800D;
+
+            [Resolved] private SessionConfig sessionConfig { get; set; }
+            [Resolved] private GameStateManager stateManager { get; set; }
+
+            public readonly Bindable<Vector2> ContainerSize = new(Vector2.Zero);
+            public readonly BindableMarginPadding ContainerMargin = new();
+
+            private readonly Bindable<bool> touchActive = new();
+            private readonly Bindable<GameplayState> gameState = new();
+
+            private Box background;
+            private SpriteText indicator;
+
+            private float maxBgAlpha;
+            private float minBgAlpha;
+            private Colour4 bgColor;
+
+            private string inputState;
+            private string gameRuntimeState;
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                Anchor = Origin = Anchor.Centre;
+                RelativeSizeAxes = Axes.None;
+
+                Children =
+                [
+                    background = new Box()
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Colour4.White,
+                        Alpha = 0,
+                    },
+                    indicator = new SpriteText()
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Text = "",
+                        Font = new FontUsage(family: "DNFBitBit", size: 24F),
+                        Alpha = 0,
+                    }
+                ];
+
+                // really overworked but its good to keep up reactivity, will prob be a pain with translations
+                sessionConfig.BindWith(SessionSetting.TouchInputActive, touchActive);
+                gameState.BindTo(stateManager.GameplayMachine.CurrentState);
+
+                gameState.BindValueChanged((ev) =>
+                {
+                    if (ev.NewValue > GameplayState.Ready) // not in the main screen
+                        return;
+
+                    bool notInit = ev.NewValue < GameplayState.Ready;
+                    gameRuntimeState = notInit ? "start the game" : "resume the game";
+                    maxBgAlpha = notInit ? 0.15F : 0.55F;
+                    minBgAlpha = notInit ? 0F : 0.35F;
+                    bgColor = notInit ? Colour4.White : Colour4.Black;
+
+                    if (!Enabled.Value)
+                        return;
+
+                    // eh looks good, im gonna go with this
+                    resetLoops();
+                }, true);
+
+                touchActive.BindValueChanged((ev) => inputState = (ev.NewValue ? "touch here" : "press enter or click here"), true);
+
+                ContainerSize.BindValueChanged((ev) => Size = ev.NewValue);
+                ContainerMargin.BindValueChanged((ev) => Margin = ev.NewValue);
+            }
+
+            protected override void UpdateAfterChildren()
+            {
+                base.UpdateAfterChildren();
+                indicator.Text = $"{inputState} {gameRuntimeState}";
+            }
+
+            public override void Show()
+            {
+                if (indicator.Alpha <= 0)
+                {
+                    indicator.FadeTo(0.75F, fade_time / 4, Easing.OutQuint).OnComplete(_ => Show()); // nah
+                    return;
+                }
+
+                resetLoops();
+                Enabled.Value = true;
+            }
+
+            public override void Hide()
+            {
+                // interrupts the previous sequence
+                Enabled.Value = false;
+                background.FadeTo(0F, fade_time, Easing.OutQuint);
+                indicator.FadeTo(0F, fade_time, Easing.OutQuint);
+            }
+
+            private void resetLoops()
+            {
+                background.FadeTo(minBgAlpha, fade_time / 8, Easing.OutQuint); // stop then get to do the job
+                background.FadeColour(bgColor, fade_time, Easing.OutQuint);
+                background.Loop(b => b.FadeTo(minBgAlpha, fade_time, Easing.InOutQuart).Then().FadeTo(maxBgAlpha, fade_time, Easing.InOutQuart));
+
+                indicator.Loop(i => i.FadeTo(0.75F, fade_time, Easing.InOutQuart).Then().FadeTo(1F, fade_time, Easing.InOutQuart));
+            }
+        }
     }
 }

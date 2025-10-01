@@ -35,8 +35,8 @@ internal partial class RestartCurrentScreen() : ToolBarButton(FontAwesome.Solid.
         Type screenType = screen.GetType();
         SweetScreen newScreen = (SweetScreen)Activator.CreateInstance(screenType);
         masterStack.Exit();
-        masterStack.PushSynchronously(newScreen);
+        masterStack.Push(newScreen);
     }
 
-    public LocalisableString TooltipText => "Restart the current screen";
+    public LocalisableString TooltipText => "restart the current screen";
 }

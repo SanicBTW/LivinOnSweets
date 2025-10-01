@@ -6,6 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Platform;
+using osu.Framework.Threading;
 
 namespace LivinOnSweets.API.Components
 {
@@ -18,10 +19,13 @@ namespace LivinOnSweets.API.Components
 
         [CanBeNull] private IFocusManager focusManager { get; set; }
 
+        // this is actually pretty unsafe if you think of it, holding a reference to a possible gc'd object, idk man
         private readonly Bindable<Type> ownerType = new();
         private ValueChangedEvent<Container>? lastOwnerContainer;
         [CanBeNull] private Bindable<GameView> lastBindableOwner;
         private readonly Bindable<GameView> bidirectional = new();
+
+        [CanBeNull] private ScheduledDelegate scheduledChange;
 
         private readonly GameView gameView = new();
 
@@ -42,12 +46,13 @@ namespace LivinOnSweets.API.Components
             // load the game view in the meantime
             stl.ScheduleLoad(gameView, null);
 
-            ownerType.BindValueChanged(_ =>
+            ownerType.BindValueChanged(ev =>
             {
-                ValueChangedEvent<Container> last = lastOwnerContainer!.Value;
+                if (ev.NewValue == null)
+                    return;
 
-                if (last.OldValue != null && last.OldValue.Contains(gameView))
-                    last.OldValue.Remove(gameView, false);
+                ValueChangedEvent<Container> last = lastOwnerContainer!.Value;
+                removeOld(last.OldValue);
 
                 // last bindable now gets reset inside the ownership, kinda crazy honestly
 
@@ -72,6 +77,9 @@ namespace LivinOnSweets.API.Components
                 return;
             }
 
+            if (scheduledChange is { Completed: false })
+                scheduledChange.Cancel();
+
             if (!lastOwnerContainer.HasValue)
                 lastOwnerContainer = new ValueChangedEvent<Container>(null, newOwnerContainer);
             else
@@ -86,13 +94,27 @@ namespace LivinOnSweets.API.Components
                 bidirectional.UnbindFrom(lastBindableOwner);
             }
 
-            bidirectional.BindTo(gameViewBindable);
-            lastBindableOwner = gameViewBindable;
+            if (gameViewBindable != null)
+            {
+                bidirectional.BindTo(gameViewBindable);
+                lastBindableOwner = gameViewBindable;
+            }
+
+            if (newOwnerContainer == null)
+            {
+                removeOld(lastOwnerContainer.Value.OldValue);
+
+                ownerType.Value = null;
+                lastOwnerContainer = null;
+                lastBindableOwner = null;
+
+                return;
+            }
 
             // the internal scheduler of this component was kinda fucking everything so i opted
             // to schedule it in the update thread and surprisingly it works
             // the render thread was a bit rude but I put faith into the update thread to treat me nicely and not misbehave. I'll give it a cookie if it works
-            host.UpdateThread.Scheduler.AddOnce(() => ownerType.Value = newOwnerType);
+            scheduledChange = host.UpdateThread.Scheduler.Add(() => ownerType.Value = newOwnerType);
         }
 
         // leaving this here just in case i come back someday but its pretty broken, losing the focus on a click or just losing it altogether
@@ -103,6 +125,15 @@ namespace LivinOnSweets.API.Components
             if (focusRes && target != null)
                 focusManager?.TriggerFocusContention(target);
             return focusRes;
+        }
+
+        // bro im gonna alasdafklasdasfj
+        private void removeOld([CanBeNull] Container container)
+        {
+            if (container == null || !container.Contains(gameView))
+                return;
+
+            host.UpdateThread.Scheduler.Add(() => container.Remove(gameView, false));
         }
     }
 }

@@ -183,7 +183,10 @@ namespace LivinOnSweets.Game.Screens
             scrollContainer.ScrollTo(framePos * 1.5F); // this looks decent really
 
             if (noContextChange.Value)
+            {
+                gameFrame.HideEnterZone();
                 loadGame();
+            }
             else
             {
                 transitionFade.Delay(500).FadeInFromZero(game_anim_delay, Easing.OutQuint)
@@ -196,7 +199,10 @@ namespace LivinOnSweets.Game.Screens
         private void unfocusGame()
         {
             if (noContextChange.Value)
+            {
+                gameFrame.ShowEnterZone();
                 resetProps();
+            }
             else
             {
                 // when changing context, the game frame lost ownership so we try to get it back, already setting some properties back
