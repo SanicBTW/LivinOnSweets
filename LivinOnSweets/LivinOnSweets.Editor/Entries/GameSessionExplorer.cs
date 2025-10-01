@@ -63,7 +63,7 @@ internal partial class GameSessionExplorer() : ToolBarButton(FontAwesome.Solid.G
 
     protected override void UpdateAfterChildren()
     {
-        ownerText.Text = $"owner {(ownerType != null ? ownerType.Value.Name : "")}";
+        ownerText.Text = $"owner {(ownerType!.Value != null ? ownerType.Value.Name : "")}";
         ownershipLockedText.Text = $"ownership locked {gameSession.OwnershipLocked.Value}";
         bidirectionalText.Text = $"bidirectional bindings {(bindingsBidir.Count())}"; // linq go brr
         inputEnabledText.Text = $"input enabled {gameSession.InputEnabled.Value}";
