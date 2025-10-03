@@ -13,7 +13,7 @@ using osu.Framework.Input.Events;
 using osu.Framework.Screens;
 using osuTK;
 
-namespace LivinOnSweets.Game.Screens
+namespace LivinOnSweets.Game.Shell
 {
     // aka "GameMiddlewareScreen", "SGameScreen"
     public partial class FullscreenSession : SweetScreen, IKeyBindingHandler<ManiaAction>

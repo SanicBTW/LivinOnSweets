@@ -15,7 +15,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Screens;
 using osuTK;
 
-namespace LivinOnSweets.Game.Screens
+namespace LivinOnSweets.Game.Shell
 {
     // First screen ever visible in game, it preloads the resources the game will need
     public partial class PreloadingScreen : SweetScreen

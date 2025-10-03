@@ -22,7 +22,7 @@ using osu.Framework.Input.States;
 using osu.Framework.Screens;
 using osuTK;
 
-namespace LivinOnSweets.Game.Screens
+namespace LivinOnSweets.Game.Shell
 {
     // The rewritten version of the startup screen, the one the rewrite really needed
     // this is the 3rd revision of the whole screening system, it better be good enough bruh
