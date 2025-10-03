@@ -1,11 +1,10 @@
-﻿using System;
+﻿using JetBrains.Annotations;
 using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Graphics.Containers;
 using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Screens;
 using LivinOnSweets.API.StateMachines;
 using osu.Framework.Allocation;
-using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -25,7 +24,7 @@ namespace LivinOnSweets.Game.Screens
         private Container content;
         private readonly Box fadeOverlay = new() { RelativeSizeAxes = Axes.Both, Colour = Colour4.Black, Depth = -1 };
         private bool transitioning;
-        private readonly Bindable<GameView> gameView = new();
+        [CanBeNull] private GameView gameView;
 
         [BackgroundDependencyLoader]
         private void load()
@@ -35,17 +34,14 @@ namespace LivinOnSweets.Game.Screens
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 RelativeSizeAxes = Axes.Both,
+                Children = [fadeOverlay]
             };
 
-            gameView.ValueChanged += setGameVisuals;
-            gameSession.RequestOwnership(typeof(FullscreenSession), content, gameView);
-            gameSession.OwnershipLocked.Value = true; // lock the ownership here in case of trying to change it (its the only thing visible here)
-            Scheduler.AddOnce(() =>
+            gameSession.RequestOwnership(typeof(FullscreenSession), content, gv =>
             {
-                if (gameView.Value == null)
-                    throw new InvalidOperationException($"Failed to recover ownership over {nameof(gameView)}");
+                gameView = gv;
+                setGameVisuals();
             });
-            content.Add(fadeOverlay);
         }
 
         public override void OnEntering(ScreenTransitionEvent e)
@@ -70,30 +66,36 @@ namespace LivinOnSweets.Game.Screens
                 return false;
 
             transitioning = true;
-            fadeOverlay.FadeInFromZero(500, Easing.OutQuint).OnComplete(_ => goBack());
+            fadeOverlay.FadeInFromZero(500, Easing.OutQuint).OnComplete(_ => cleanSession());
 
             return true;
         }
 
         public void OnReleased(KeyBindingReleaseEvent<ManiaAction> e) { }
 
-        private void setGameVisuals(ValueChangedEvent<GameView> ev)
+        private void setGameVisuals()
         {
-            GameView game = ev.NewValue;
-            game.GameMargin.Value = new MarginPadding(0);
-            game.ContainerSize.Value = Vector2.Zero;
-            game.RelativeSizeAxes = Axes.Both;
+            // kinda redundant but just to be safe (im tired)
+            if (gameView == null)
+                return;
 
-            gameView.ValueChanged -= setGameVisuals;
+            gameView.GameMargin.Value = new MarginPadding(0);
+            gameView.ContainerSize.Value = Vector2.Zero;
+            gameView.RelativeSizeAxes = Axes.Both;
+        }
+
+        private void cleanSession()
+        {
+            gameSession.RequestGameFocus(false);
+
+            // we need to call the go back function which returns to the previous screen AFTER returning the ownership to nothing
+            // this is to AVOID having the bindable events getting cleaned when exiting to the previous screen
+            gameSession.ReleaseOwnership(goBack);
         }
 
         private void goBack()
         {
-            gameSession.RequestGameFocus(false);
             // first exit this screen and then update the runtime to properly execute the transitions and resets
-            gameSession.OwnershipLocked.Value = false;
-            // manually remove without disposing to avoid binding again
-            content.Remove(gameView.Value, false);
             ScreenStack.Exit();
 
             stateManager.RuntimeMachine.UpdateState(true);

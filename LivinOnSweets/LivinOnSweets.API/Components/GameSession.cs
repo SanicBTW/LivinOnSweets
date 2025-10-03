@@ -5,35 +5,29 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
 
 namespace LivinOnSweets.API.Components
 {
     /// <summary>
     /// Simple component which manages the ownership of the <see cref="GameView"/> for the "embedded" game.
     /// </summary>
-    public partial class GameSession : Component
+    [Cached(typeof(GameSession))] // cache this for our children
+    public partial class GameSession : CompositeDrawable
     {
         [Resolved] private GameHost host { get; set; }
-
+        [Resolved] private GameStateManager stateManager { get; set; }
         [CanBeNull] private IFocusManager focusManager { get; set; }
 
-        // this is actually pretty unsafe if you think of it, holding a reference to a possible gc'd object, idk man
-        private readonly Bindable<Type> ownerType = new();
-        private ValueChangedEvent<Container>? lastOwnerContainer;
-        [CanBeNull] private Bindable<GameView> lastBindableOwner;
-        private readonly Bindable<GameView> bidirectional = new();
+        private Logger logger;
+        private GameView gameView;
 
-        [CanBeNull] private ScheduledDelegate scheduledChange;
-
-        private readonly GameView gameView = new();
-
-        /// <summary>
-        /// A <see cref="BindableBool"/> which represents the lock state of the <see cref="gameView"/>.
-        /// <para>If true then no ownership change will take effect since it's not able to do one.</para>
-        /// </summary>
-        public readonly BindableBool OwnershipLocked = new();
+        private readonly Bindable<Type> ownerType = new(); // not used for anything in the logic, only for displaying the current owner inside the GameSessionExplorer
+        private OwnershipRequest? currentRequest;
+        private int transferToken; // only for tracking the amount of transferations done in the current runtime
+        private bool transferInProgress;
+        private readonly Queue<OwnershipRequest> queue = new();
 
         /// <summary>
         /// A <see cref="BindableBool"/> to enable the input propagation into <see cref="gameView"/>.
@@ -41,24 +35,89 @@ namespace LivinOnSweets.API.Components
         public readonly BindableBool InputEnabled = new();
 
         [BackgroundDependencyLoader]
-        private void load(SingleThreadLoad stl)
+        private void load()
         {
-            // load the game view in the meantime
-            stl.ScheduleLoad(gameView, null);
+            GameView.Disposed += gameDisposed;
+            logger = Logger.GetLogger("GameSession");
+            initNload();
+        }
 
-            ownerType.BindValueChanged(ev =>
+        public void RequestOwnership(Type requester, [CanBeNull] Container newOwner, Action<GameView> onResolved = null, Action lostOwnership = null)
+        {
+            ownerType.Value = requester;
+
+            logger.Add($"{requester} is requesting the ownership [#{transferToken++}, will fire an action when losing ownership? {lostOwnership != null}]");
+            queue.Enqueue(new OwnershipRequest(newOwner, onResolved, lostOwnership));
+            scheduleOwnershipChange();
+        }
+
+        public void ReleaseOwnership(Action finishedAction = null)
+        {
+            logger.Add($"Queueing the release of the ownership. [#{transferToken++}, will fire an action after releasing? {finishedAction != null}]");
+            queue.Enqueue(new OwnershipRequest(null, _ => finishedAction?.Invoke(), null)); // why would we want to fire a callback when we lost the game here
+            scheduleOwnershipChange();
+        }
+
+        // leaving this here just in case i come back someday but its pretty broken, losing the focus on a click or just losing it altogether
+        public bool RequestGameFocus(bool focus = true)
+        {
+            logger.Add($"Requesting game focus ({focus})");
+            Drawable target = focus ? gameView : null;
+            bool focusRes = focusManager?.ChangeFocus(target) ?? false;
+            /* this only works when the game view "requests focus" and "accepts it"
+            if (focusRes && target != null)
+                focusManager?.TriggerFocusContention(target);*/
+            return focusRes;
+        }
+
+        private void scheduleOwnershipChange()
+        {
+            if (transferInProgress) return;
+
+            transferInProgress = true;
+            host.UpdateThread.Scheduler.Add(processQueue);
+        }
+
+        private void processQueue()
+        {
+            if (queue.Count == 0)
             {
-                if (ev.NewValue == null)
-                    return;
+                transferInProgress = false;
+                return;
+            }
 
-                ValueChangedEvent<Container> last = lastOwnerContainer!.Value;
-                removeOld(last.OldValue);
+            OwnershipRequest request = queue.Dequeue();
+            if (currentRequest.HasValue)
+            {
+                currentRequest.Value.Target?.Remove(gameView, false);
+                currentRequest.Value.LostOwnership?.Invoke();
+            }
 
-                // last bindable now gets reset inside the ownership, kinda crazy honestly
+            request.Target?.Add(gameView);
+            request.Callback?.Invoke(gameView);
 
-                bidirectional.Value = gameView;
-                last.NewValue.Add(gameView);
-            });
+            currentRequest = request;
+
+            transferInProgress = false;
+            scheduleOwnershipChange();
+        }
+
+        private void gameDisposed()
+        {
+            if (host.ExecutionState != ExecutionState.Running)
+                return;
+
+            gameView = null;
+            currentRequest = null;
+            initNload();
+        }
+
+        // bruh
+        private void initNload()
+        {
+            stateManager.GameplayMachine.CurrentState.SetDefault(); // for good measure, we reset the gameplay state before creating/disposing the game
+            LoadComponent(gameView = new GameView());
+            logger.Add($"Loaded {nameof(gameView)} synchronously with execution time of {Time.Current:0.00}s.");
         }
 
         protected override void LoadComplete()
@@ -67,73 +126,14 @@ namespace LivinOnSweets.API.Components
             focusManager = GetContainingFocusManager();
         }
 
-        // this is really overworked honestly, now it needs a type that when changed it will change the ownership
-        // since tracking the container would be a problem since its not triggering because its probably the same instance
-        public void RequestOwnership(Type newOwnerType, Container newOwnerContainer, [CanBeNull] Bindable<GameView> gameViewBindable = null)
+        private readonly struct OwnershipRequest(
+            Container target,
+            Action<GameView> callback,
+            Action lostOwnership)
         {
-            if (OwnershipLocked.Value)
-            {
-                if (gameViewBindable != null) gameViewBindable.Value = null;
-                return;
-            }
-
-            if (scheduledChange is { Completed: false })
-                scheduledChange.Cancel();
-
-            if (!lastOwnerContainer.HasValue)
-                lastOwnerContainer = new ValueChangedEvent<Container>(null, newOwnerContainer);
-            else
-            {
-                ValueChangedEvent<Container> lastOwner = lastOwnerContainer.Value;
-                lastOwnerContainer = new ValueChangedEvent<Container>(lastOwner.NewValue, newOwnerContainer);
-            }
-
-            if (lastBindableOwner != null)
-            {
-                bidirectional.Value = null;
-                bidirectional.UnbindFrom(lastBindableOwner);
-            }
-
-            if (gameViewBindable != null)
-            {
-                bidirectional.BindTo(gameViewBindable);
-                lastBindableOwner = gameViewBindable;
-            }
-
-            if (newOwnerContainer == null)
-            {
-                removeOld(lastOwnerContainer.Value.OldValue);
-
-                ownerType.Value = null;
-                lastOwnerContainer = null;
-                lastBindableOwner = null;
-
-                return;
-            }
-
-            // the internal scheduler of this component was kinda fucking everything so i opted
-            // to schedule it in the update thread and surprisingly it works
-            // the render thread was a bit rude but I put faith into the update thread to treat me nicely and not misbehave. I'll give it a cookie if it works
-            scheduledChange = host.UpdateThread.Scheduler.Add(() => ownerType.Value = newOwnerType);
-        }
-
-        // leaving this here just in case i come back someday but its pretty broken, losing the focus on a click or just losing it altogether
-        public bool RequestGameFocus(bool focus = true)
-        {
-            Drawable target = focus ? gameView : null;
-            bool focusRes = focusManager?.ChangeFocus(target) ?? false;
-            if (focusRes && target != null)
-                focusManager?.TriggerFocusContention(target);
-            return focusRes;
-        }
-
-        // bro im gonna alasdafklasdasfj
-        private void removeOld([CanBeNull] Container container)
-        {
-            if (container == null || !container.Contains(gameView))
-                return;
-
-            host.UpdateThread.Scheduler.Add(() => container.Remove(gameView, false));
+            [CanBeNull] public readonly Container Target = target;
+            [CanBeNull] public readonly Action<GameView> Callback = callback;
+            [CanBeNull] public readonly Action LostOwnership = lostOwnership;
         }
     }
 }

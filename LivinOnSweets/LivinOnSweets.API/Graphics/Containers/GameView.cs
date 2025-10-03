@@ -8,7 +8,6 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Platform;
 using osuTK;
 
 namespace LivinOnSweets.API.Graphics.Containers
@@ -19,7 +18,6 @@ namespace LivinOnSweets.API.Graphics.Containers
     /// </summary>
     public partial class GameView : CompositeDrawable
     {
-        [Resolved] private GameHost host { get; set; }
         [Resolved] private GameStateManager stateManager { get; set; }
         [Resolved] private GameSession gameSession { get; set; }
 
@@ -171,16 +169,12 @@ namespace LivinOnSweets.API.Graphics.Containers
             Scale = new Vector2(0.8F), // for da transition (not entirely visible actually)
         };
 
-        // im so sorry ppy, bdach, frenzibyte, smoogi, susko, the entire fucking osu!framework team, for pulling this off
+        // this is probably better than the previous fix, still doesnt meet the standards but works better
+        internal static event Action Disposed;
         protected override void Dispose(bool isDisposing)
         {
-            if (host.ExecutionState == ExecutionState.Running)
-            {
-                gameSession.RequestOwnership(typeof(GameView), null);
-                return;
-            }
-
             base.Dispose(isDisposing);
+            Disposed?.Invoke();
         }
     }
 }
