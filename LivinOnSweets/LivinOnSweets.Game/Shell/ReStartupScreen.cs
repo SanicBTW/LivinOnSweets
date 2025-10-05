@@ -5,6 +5,7 @@ using LivinOnSweets.API.Cursor;
 using LivinOnSweets.API.Data;
 using LivinOnSweets.API.Graphics.Containers;
 using LivinOnSweets.API.Graphics.Sprites;
+using LivinOnSweets.API.Graphics.Sprites.Startup;
 using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Screens;
 using LivinOnSweets.API.Skinning;

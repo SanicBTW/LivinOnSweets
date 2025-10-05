@@ -22,6 +22,7 @@ using osuTK.Input;
 namespace LivinOnSweets.Game.Embedded
 {
     // its the old code really, only some slight adjustments
+    // https://github.com/SanicBTW/LivinOnSweets/blob/master/LivinOnSweets/LivinOnSweets.Game/StartScreens/GameLoadScreen.cs
     public partial class EmbedPreloadScreen : SweetScreen, IKeyBindingHandler<ManiaAction>
     {
         private LoadManager loadManager;

@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 
-namespace LivinOnSweets.API.Graphics.Sprites
+namespace LivinOnSweets.API.Graphics.Sprites.Startup
 {
     // Old code with improvements, adding support to the new resource pack system
     public partial class StartupDisc : ResourcePackReloadableDrawable

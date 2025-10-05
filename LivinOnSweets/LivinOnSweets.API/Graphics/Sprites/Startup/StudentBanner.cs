@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Utils;
 using osuTK;
 
-namespace LivinOnSweets.API.Graphics.Sprites
+namespace LivinOnSweets.API.Graphics.Sprites.Startup
 {
     // Just like the old code but with improvements and resource pack support
     public partial class StudentBanner : ResourcePackReloadableDrawable

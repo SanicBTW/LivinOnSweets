@@ -6,7 +6,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 
-namespace LivinOnSweets.API.Graphics.Sprites
+namespace LivinOnSweets.API.Graphics.Sprites.Startup
 {
     // this should scale in proportion of the scaling set
     public partial class StartupBackground : ResourcePackReloadableDrawable
