@@ -9,7 +9,7 @@ using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Screens;
 using LivinOnSweets.API.Skinning;
 using LivinOnSweets.API.StateMachines;
-using LivinOnSweets.Game.GameScreens;
+using LivinOnSweets.Game.Embedded;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -239,7 +239,7 @@ namespace LivinOnSweets.Game.Shell
             bool notInit = stateManager.GameplayMachine.CurrentState.Value == GameplayState.NotReady;
             // Since the screens are part of the game and not the API package we pass a type reference to the next screen that will be created thru activator
             // When entering the game, let the game load first then after its done loading, change the current screen
-            Type screenType = notInit ? typeof(PlayStateTest) : null;
+            Type screenType = notInit ? typeof(EmbedPreloadScreen) : null;
             gameFrame.PushScreen(new GameScreenData(screenType, onLoad: onLoad, onError: onError));
             return;
 
