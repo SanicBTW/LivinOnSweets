@@ -22,13 +22,7 @@ namespace LivinOnSweets.API.Graphics.Sprites
 
         protected override void PackChanged(IResourcePackSource pack)
         {
-            // simple check to see if we running below antique seraphim, kinda redundant check since the resource
-            // pack might change but not the game version you get the thing
-            int gameVer = (int)sweetConfig.Get<GameUpdateVersion>(SweetSetting.GameUpdate);
-
-            // we running below antique seraphim
-            string bgTex = (gameVer < (int)GameUpdateVersion.AntiqueSeraphim) ? "Startup/UI/Background.png" : "Startup/UI/Background.jpg"; // ironic right?
-            Texture tex = pack.GetTexture(bgTex, WrapMode.None, WrapMode.None, false, true);
+            Texture tex = pack.GetTexture("Startup/UI/Background", WrapMode.None, WrapMode.None, false, true);
             tex.ScaleAdjust = 4;
 
             // stretching might happen but its probably the best looking approach, will revisit soon surely
