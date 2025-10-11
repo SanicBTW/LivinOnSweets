@@ -360,7 +360,7 @@ namespace LivinOnSweets.API.Graphics.Containers
             protected override void UpdateAfterChildren()
             {
                 base.UpdateAfterChildren();
-                indicator.Text = $"{inputState} {gameRuntimeState}";
+                indicator.Text = $"{inputState} to {gameRuntimeState}";
             }
 
             public override void Show()
