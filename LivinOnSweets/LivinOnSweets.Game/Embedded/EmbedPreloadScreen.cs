@@ -5,7 +5,6 @@ using LivinOnSweets.API.Graphics.Sprites.EmbedPreload;
 using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Screens;
 using LivinOnSweets.API.Skinning;
-using LivinOnSweets.Game.GameScreens;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -179,7 +178,7 @@ namespace LivinOnSweets.Game.Embedded
 
         public void OnReleased(KeyBindingReleaseEvent<ManiaAction> e) { }
 
-        protected virtual SweetScreen CreateNextScreen() => new PlayStateTest();
+        protected virtual SweetScreen CreateNextScreen() => new MainMenuScreen();
 
         // i have to manually register the dependency since for some reason it wont let me cache it through the attribute
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
