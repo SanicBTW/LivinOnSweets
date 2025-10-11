@@ -7,7 +7,6 @@ using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
@@ -44,11 +43,10 @@ namespace LivinOnSweets.API.Skinning
 
         public IEnumerable<ResourcePack> LoadedPacks => loadedPacks.Values;
 
-        [CanBeNull] public ResourcePack GetPackById(string id) =>
-            loadedPacks.TryGetValue(id, out var pack) ? pack : null;
+        [CanBeNull] public ResourcePack GetPackById(string id) => loadedPacks.GetValueOrDefault(id);
 
-        private Bindable<string> resourcePack;
-        private Bindable<GameUpdateVersion> gameUpdate;
+        private readonly Bindable<string> resourcePack;
+        private readonly Bindable<GameUpdateVersion> gameUpdate;
 
         /// <summary>
         /// The current bound <see cref="ResourcePack"/>.
@@ -106,9 +104,9 @@ namespace LivinOnSweets.API.Skinning
 
             // Just like osu!lazer, only be able to change the current pack by other source
             // https://github.com/ppy/osu/blob/3cbdf2b890bf4573764afcd40e94391bc8fdb827/osu.Game/Skinning/SkinManager.cs#L116
-            CurrentPack.ValueChanged += ev =>
+            CurrentPack.ValueChanged += _ =>
             {
-                if (ev.NewValue.PackInfo.Metadata.Id != resourcePack.Value)
+                if (CurrentPack.Value.PackInfo.Metadata.Id != resourcePack.Value)
                     throw new InvalidOperationException(
                         $"Setting {nameof(CurrentPack)}'s value directly is not supported. Change the {nameof(SweetSetting.ResourcePack)} bindable instead.");
 

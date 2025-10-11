@@ -63,9 +63,12 @@ namespace LivinOnSweets.API.Skinning
             // both audio stores will share the same store, adding any other store to this will affect the backing audio store
             ISampleStore samples = resources.AudioManager.GetSampleStore(store);
             samples.AddExtension("ogg");
-
             Samples = samples;
-            Tracks = resources.AudioManager.GetTrackStore(store);
+
+            // this store was made to register the ogg extension without accessing through reflect to the inner resource store
+            ResourceStore<byte[]> trackStore = new ResourceStore<byte[]>(store);
+            trackStore.AddExtension("ogg");
+            Tracks = resources.AudioManager.GetTrackStore(trackStore);
 
             // The reason why we use pack resources and not bind the store itself, its because we want the texture lookup to fail
             // so it fallbacks to the nested stores, reusing some texture cache and texture atlases from them
