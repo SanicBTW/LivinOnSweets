@@ -22,7 +22,7 @@ namespace LivinOnSweets.API.Graphics.Sprites.EmbedPreload
                 Bottom = 53
             };
 
-            Texture texture = pack.GetTexture("GamePreload/Vibing");
+            Texture texture = pack.GetTexture("GamePreload/Vibing", default, default, false, true);
             texture.ScaleAdjust = 1;
             AddFrames(SpritesheetParser.GetFrames(texture, 1000D, columns: 2));
         }

@@ -22,6 +22,9 @@ namespace LivinOnSweets.API.Components
         public void Register<TLoadable>([NotNull] TLoadable component, Action<TLoadable> onLoaded = null, CancellationToken cancellation = default, Scheduler scheduler = null)
             where TLoadable : Drawable
         {
+            if (component.LoadState > LoadState.Ready)
+                return;
+
             register(component);
 
             // bruh moment
