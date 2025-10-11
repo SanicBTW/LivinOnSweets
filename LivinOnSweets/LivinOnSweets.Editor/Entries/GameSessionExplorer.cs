@@ -22,9 +22,12 @@ internal partial class GameSessionExplorer() : ToolBarButton(FontAwesome.Solid.G
 
     private SpriteText ownerText;
     private SpriteText inputEnabledText;
+    private SpriteText runtimeText;
+    private SpriteText gameplayText;
 
     [Resolved] private EditorContainer editorView { get; set; }
     [Resolved] private GameSession gameSession { get; set; }
+    [Resolved] private GameStateManager stateManager { get; set; }
 
     [BackgroundDependencyLoader]
     private void load()
@@ -44,6 +47,8 @@ internal partial class GameSessionExplorer() : ToolBarButton(FontAwesome.Solid.G
         gameSeshWindow.ScrollContent.AddRange([
             ownerText = createText("owner ?"),
             inputEnabledText = createText("input enabled ?"),
+            runtimeText = createText("runtime state ?"),
+            gameplayText = createText("gameplay state ?"),
         ]);
 
         refreshReferences();
@@ -51,8 +56,11 @@ internal partial class GameSessionExplorer() : ToolBarButton(FontAwesome.Solid.G
 
     protected override void UpdateAfterChildren()
     {
+        // YES i know i could listen to the value changed event but NO i wont do it bruh
         ownerText.Text = $"owner {(ownerType!.Value != null ? ownerType.Value.Name : "")}";
         inputEnabledText.Text = $"input enabled {gameSession.InputEnabled.Value}";
+        runtimeText.Text = $"runtime state {stateManager.RuntimeMachine.CurrentState.Value}";
+        gameplayText.Text = $"gameplay state {stateManager.GameplayMachine.CurrentState.Value}";
     }
 
     private void refreshReferences()
