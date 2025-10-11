@@ -148,7 +148,7 @@ namespace LivinOnSweets.API.Graphics.Containers
 
             // Atlases should be able to change the filtering at runtime too but for now im gonna leave it like this
             // Now i just realized atlases are just another texture bruh, changing the filtering at runtime would change all the texture filterings in that atlas
-            Texture logoTex = CurrentPack.GetTexture("Startup/UI/EventName.png");
+            Texture logoTex = CurrentPack.GetTexture("Startup/UI/EventName.png", default, default, false, filteringMode: isLivinOnSweets ? TextureFilteringMode.Nearest : TextureFilteringMode.Linear);
             if (logoTex.Size != logo.Texture?.Size) // reset the size if its not the same texture
                 logo.Size = Vector2.Zero;
 

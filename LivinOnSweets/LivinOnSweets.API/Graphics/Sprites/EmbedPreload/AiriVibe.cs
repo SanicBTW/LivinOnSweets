@@ -7,8 +7,6 @@ using osu.Framework.Graphics.Textures;
 
 namespace LivinOnSweets.API.Graphics.Sprites.EmbedPreload
 {
-    // i just realized theres cropping artifacts on the second frame, i cant really do anything sorry
-    // ok it only happens when maximizing (running bigger than 1280x720) thats crazy bro
     public partial class AiriVibe : TextureAnimation
     {
         [BackgroundDependencyLoader]
@@ -22,7 +20,7 @@ namespace LivinOnSweets.API.Graphics.Sprites.EmbedPreload
                 Bottom = 53
             };
 
-            Texture texture = pack.GetTexture("GamePreload/Vibing", default, default, false, true);
+            Texture texture = pack.GetTexture("GamePreload/Vibing", default, default, false, true, TextureFilteringMode.Nearest);
             texture.ScaleAdjust = 1;
             AddFrames(SpritesheetParser.GetFrames(texture, 1000D, columns: 2));
         }

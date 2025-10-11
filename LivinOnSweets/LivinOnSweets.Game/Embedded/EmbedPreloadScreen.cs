@@ -77,10 +77,10 @@ namespace LivinOnSweets.Game.Embedded
                 }
             };
 
-            Texture bgTex = pack.GetTexture("GamePreload/Background", default, default, false);
+            Texture bgTex = pack.GetTexture("GamePreload/Background", default, default, false, filteringMode: TextureFilteringMode.Nearest);
             bgTex.ScaleAdjust = 1;
 
-            Texture logoTex = pack.GetTexture("GamePreload/Logo");
+            Texture logoTex = pack.GetTexture("GamePreload/Logo", default, default, false, filteringMode: TextureFilteringMode.Nearest);
             logoTex.ScaleAdjust = 1;
 
             Container musOverlay = isAntique ? new Container()
@@ -95,7 +95,7 @@ namespace LivinOnSweets.Game.Embedded
             if (isAntique)
             {
                 // referenced as update ribbon in the js file
-                Texture updTex = pack.GetTexture("GamePreload/UpdateRibbon");
+                Texture updTex = pack.GetTexture("GamePreload/UpdateRibbon", default, default, false, filteringMode: TextureFilteringMode.Nearest);
                 updTex.ScaleAdjust = 1;
                 musOverlay.Add(new Sprite()
                 {
@@ -203,7 +203,7 @@ namespace LivinOnSweets.Game.Embedded
                 Margin = new MarginPadding { Right = 12 }; // kind of a forced value but can i do anything else?
                 Width = 512;
 
-                Texture texture = pack.GetTexture("GamePreload/LoadingHandle");
+                Texture texture = pack.GetTexture("GamePreload/LoadingHandle", default, default, false, filteringMode: TextureFilteringMode.Nearest);
                 texture.ScaleAdjust = 1;
                 Add(handle = new Sprite()
                 {
