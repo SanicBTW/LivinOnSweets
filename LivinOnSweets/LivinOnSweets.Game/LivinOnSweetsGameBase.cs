@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using AetherFramework;
+using LivinOnSweets.API;
 using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Configuration;
 using LivinOnSweets.API.Cursor;
@@ -64,6 +65,7 @@ namespace LivinOnSweets.Game
         protected LivinOnSweetsGameBase()
         {
             ClassRegistry.RegisterOverridableClasses(Assembly.GetExecutingAssembly());
+            ClassRegistry.RegisterOverridableClasses(LivinOnSweetsApi.ApiAssembly);
         }
 
         [BackgroundDependencyLoader]
