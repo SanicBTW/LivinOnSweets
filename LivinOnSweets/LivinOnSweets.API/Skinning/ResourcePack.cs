@@ -41,6 +41,16 @@ namespace LivinOnSweets.API.Skinning
         protected ITrackStore Tracks { get; }
 
         /// <summary>
+        /// Access the <see cref="ResourcePackManager"/> logger.
+        /// </summary>
+        public Logger Logger => resourcePackManager.Logger;
+
+        /// <summary>
+        /// If this <see cref="ResourcePack"/> is part of the Livin' on Sweets Resources DLL
+        /// </summary>
+        public readonly bool IsLocalPack;
+
+        /// <summary>
         /// Construct a new skin.
         /// </summary>
         /// <param name="resourcePack">The resource pack metadata.</param>
@@ -50,12 +60,12 @@ namespace LivinOnSweets.API.Skinning
         public ResourcePack(ResourcePackInfo resourcePack, ResourcePackManager resourcePackManager)
         {
             this.resourcePackManager = resourcePackManager;
-
-            IStorageResourceProvider resources = resourcePackManager;
-            if (resources == null)
-                throw new NullReferenceException();
-
             PackInfo = resourcePack;
+
+            IStorageResourceProvider resources = getStorageProvider();
+
+            IsLocalPack = resources.Resources.GetAvailableResources()
+                .Any(str => str.StartsWith($"ResourcePacks/{PackInfo.Metadata.Id}")); // bruh
 
             IResourceStore<byte[]> packResources = RetrievePackResources();
             store.AddStore(packResources);
@@ -84,7 +94,7 @@ namespace LivinOnSweets.API.Skinning
             Fallback = resourcePackManager.GetPackById(PackInfo.Metadata.Fallback);
             if (Fallback == null)
             {
-                Logger.Log($"Failed to retrieve the fallback {PackInfo.Metadata.Fallback}", "resources", LogLevel.Error);
+                resourcePackManager.Logger.Add($"Failed to retrieve the fallback {PackInfo.Metadata.Fallback}", LogLevel.Error);
                 return;
             }
 
@@ -146,24 +156,31 @@ namespace LivinOnSweets.API.Skinning
 
         public IResourceStore<byte[]> RetrievePackResources()
         {
-            // should make some function to assert the convertion and retrieval
-            IStorageResourceProvider resources = resourcePackManager;
-            if (resources == null)
-                throw new NullReferenceException();
+            IStorageResourceProvider resources = getStorageProvider();
 
-            string packNamespace = $"ResourcePacks/{PackInfo.Metadata.Id}";
             IResourceStore<byte[]> packResources;
-            bool isInResources = resources.Resources.GetAvailableResources().Any(str => str.StartsWith(packNamespace)); // bruh
-            if (isInResources)
+            if (IsLocalPack)
             {
                 // The ID should be passed down but uhh I added it to the resource pack metadata, just to make the future a little bit brighter
                 // Namespace formed like: ResourcePacks/id/... not like id/... dumb ass - to myself sanco
-                packResources = new NamespacedResourceStore<byte[]>(resources.Resources, $"ResourcePacks/{PackInfo.Metadata.Id}");
+                packResources = new NamespacedResourceStore<byte[]>(resources.Resources,
+                    $"ResourcePacks/{PackInfo.Metadata.Id}");
             }
             else
                 packResources = new StorageBackedResourceStore(resources.Storage.GetStorageForDirectory(PackInfo.Metadata.Id));
 
             return packResources;
+        }
+
+        // should make some function to assert the convertion and retrieval
+        // uhh this should be better really
+        private IStorageResourceProvider getStorageProvider()
+        {
+            IStorageResourceProvider resources = resourcePackManager;
+            if (resources == null)
+                throw new NullReferenceException();
+
+            return resources;
         }
 
         #region IResourcePack
@@ -193,9 +210,7 @@ namespace LivinOnSweets.API.Skinning
             if (aliases.Count == 0)
                 return componentName; // No aliases available, just return the argument
 
-            return aliases.TryGetValue(componentName, out string overridenPath)
-                ? overridenPath
-                : componentName;
+            return aliases.GetValueOrDefault(componentName, componentName);
         }
 
         // Fancy quick function to retrieve a Stream from THIS ResourcePack and ITS fallback

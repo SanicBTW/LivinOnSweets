@@ -76,6 +76,7 @@ namespace LivinOnSweets.Game
 
             Resources.AddStore(new DllResourceStore(LivinOnSweetsResources.ResourceAssembly));
             SetupDependencies(GameDependencies);
+            SetupSongStore(GameDependencies);
             SetupFonts();
 
             frameworkLocale = frameworkConfig.GetBindable<string>(FrameworkSetting.Locale);
@@ -120,6 +121,21 @@ namespace LivinOnSweets.Game
 
             container.Cache(ResourcePackManager = new ResourcePackManager(Storage, Host, Resources, Audio, SweetConfig));
             container.CacheAs<IResourcePackSource>(ResourcePackManager);
+        }
+        protected virtual void SetupSongStore(DependencyContainer container)
+        {
+            SongStore songStore = new SongStore();
+
+            // this code was provided by good 'ol me!! (kind of)
+            Storage resxPackStorage = Storage.GetStorageForDirectory("resourcepacks");
+            foreach (ResourcePack pack in ResourcePackManager.LoadedPacks)
+            {
+                Storage packStorage = resxPackStorage.GetStorageForDirectory(pack.PackInfo.Metadata.Id);
+                // resource packs on the local res file dont need cache at all
+                songStore.AddStore(new ResourcePackSongStore(pack, pack.IsLocalPack ? null : packStorage));
+            }
+
+            container.Cache(songStore);
         }
 
         protected virtual void SetupFonts()

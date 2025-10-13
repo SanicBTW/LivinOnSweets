@@ -1,5 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using JetBrains.Annotations;
+using LivinOnSweets.ChartFormat.Adapters;
+
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable UnusedMember.Global
 // ReSharper disable CollectionNeverUpdated.Global
@@ -53,7 +55,7 @@ namespace LivinOnSweets.API.Skinning
 
         public class SongsTable
         {
-            public string Format { get; set; } = "";
+            public string Format { get; set; } = DefaultAdapter.ChartFormatName;
             public List<string> Available { get; set; } = [];
             public bool MultiList { get; set; }
 

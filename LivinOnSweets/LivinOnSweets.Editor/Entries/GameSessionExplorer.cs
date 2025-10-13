@@ -16,6 +16,10 @@ internal partial class GameSessionExplorer() : ToolBarButton(FontAwesome.Solid.G
     private static readonly FieldInfo owner_type_field =
         typeof(GameSession).GetField("ownerType", BindingFlags.Instance | BindingFlags.NonPublic);
 
+    [Resolved] private EditorContainer editorView { get; set; }
+    [Resolved] private GameSession gameSession { get; set; }
+    [Resolved] private GameStateManager stateManager { get; set; }
+
     private EditorWindow gameSeshWindow;
 
     [CanBeNull] private Bindable<Type> ownerType;
@@ -25,15 +29,11 @@ internal partial class GameSessionExplorer() : ToolBarButton(FontAwesome.Solid.G
     private SpriteText runtimeText;
     private SpriteText gameplayText;
 
-    [Resolved] private EditorContainer editorView { get; set; }
-    [Resolved] private GameSession gameSession { get; set; }
-    [Resolved] private GameStateManager stateManager { get; set; }
-
     [BackgroundDependencyLoader]
     private void load()
     {
         // avoid manually triggering the schedule
-        EditorWindowOption option = new EditorWindowOption("", "nothing", null);
+        EditorWindowOption option = new EditorWindowOption("", "nothing");
         LoadComponentAsync(gameSeshWindow = new EditorWindow("", "game sesh viewer", option), editorView.Add);
         refreshReferences();
     }
