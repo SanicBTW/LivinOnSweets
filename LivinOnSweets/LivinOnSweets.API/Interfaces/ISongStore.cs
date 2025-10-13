@@ -29,7 +29,7 @@ namespace LivinOnSweets.API.Interfaces
         /// <param name="songId">The song id to lookup in the stores.</param>
         /// <param name="difficulty">The song difficulty.</param>
         /// <remarks>
-        /// The intended way to use this is by registering a <see cref="IChartAdatper{TExternal}"/>
+        /// The intended way to use this is by registering a <see cref="IChartAdapter{TExternal}"/>
         /// and using the <see cref="ChartPipeline"/> to fetch the adapted chart from this <see cref="Format"/>.
         /// </remarks>
         /// <returns>A fresh <see cref="ChartData"/> ready for usage.</returns>
