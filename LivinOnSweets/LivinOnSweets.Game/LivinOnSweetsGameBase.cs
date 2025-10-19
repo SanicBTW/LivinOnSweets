@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using AetherFramework;
-using AetherFramework.Extensions.osu_framework;
 using LivinOnSweets.API;
 using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Configuration;
@@ -126,7 +125,7 @@ namespace LivinOnSweets.Game
             // for the future me uhhh the whole aether framework configuration workflow changes on 1.1.2 beta, so the osu configuration provider shouldnt work at all
             // that includes that both 1.1.2 beta and the osu framework extension nuget package are NOT published yet since they lack the decent amount of quality i want
             // also idk if i should keep a variable that references the loader but it will live in the dependencies so uhh yeah
-            container.Cache(new ModLoader(config: new OFConfigProvider(Storage)));
+            container.Cache(new ModLoader(config: new OsuFrameworkConfigurationProvider(Storage)));
         }
 
         protected virtual void SetupSongStore(DependencyContainer container)

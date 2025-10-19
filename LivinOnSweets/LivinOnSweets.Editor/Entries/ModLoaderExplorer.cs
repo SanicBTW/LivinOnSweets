@@ -1,4 +1,5 @@
-﻿using AetherFramework;
+﻿using System.Reflection;
+using AetherFramework;
 using LivinOnSweets.Editor.Containers;
 using LivinOnSweets.Editor.Enums;
 using LivinOnSweets.Editor.Sprites;
@@ -32,7 +33,19 @@ internal partial class ModLoaderExplorer() : ToolBarButton(FontAwesome.Solid.Fil
     {
         base.LoadComplete();
 
+        Assembly aetherAssembly = Assembly.GetAssembly(typeof(ModLoader))!;
+        string displayVersion = aetherAssembly.GetName().Version!.ToString();
+
+        AssemblyInformationalVersionAttribute detailedAetherVer = aetherAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+        if (detailedAetherVer != null)
+        {
+            string verAttr = detailedAetherVer.InformationalVersion;
+            displayVersion = verAttr.Substring(0, verAttr.IndexOf('+') + 6);
+        }
+
         loaderWindow.ScrollContent.AddRange([
+            createText("Aether version"),
+            createText(displayVersion),
             createText(modLoader.ConfigurationProvider),
             createText($"loaded mods {modLoader.LoadedMods.Count()}"),
             enabledText = createText("enabled mods ?"),
@@ -51,6 +64,7 @@ internal partial class ModLoaderExplorer() : ToolBarButton(FontAwesome.Solid.Fil
     {
         Text = defaultText,
         Font = new FontUsage(family: "GyeonggiTitle", size: 16F),
-        Padding = new MarginPadding(4)
+        Padding = new MarginPadding(4),
+        MaxWidth = loaderWindow.ScrollContent.DrawWidth
     };
 }
