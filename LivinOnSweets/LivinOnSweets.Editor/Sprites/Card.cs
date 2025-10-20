@@ -26,6 +26,7 @@ internal partial class Card : Container
         // god i love magic numbers
         Size = new Vector2(CARD_WIDTH - (CARD_MARGIN * 1.75F), CARD_HEIGHT);
 
+        // should make the uhh last card of the list to automatically set the bottom margin
         Margin = new MarginPadding() { Left = CARD_MARGIN, Top = CARD_MARGIN };
 
         InternalChildren =

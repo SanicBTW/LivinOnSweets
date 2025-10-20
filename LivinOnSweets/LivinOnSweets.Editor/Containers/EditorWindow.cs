@@ -1,4 +1,5 @@
-﻿using LivinOnSweets.Editor.Sprites;
+﻿using JetBrains.Annotations;
+using LivinOnSweets.Editor.Sprites;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -20,7 +21,7 @@ internal partial class EditorWindow : OverlayContainer
 
     public FillFlowContainer ScrollContent { get; protected set; }
 
-    public EditorWindow(string key, string titleFallback, EditorWindowOption option)
+    public EditorWindow(string key, string titleFallback, EditorWindowOption option, [CanBeNull] Drawable movableTarget = null)
     {
         Size = new Vector2(WIDTH, HEIGHT);
         Masking = true;
@@ -28,7 +29,7 @@ internal partial class EditorWindow : OverlayContainer
 
         AddRangeInternal([
             getBackground(),
-            new EditorWindowTitleBar(new TranslatableString(key, titleFallback), this),
+            new EditorWindowTitleBar(new TranslatableString(key, titleFallback), movableTarget ?? this),
             option,
             new TooltipContainer()
             {
