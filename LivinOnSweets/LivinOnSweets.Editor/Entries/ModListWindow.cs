@@ -60,6 +60,8 @@ internal partial class ModListWindow(bool listEnabledMods, Action closeAction) :
 
     private void refreshList()
     {
+        window.ScrollContent.Clear();
+
         IEnumerable<IMod> targetMods = listEnabledMods ? modLoader.EnabledMods : modLoader.DisabledMods;
         foreach (IMod mod in targetMods)
             window.ScrollContent.Add(new ModCard(mod));
