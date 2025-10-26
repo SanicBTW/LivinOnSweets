@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using LivinOnSweets.API.Audio;
 using LivinOnSweets.API.Components;
 using LivinOnSweets.API.Data;
+using LivinOnSweets.API.Extensions;
 using LivinOnSweets.API.Graphics.Sprites;
 using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Screens;
 using LivinOnSweets.API.Skinning;
 using LivinOnSweets.API.StateMachines;
 using LivinOnSweets.API.Utils;
+using LivinOnSweets.Game.Embedded.SubScreens;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics;
@@ -110,6 +112,12 @@ namespace LivinOnSweets.Game.Embedded
 
         public override void OnResuming(ScreenTransitionEvent e)
         {
+            if (e.Last is SweetSubScreen)
+            {
+                selected = false;
+                return;
+            }
+
             fadeOverlay.FadeOutFromOne(1000D, Easing.OutQuint);
 
             selected = false;
@@ -139,17 +147,22 @@ namespace LivinOnSweets.Game.Embedded
                         // we setting the state machines BEFORE finishing the load to avoid backing out middle load
                         case "play":
                             stateManager.GameplayMachine.CurrentState.Value = GameplayState.SongSelect;
-                            preloadNext(null, false, ScreenStack.Push);
+                            preloadNext<SongSelectScreen>(true, ScreenStack.Push);
                             break;
 
                         case "story":
                             stateManager.GameplayMachine.CurrentState.Value = GameplayState.StorySelect;
-                            preloadNext(typeof(StoryLobbyScreen), true, ScreenStack.Push);
+                            preloadNext<StoryLobbyScreen>(true, ScreenStack.Push);
                             break;
 
                         case "options":
                             stateManager.GameplayMachine.CurrentState.Value = GameplayState.GameOptions;
-                            preloadNext(null, true, ScreenStack.Push);
+                            preloadNext<OptionsScreen>(false, (sc) =>
+                            {
+                                ScreenStack.PushSubScreen(sc);
+                                // i dont really like this but uhh aight ill use whatever i can
+                                stateManager.GameplayMachine.SetOnExit(GameplayState.GameOptions, () => resumeOnExitSubScreen(GameplayState.GameOptions, sc));
+                            });
                             break;
                     }
                     return true;
@@ -161,13 +174,19 @@ namespace LivinOnSweets.Game.Embedded
 
         public void OnReleased(KeyBindingReleaseEvent<ManiaAction> e) { }
 
+        private void resumeOnExitSubScreen(GameplayState onExitState, SweetSubScreen exitScreen)
+        {
+            OnResuming(new ScreenTransitionEvent(exitScreen, this));
+            stateManager.GameplayMachine.SetOnExit(onExitState, null);
+        }
+
         // this is plain old code, should improve it someday lol!!
         protected override bool OnDragStart(DragStartEvent e)
         {
-            if (!backgrounds[curSelected].FinishedTransform || e.Button != MouseButton.Left)
+            if (!backgrounds[curSelected].FinishedTransform || e.Button != MouseButton.Left || selected)
                 return false;
 
-            changeSelected(e.Delta.X > 1 ? 1 : -1);
+            changeSelected(e.Delta.X > 5 ? 1 : -1);
 
             return true;
         }
@@ -182,22 +201,24 @@ namespace LivinOnSweets.Game.Embedded
         private void changeSelected(int value)
         {
             int prevIndex = curSelected;
-            curSelected = wrap(curSelected + value, backgrounds.Count);
+            curSelected = (curSelected + value).Wrap(backgrounds.Count);
 
             backgrounds[prevIndex].FadeOut(value);
             backgrounds[curSelected].FadeIn(value);
         }
 
         // OMG OMG OMG OLD CODE AGAIN?!?!?!? YESS I LOVE IT!!
-        private void preloadNext(Type screenType, bool isFadeTransition, Action<SweetScreen> onLoaded)
+        private void preloadNext<T>(bool isFadeTransition, Action<T> onLoaded)
+            where T : SweetScreen
         {
+            Type screenType = typeof(T);
             bool shouldAnimate = !loadedTypes.Contains(screenType);
             if (shouldAnimate)
                 fadeOverlay.FadeTo(0.8F, 500D, Easing.OutQuint);
 
             // reusing stuff cuz its meant to
             GameScreenData screenData = new GameScreenData(screenType);
-            SweetScreen nextScreen = screenData.CreateScreen();
+            T nextScreen = screenData.CreateScreen<T>();
             if (nextScreen == null)
             {
                 stateManager.GameplayMachine.UpdateState(true); // backing here since we already set the state before
@@ -221,9 +242,17 @@ namespace LivinOnSweets.Game.Embedded
 
             void loadFinish()
             {
-                this.TransformBindableTo(bgMusic.Volume, 0, 300D).OnComplete(_ => bgMusic.Stop());
+                if (screenData.IsSubScreen() && !shouldAnimate)
+                {
+                    onLoaded(nextScreen);
+                    return;
+                }
+
+                if (!screenData.IsSubScreen())
+                    this.TransformBindableTo(bgMusic.Volume, 0, 300D).OnComplete(_ => bgMusic.Stop());
+
                 if (isFadeTransition)
-                    fadeOverlay.FadeIn(500, Easing.OutQuint).OnComplete(_ => onLoaded(nextScreen));
+                    fadeOverlay.FadeIn(500D, Easing.OutQuint).OnComplete(_ => onLoaded(nextScreen));
                 else
                     fadeOverlay.FadeOut(500D, Easing.OutQuint).OnComplete(_ => onLoaded(nextScreen));
             }
@@ -234,20 +263,6 @@ namespace LivinOnSweets.Game.Embedded
         {
             public IEnumerable<string> LookupNames => ["MainMenu/bgm", "MainMenu/bg_music", "MainMenu/menu"];
             public int Volume => 100;
-        }
-
-        private static int wrap(int value, int max)
-        {
-            if (max <= 0)
-                value = 0;
-
-            if (value < 0)
-                value = max - 1;
-
-            if (value >= max)
-                value = 0;
-
-            return value;
         }
     }
 }
