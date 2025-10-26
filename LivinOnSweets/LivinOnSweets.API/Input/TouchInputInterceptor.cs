@@ -1,4 +1,5 @@
 ﻿using LivinOnSweets.API.Configuration;
+using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
@@ -20,7 +21,7 @@ namespace LivinOnSweets.API.Input
     {
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
-        private readonly BindableBool touchInputActive = new();
+        private readonly BindableBool touchInputActive = new(RuntimeInfo.IsMobile);
 
         [BackgroundDependencyLoader]
         private void load(SessionConfig sesConf)
