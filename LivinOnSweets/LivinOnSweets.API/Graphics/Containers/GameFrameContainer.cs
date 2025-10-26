@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Events;
 using osuTK;
 
 namespace LivinOnSweets.API.Graphics.Containers
@@ -278,7 +279,7 @@ namespace LivinOnSweets.API.Graphics.Containers
 #endif
         ];
 
-        private partial class GameEnterZone : ClickableContainer
+        protected partial class GameEnterZone : ClickableContainer
         {
             private const double fade_time = 800D;
 
@@ -406,6 +407,13 @@ namespace LivinOnSweets.API.Graphics.Containers
 
                 background.Loop(b => b.FadeTo(minBgAlpha, fade_time, Easing.InOutQuart).Then().FadeTo(maxBgAlpha, fade_time, Easing.InOutQuart));
                 indicator.Loop(i => i.FadeTo(0.75F, fade_time, Easing.InOutQuart).Then().FadeTo(1F, fade_time, Easing.InOutQuart));
+            }
+
+            protected override bool OnClick(ClickEvent e)
+            {
+                if (Enabled.Value)
+                    Action?.Invoke();
+                return Enabled.Value;
             }
         }
     }
