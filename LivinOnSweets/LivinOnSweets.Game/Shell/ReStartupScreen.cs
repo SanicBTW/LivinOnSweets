@@ -49,6 +49,7 @@ namespace LivinOnSweets.Game.Shell
         private const double game_anim_delay = 1250;
         private const float anim_offset = 150;
         private double lastScrollPos;
+        private const float default_scroll_clamp = 40;
 
         [BackgroundDependencyLoader]
         private void load(IResourcePackSource pack, SweetConfigManager sweetConfig)
@@ -75,7 +76,7 @@ namespace LivinOnSweets.Game.Shell
                         RelativeSizeAxes = Axes.Both,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        ClampExtension = 40,
+                        ClampExtension = default_scroll_clamp,
                         Children =
                         [
                             disc = new StartupDisc(),
@@ -193,7 +194,7 @@ namespace LivinOnSweets.Game.Shell
                 transitionFade.Delay(500).FadeInFromZero(game_anim_delay, Easing.OutQuint)
                     .OnComplete(_ => Scheduler.AddDelayed(loadGame, game_anim_delay / 5));
 
-                Scheduler.AddDelayed(() => PushSubScreen(new SakurakoTransitSub()), game_anim_delay / 4);
+                Scheduler.AddDelayed(PushSubScreen, new SakurakoTransitSub(), game_anim_delay / 4);
             }
         }
 
@@ -231,6 +232,7 @@ namespace LivinOnSweets.Game.Shell
                     gameSession.RequestGameFocus(false);
                     focusOverlay.FadeOut(500D, Easing.OutQuint);
                     gameFrame.FadeBannersTo(1, 500D, Easing.OutQuint);
+                    scrollContainer.ClampExtension = default_scroll_clamp;
                 }
             }
         }
@@ -254,6 +256,7 @@ namespace LivinOnSweets.Game.Shell
                 {
                     gameSession.InputEnabled.Value = true;
                     gameSession.RequestGameFocus();
+                    scrollContainer.ClampExtension = 0;
                     focusOverlay.FadeTo(0.75F, 500D, Easing.OutQuint);
                     gameFrame.FadeBannersTo(0.5F, 500D, Easing.OutQuint);
                     return;

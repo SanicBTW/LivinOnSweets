@@ -1,5 +1,6 @@
 ﻿using JetBrains.Annotations;
 using LivinOnSweets.API.Screens;
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace LivinOnSweets.API.Data
 {
@@ -9,6 +10,7 @@ namespace LivinOnSweets.API.Data
     public class GameScreenData(Type nextScreen, [CanBeNull] object[] args = null, [CanBeNull] Action onLoad = null, [CanBeNull] Action onError = null)
     {
         private static Type screenTargetType => typeof(SweetScreen);
+        private static Type screenTargetSubType => typeof(SweetSubScreen);
 
         public readonly Type NextScreen = nextScreen;
         [CanBeNull] [ItemCanBeNull] private readonly object[] ctorArgs = args;
@@ -17,12 +19,15 @@ namespace LivinOnSweets.API.Data
 
         // Ensures if the given type is a SweetScreen, to avoid getting an exception of "Unable to cast object"
         // I should make it so it allows you to pass an IScreen or Screen but uhh yeah I'm only gonna use SweetScreen
-        public bool EnsureScreen() => NextScreen != null && NextScreen.BaseType == screenTargetType;
+        // not anymore brochacho, embrace generics!!!
+        public bool EnsureScreen() => NextScreen != null && (NextScreen.BaseType == screenTargetType || NextScreen.BaseType == screenTargetSubType);
+
+        public bool IsSubScreen() => NextScreen != null && NextScreen.BaseType == screenTargetSubType;
 
         // Wraps the unsafe create with a quick check of the given type before calling activator, if it doesnt match, return a null value, most likely to be handled by the context
-        [CanBeNull] public SweetScreen CreateScreen() => EnsureScreen() ? CreateScreenUnsafe() : null;
+        [CanBeNull] public T CreateScreen<T>() where T : SweetScreen  => EnsureScreen() ? CreateScreenUnsafe<T>() : null;
 
         // Method which calls Activator and casts the given object to a SweetScreen, called unsafe because theres no failsafe
-        [CanBeNull] public SweetScreen CreateScreenUnsafe() => (SweetScreen)Activator.CreateInstance(NextScreen, args: ctorArgs);
+        [CanBeNull] public T CreateScreenUnsafe<T>() where T : SweetScreen => (T)Activator.CreateInstance(NextScreen, args: ctorArgs);
     }
 }

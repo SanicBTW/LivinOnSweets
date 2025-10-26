@@ -111,7 +111,7 @@ namespace LivinOnSweets.API.Graphics.Containers
             {
                 case GameplayState.NotReady:
                     // i disabled most of the animations on first load since its blocked by the transition background on startup screen & sgame screen
-                    SweetScreen nextScreen = screenData.CreateScreen();
+                    SweetScreen nextScreen = screenData.CreateScreen<SweetScreen>();
                     if (nextScreen == null)
                     {
                         enableBacking();
