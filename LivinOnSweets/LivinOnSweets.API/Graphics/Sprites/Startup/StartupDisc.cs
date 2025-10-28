@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osuTK;
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace LivinOnSweets.API.Graphics.Sprites.Startup
 {

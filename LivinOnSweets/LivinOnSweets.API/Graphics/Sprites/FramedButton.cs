@@ -92,10 +92,7 @@ namespace LivinOnSweets.API.Graphics.Sprites
 
         protected virtual void UpdateState()
         {
-            if (Enabled.Value)
-                SetFrame(0);
-            else
-                SetFrame(Frames.Count - 1);
+            SetFrame(Enabled.Value ? 0 : Frames.Count - 1);
         }
 
         protected virtual void SetFrame(int frameIndex)
