@@ -118,7 +118,7 @@ internal partial class ModListWindow(bool listEnabledMods, Action closeAction) :
             };
 
             if (manifest.Intents.Count > 0)
-                intentsText.Text = manifest.Intents.ToString();
+                intentsText.Text = string.Join(',', manifest.Intents);
 
             Add(infoContainer);
         }
