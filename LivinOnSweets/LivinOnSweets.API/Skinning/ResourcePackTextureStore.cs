@@ -167,7 +167,7 @@ namespace LivinOnSweets.API.Skinning
             manualMipmaps ??= atlasManualMipmaps;
             filteringMode ??= atlasFilteringMode;
 
-            string key = $"{name}:wrap-{(int)wrapModeS}-{(int)wrapModeT}-{(int)filteringMode!}";
+            string key = $"{name}:w{(int)wrapModeS}-{(int)wrapModeT}:f{(int)filteringMode!}:mp-{manualMipmaps}";
 
             TaskCompletionSource<Texture> tcs = null;
             Task task;

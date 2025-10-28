@@ -11,6 +11,7 @@ using LivinOnSweets.API.Cursor;
 using LivinOnSweets.API.Extensions;
 using LivinOnSweets.API.Input;
 using LivinOnSweets.API.Localisation;
+using LivinOnSweets.API.SaveData;
 using LivinOnSweets.API.Skinning;
 using LivinOnSweets.API.Stores;
 using LivinOnSweets.Resources;
@@ -48,6 +49,8 @@ namespace LivinOnSweets.Game
         protected Storage Storage { get; set; }
 
         protected SweetConfigManager SweetConfig { get; set; }
+
+        protected SweetSaveData SweetSaveData { get; set; }
 
         protected SingleThreadLoad SingleThreadLoad { get; set; }
 
@@ -117,6 +120,7 @@ namespace LivinOnSweets.Game
 
             container.Cache(new SessionConfig());
             container.Cache(SweetConfig);
+            container.Cache(SweetSaveData);
             container.Cache(SingleThreadLoad);
 
             container.Cache(ResourcePackManager = new ResourcePackManager(Storage, Host, Resources, Audio, SweetConfig));
@@ -195,6 +199,7 @@ namespace LivinOnSweets.Game
             // first run might not have a config file, once the settings panel is closed it will trigger a save to create it
             // or any change to the settings will perform a save call, ill have to look into it
             SweetConfig = new SweetConfigManager(Storage);
+            SweetSaveData = new SweetSaveData(Storage);
         }
 
         protected override void Dispose(bool isDisposing)
