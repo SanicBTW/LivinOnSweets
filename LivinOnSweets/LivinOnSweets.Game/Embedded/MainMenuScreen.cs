@@ -159,9 +159,10 @@ namespace LivinOnSweets.Game.Embedded
                             stateManager.GameplayMachine.CurrentState.Value = GameplayState.GameOptions;
                             preloadNext<OptionsScreen>(false, (sc) =>
                             {
-                                ScreenStack.PushSubScreen(sc);
+                                SweetSubScreen screen = sc as SweetSubScreen;
+                                ScreenStack.PushSubScreen(screen);
                                 // i dont really like this but uhh aight ill use whatever i can
-                                stateManager.GameplayMachine.SetOnExit(GameplayState.GameOptions, () => resumeOnExitSubScreen(GameplayState.GameOptions, sc));
+                                stateManager.GameplayMachine.SetOnExit(GameplayState.GameOptions, () => resumeOnExitSubScreen(GameplayState.GameOptions, screen));
                             });
                             break;
                     }
@@ -208,8 +209,7 @@ namespace LivinOnSweets.Game.Embedded
         }
 
         // OMG OMG OMG OLD CODE AGAIN?!?!?!? YESS I LOVE IT!!
-        private void preloadNext<T>(bool isFadeTransition, Action<T> onLoaded)
-            where T : SweetScreen
+        private void preloadNext<T>(bool isFadeTransition, Action<SweetScreen> onLoaded)
         {
             Type screenType = typeof(T);
             bool shouldAnimate = !loadedTypes.Contains(screenType);
@@ -218,7 +218,7 @@ namespace LivinOnSweets.Game.Embedded
 
             // reusing stuff cuz its meant to
             GameScreenData screenData = new GameScreenData(screenType);
-            T nextScreen = screenData.CreateScreen<T>();
+            SweetScreen nextScreen = screenData.CreateScreen();
             if (nextScreen == null)
             {
                 stateManager.GameplayMachine.UpdateState(true); // backing here since we already set the state before

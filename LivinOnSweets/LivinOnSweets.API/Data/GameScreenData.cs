@@ -25,9 +25,9 @@ namespace LivinOnSweets.API.Data
         public bool IsSubScreen() => NextScreen != null && NextScreen.BaseType == screenTargetSubType;
 
         // Wraps the unsafe create with a quick check of the given type before calling activator, if it doesnt match, return a null value, most likely to be handled by the context
-        [CanBeNull] public T CreateScreen<T>() where T : SweetScreen  => EnsureScreen() ? CreateScreenUnsafe<T>() : null;
+        [CanBeNull] public SweetScreen CreateScreen() => EnsureScreen() ? CreateScreenUnsafe() : null;
 
         // Method which calls Activator and casts the given object to a SweetScreen, called unsafe because theres no failsafe
-        [CanBeNull] public T CreateScreenUnsafe<T>() where T : SweetScreen => (T)Activator.CreateInstance(NextScreen, args: ctorArgs);
+        [CanBeNull] public SweetScreen CreateScreenUnsafe() => (SweetScreen)Activator.CreateInstance(NextScreen, args: ctorArgs);
     }
 }
