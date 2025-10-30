@@ -14,7 +14,9 @@ using LivinOnSweets.API.Localisation;
 using LivinOnSweets.API.SaveData;
 using LivinOnSweets.API.Skinning;
 using LivinOnSweets.API.Stores;
+using LivinOnSweets.ChartFormat.Adapters;
 using LivinOnSweets.Resources;
+using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
@@ -25,6 +27,8 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
+using AetherLogLevel = AetherFramework.LogLevel;
+using OsuFrLogLevel = osu.Framework.Logging.LogLevel;
 
 namespace LivinOnSweets.Game
 {
@@ -78,6 +82,7 @@ namespace LivinOnSweets.Game
             base.Content.Add(SingleThreadLoad = new SingleThreadLoad());
 
             Resources.AddStore(new DllResourceStore(LivinOnSweetsResources.ResourceAssembly));
+            SetupAether(GameDependencies);
             SetupDependencies(GameDependencies);
             SetupSongStore(GameDependencies);
             SetupFonts();
@@ -125,11 +130,6 @@ namespace LivinOnSweets.Game
 
             container.Cache(ResourcePackManager = new ResourcePackManager(Storage, Host, Resources, Audio, SweetConfig));
             container.CacheAs<IResourcePackSource>(ResourcePackManager);
-
-            // for the future me uhhh the whole aether framework configuration workflow changes on 1.1.2 beta, so the osu configuration provider shouldnt work at all
-            // that includes that both 1.1.2 beta and the osu framework extension nuget package are NOT published yet since they lack the decent amount of quality i want
-            // also idk if i should keep a variable that references the loader but it will live in the dependencies so uhh yeah
-            container.Cache(new ModLoader(config: new OsuFrameworkConfigurationProvider(Storage)));
         }
 
         protected virtual void SetupSongStore(DependencyContainer container)
@@ -140,9 +140,11 @@ namespace LivinOnSweets.Game
             Storage resxPackStorage = Storage.GetStorageForDirectory("resourcepacks");
             foreach (ResourcePack pack in ResourcePackManager.LoadedPacks)
             {
-                Storage packStorage = resxPackStorage.GetStorageForDirectory(pack.PackInfo.Metadata.Id);
-                // resource packs on the local res file dont need cache at all
-                songStore.AddStore(new ResourcePackSongStore(pack, pack.IsLocalPack ? null : packStorage));
+                // resource packs on the local resx file / that use the default format dont need cache at all
+                if (pack.IsLocalPack || pack.PackInfo.Songs.Format == DefaultAdapter.ChartFormatName)
+                    songStore.AddStore(new ResourcePackSongStore(pack, null));
+                else
+                    songStore.AddStore(new ResourcePackSongStore(pack, resxPackStorage.GetStorageForDirectory(pack.PackInfo.Metadata.Id)));
             }
 
             container.Cache(songStore);
@@ -157,6 +159,43 @@ namespace LivinOnSweets.Game
 
             AddFont(Resources, "Fonts/DNFBitBit/DNFBitBit");
             AddFont(Resources, "Fonts/DNFBitBit/DNFBitBit-Italic");
+        }
+
+        // this will be called before anything else, meaning that the mods will get a one in a runtime chance
+        // to listen to registration events, after that everything is up to the osu!framework dpi if using it in the mod
+        protected virtual void SetupAether(DependencyContainer container)
+        {
+            // i would also override the base create scoped class to make actual scopes inside the osu!framework logger but oh well
+            Logger aetherLogger = Logger.GetLogger("aether");
+            AetherLog.ChangeLogHandler((str, level) =>
+            {
+                if (level == AetherLogLevel.Debug)
+                {
+                    aetherLogger.Debug(str);
+                    return;
+                }
+
+                // this is not really ideal since some calls will be mapped into: info = verbose, warn = important
+                aetherLogger.Add(str, (OsuFrLogLevel)level);
+            });
+
+            // check resource pack manager constructor to understand this magic
+            // okay funnily enough, mod loading doesnt work for now since theres no way the mod loader can get a stream outside the app directory :sob: so this means i gotta implement yet another layer of abstraction to aether
+            Storage modsStorage = (RuntimeInfo.IsMobile) ?
+                Host.GetStorage(Host.UserStoragePaths.Last()).GetStorageForDirectory("mods")
+                :
+                Storage.GetStorageForDirectory("mods");
+
+            // keep the configuration inside the framework files, not the mod folder itself
+            // since im passing down a custom engine, i already load in the configuration provider since its only used when using the default implementation
+            // since the custom assembly engine uses the path from the storage, a custom path (like modsStorage.GetFullPath("")) is not needed
+            // but for the sake of displaying the path properly (atleast on android) we are still gonna pass it down
+            container.Cache(
+                new ModLoader(
+                    folder: modsStorage.GetFullPath(""),
+                    engine: new SweetAssemblyEngine(modsStorage, new OsuFrameworkConfigurationProvider(Storage))
+                )
+            );
         }
 
         // https://github.com/ppy/osu/blob/master/osu.Game/OsuGameBase.cs#L424

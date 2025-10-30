@@ -2,6 +2,7 @@
 using LivinOnSweets.API.Audio;
 using LivinOnSweets.API.Configuration;
 using LivinOnSweets.API.IO;
+using osu.Framework;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
@@ -61,7 +62,15 @@ namespace LivinOnSweets.API.Skinning
             this.audio = audio;
             this.host = host;
             this.resources = resources;
-            this.storage = storage.GetStorageForDirectory("resourcepacks");
+
+            // new addition, since the android host can have like 2 paths when the user gave permission to a folder
+            // we need to retrieve and use it in some way and this is the best way i thought about it
+            this.storage = (RuntimeInfo.IsMobile) ?
+                // this will most likely fallback into the first one (inside android/data) if no other path is found
+                // also we are not using the given storage object because it redirects us into the first path (android/data)
+                host.GetStorage(host.UserStoragePaths.Last()).GetStorageForDirectory("resourcepacks")
+                :
+                storage.GetStorageForDirectory("resourcepacks");
 
             Logger = Logger.GetLogger("resources");
             Logger.Add("Resource Pack Manager instantiated", LogLevel.Debug);
@@ -72,6 +81,14 @@ namespace LivinOnSweets.API.Skinning
 
             loadEmbedded();
             loadExternal();
+
+            // missing the target resource pack, fallback to the game update value
+            if (!loadedPacks.ContainsKey(resourcePack.Value))
+            {
+                string fallbackId = OFFICIAL_RESOURCE_PACKS[(int)gameUpdate.Value];
+                Logger.Add($"{resourcePack.Value} is missing from loaded packs, did it get deleted? Falling back to {fallbackId}", LogLevel.Error);
+                resourcePack.Value = fallbackId; // will match the game update always to avoid issues
+            }
 
             bool isOfficial = OFFICIAL_RESOURCE_PACKS.Contains(resourcePack.Value); // Checks if the set resource pack is coming from the official resources
             bool sameUpdatePack = gameUpdate.Value.GetDescription() == resourcePack.Value; // Checks if the set game update resource pack id is the same as the resource pack set

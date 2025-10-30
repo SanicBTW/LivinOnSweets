@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AetherFramework" Version="1.2.0-beta2" />
+    <PackageReference Include="AetherFramework" Version="1.2.0-beta4" />
     <PackageReference Include="LivinOnSweets.ChartFormat" Version="1.0.0" />
     <PackageReference Include="osu.Framework.Spine" Version="1.0.1" />
     <PackageReference Include="ppy.osu.Framework" Version="2025.1028.0" />
