@@ -14,21 +14,21 @@ namespace LivinOnSweets.Android
         // due to the nature of document file.fromtreeuri it will always return to primary:<selectedfolder> and wont begin from any other path, so to avoid allocating the same fucky wucky we just cache it
         internal static DocumentFile DirectoryDoc;
         internal static Uri UserFolderUri;
-        private static string customUserFolder;
+        [CanBeNull] private static string customUserFolder;
         [CanBeNull]
         internal static string CustomUserFolder
         {
             get => customUserFolder;
             set
             {
-                if (customUserFolder == value)
+                if (value == null || customUserFolder == value && DirectoryDoc.CanRead())
                     return;
 
                 customUserFolder = value;
                 UserFolderUri ??= Uri.Parse(value);
                 DirectoryDoc ??= DocumentFile.FromTreeUri(Application.Context, UserFolderUri);
 
-                if (DirectoryDoc != null)
+                if (DirectoryDoc != null && DirectoryDoc.CanRead())
                     SweetStorage.BuildCache();
             }
         }

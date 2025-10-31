@@ -55,7 +55,10 @@ namespace LivinOnSweets.Android
             if (prefs.Contains(UGC_FOLDER_URI))
             {
                 SweetAndroidHost.CustomUserFolder = prefs.GetString( UGC_FOLDER_URI, null);
-                return;
+
+                // apparently you can lose access by manually modifying the folder, kinda lame tho
+                if (SweetAndroidHost.DirectoryDoc.CanRead())
+                    return;
             }
 
             Intent intent = new Intent(Intent.ActionOpenDocumentTree);
