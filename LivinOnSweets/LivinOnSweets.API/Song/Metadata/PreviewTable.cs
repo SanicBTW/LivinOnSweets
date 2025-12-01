@@ -6,6 +6,7 @@ namespace LivinOnSweets.API.Song.Metadata
     public class PreviewTable
     {
         [CanBeNull] public string Audio { get; set; }
+        [CanBeNull] public string Vocals { get; set; }
         public double Volume { get; set; }
     }
 }
