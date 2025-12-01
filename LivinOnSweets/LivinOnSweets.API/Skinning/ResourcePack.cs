@@ -26,6 +26,11 @@ namespace LivinOnSweets.API.Skinning
         private readonly ResourceStore<byte[]> store = new();
 
         /// <summary>
+        /// Access to the <see cref="ResourcePack"/> internal store which can contain a fallback store.
+        /// </summary>
+        public IResourceStore<byte[]> PackStore => store;
+
+        /// <summary>
         /// A texture store which can be used to perform user file lookups for this resource pack.
         /// </summary>
         protected ResourcePackTextureStore Textures { get; }
@@ -49,6 +54,11 @@ namespace LivinOnSweets.API.Skinning
         /// If this <see cref="ResourcePack"/> is part of the Livin' on Sweets Resources DLL
         /// </summary>
         public readonly bool IsLocalPack;
+
+        /// <summary>
+        /// If this <see cref="ResourcePack"/> is currently being used by the <see cref="ResourcePackManager"/>
+        /// </summary>
+        public bool IsActive => string.Equals(resourcePackManager.PackInfo.Metadata.Id, PackInfo.Metadata.Id, StringComparison.CurrentCultureIgnoreCase); // i dont want to do CurrentPack.Value == this because I believe its pretty heavy?
 
         /// <summary>
         /// Construct a new skin.

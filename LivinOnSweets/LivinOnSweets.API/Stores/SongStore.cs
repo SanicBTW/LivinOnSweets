@@ -42,7 +42,11 @@ namespace LivinOnSweets.API.Stores
                         continue; // only search on stores that support the format
 
                     // the store itself will determine if the need of using the cache or calling the ChartPipeline is needed
-                    return store.GetChart(songId, difficulty);
+                    ChartData chart = store.GetChart(songId, difficulty);
+                    if (chart == null)
+                        continue; // keep looking for available charts, in the worst case we just return null
+
+                    return chart;
                 }
             }
 

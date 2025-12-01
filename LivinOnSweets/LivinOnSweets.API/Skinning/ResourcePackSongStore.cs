@@ -17,7 +17,8 @@ namespace LivinOnSweets.API.Skinning
     public class ResourcePackSongStore(ResourcePack pack, Storage storage) : ISongStore
     {
         // since we cannot access the internal resource pack store we make one based on a possible route
-        private readonly IResourceStore<byte[]> resources = pack.RetrievePackResources();
+        // uhh quick update, after a couple of months i found a huge flaw and decided to expose the internal pack store through a readonly variable and returns the interface to avoid tampering
+        private readonly IResourceStore<byte[]> resources = pack.PackStore;
 
         // id / metadata, will be saved upon getmeta call
         private readonly Dictionary<string, SongMetadata> metaCache = [];
@@ -28,6 +29,9 @@ namespace LivinOnSweets.API.Skinning
 
         public SongMetadata GetMetadata(string songId)
         {
+            if (!pack.IsActive)
+                return null; // fall back to the next song store that its pack is active
+
             if (!metaCache.TryGetValue(songId, out SongMetadata metadata))
             {
                 string aliasPath = getAliasedPath(songId);
@@ -63,6 +67,8 @@ namespace LivinOnSweets.API.Skinning
                 return null;
             }
 
+            // this one is hard to consider if it should fallback to the next active pack or not, since a pack can define its own improved charts, its always gonna hit on the first
+            // currently with the new change, THIS part should return null and hopefully fallback to the next pack which could lead to the same behaviour really but getStream returns the stream of the current resources OR the fallback so i guess it should be fine?
             SongMetadata metadata = GetMetadata(songId);
             if (metadata == null)
                 return null; // idk where tf is this gonna fall back honestly

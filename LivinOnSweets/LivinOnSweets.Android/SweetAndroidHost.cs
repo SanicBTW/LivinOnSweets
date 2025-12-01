@@ -1,6 +1,4 @@
-﻿using Android.Content;
-using Android.Provider;
-using AndroidX.DocumentFile.Provider;
+﻿using AndroidX.DocumentFile.Provider;
 using JetBrains.Annotations;
 using osu.Framework.Android;
 using osu.Framework.Platform;
