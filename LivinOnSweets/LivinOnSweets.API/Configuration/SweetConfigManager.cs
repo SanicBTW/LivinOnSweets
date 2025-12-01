@@ -61,16 +61,15 @@ namespace LivinOnSweets.API.Configuration
             SetDefault(SweetSetting.ResourcePack, GameUpdateVersion.SugarRush.GetDescription()); // Defaults to the default GameUpdate
         }
 
-        public bool UseVoices(string songId)
+        public SweetSetting? GetVoicesSave(string songId)
         {
             // not the best check honestly, i wish it could get better
             bool isIrodori = string.Equals(songId, "irodori_canvas", StringComparison.OrdinalIgnoreCase);
             bool isTomodachiOneStep = string.Equals(songId, "tomodachi_onestep", StringComparison.OrdinalIgnoreCase);
             if (!isIrodori && !isTomodachiOneStep)
-                return false;
+                return null;
 
-            SweetSetting target = isIrodori ? SweetSetting.IrodoriCanvasVoices : SweetSetting.TomodachiOneStepVoices;
-            return Get<bool>(target);
+            return isIrodori ? SweetSetting.IrodoriCanvasVoices : SweetSetting.TomodachiOneStepVoices;
         }
     }
 }
