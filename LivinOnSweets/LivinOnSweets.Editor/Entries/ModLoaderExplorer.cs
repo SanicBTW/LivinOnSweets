@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Platform;
 using osuTK;
 
 namespace LivinOnSweets.Editor.Entries;
@@ -196,7 +197,7 @@ internal partial class ModLoaderExplorer() : ToolBarButton(FontAwesome.Solid.Sno
         private bool lastSelection;
 
         [BackgroundDependencyLoader]
-        private void load(ModLoader modLoader)
+        private void load(ModLoader modLoader, GameHost host)
         {
             // on the best cases this will return the already loaded backer config
             config = modLoader.Configuration.Load();
@@ -220,6 +221,7 @@ internal partial class ModLoaderExplorer() : ToolBarButton(FontAwesome.Solid.Sno
                     },
                     new ModsTextHitZone(true) { Action = () => moveToView(true) },
                     new ModsTextHitZone(false) { Action = () => moveToView(false) },
+                    new ClickableText("open mods folder") { Action = () => host.Storage.GetStorageForDirectory("mods").PresentFileExternally("") }
                 ]
             });
         }
@@ -256,9 +258,32 @@ internal partial class ModLoaderExplorer() : ToolBarButton(FontAwesome.Solid.Sno
             }, lastWindow, hideTime);
         }
 
-        private partial class ModsTextHitZone(bool showsEnabled) : ClickableContainer
+        private partial class ClickableText(string text) : ClickableContainer
         {
-            private SpriteText loadedText;
+            protected readonly SpriteText ShowText = new(){ Text = text, RelativeSizeAxes = Axes.X, Font = default_font.With(size: 14F) };
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                RelativeSizeAxes = Axes.X;
+                AutoSizeAxes = Axes.Y;
+                Add(ShowText);
+            }
+
+            protected override bool OnHover(HoverEvent e)
+            {
+                ShowText.FadeTo(0.7F, 400D);
+                return true;
+            }
+
+            protected override void OnHoverLost(HoverLostEvent e)
+            {
+                ShowText.FadeTo(1F, 400D);
+            }
+        }
+
+        private partial class ModsTextHitZone(bool showsEnabled) : ClickableText(showsEnabled ? "enabled mods" : "disabled mods")
+        {
             private ConfigFile config;
             private string calcPrefix;
 
@@ -266,34 +291,13 @@ internal partial class ModLoaderExplorer() : ToolBarButton(FontAwesome.Solid.Sno
             private void load(ModLoader modLoader)
             {
                 config = modLoader.Configuration.Load();
-
-                RelativeSizeAxes = Axes.X;
-                AutoSizeAxes = Axes.Y;
-
-                Add(loadedText = new SpriteText()
-                {
-                    RelativeSizeAxes = Axes.X,
-                    Font = default_font.With(size: 14F),
-                });
-
-                calcPrefix = showsEnabled ? "enabled mods" : "disabled mods";
+                calcPrefix = ShowText.Text.ToString();
             }
 
             protected override void UpdateAfterChildren()
             {
                 int count = showsEnabled ? config.EnabledMods.Count : config.DisabledMods.Count;
-                loadedText.Text = $"{calcPrefix} {count}";
-            }
-
-            protected override bool OnHover(HoverEvent e)
-            {
-                loadedText.FadeTo(0.7F, 400D);
-                return true;
-            }
-
-            protected override void OnHoverLost(HoverLostEvent e)
-            {
-                loadedText.FadeTo(1F, 400D);
+                ShowText.Text = $"{calcPrefix} {count}";
             }
         }
     }

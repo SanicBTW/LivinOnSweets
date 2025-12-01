@@ -264,13 +264,13 @@ internal partial class SongTestWindow() : ToolBarButton(FontAwesome.Solid.Music,
         public void SearchPreview(bool voiced = false)
         {
             LookupChanged = true;
-            targetPath = $"Songs/{song}/{(voiced ? "preview_voices" : "preview")}.mp3";
+            targetPath = $"Songs/{song}/{(voiced ? "preview_voices" : "preview")}";
         }
 
         public void SearchWhole(bool voiced = false)
         {
             LookupChanged = true;
-            targetPath = $"Songs/{song}/{(voiced ? "voices" : "song")}.mp3";
+            targetPath = $"Songs/{song}/{(voiced ? "voices" : "song")}";
         }
 
         private int volume = 100;
