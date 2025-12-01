@@ -16,7 +16,7 @@ namespace LivinOnSweets.API.Configuration
             // Graphics
             SetDefault(SweetSetting.ShowFpsDisplay, false);
             SetDefault(SweetSetting.IrodoriCanvasMv, false);
-            SetDefault(SweetSetting.TomodachiStepMv, false);
+            SetDefault(SweetSetting.TomodachiOneStepMv, false);
             SetDefault(SweetSetting.SongBackgroundParallax, true);
 
             // Gameplay
@@ -28,7 +28,7 @@ namespace LivinOnSweets.API.Configuration
             SetDefault(SweetSetting.VolumeInactive, 0.25, 0, 1, 0.01);
             SetDefault(SweetSetting.AudioOffset, 0, -2.0, 2.0, 0.1);
             SetDefault(SweetSetting.IrodoriCanvasVoices, false);
-            SetDefault(SweetSetting.TomodachiStepVoices, false);
+            SetDefault(SweetSetting.TomodachiOneStepVoices, false);
 
             // Scaling
             SetDefault(SweetSetting.Scaling, ScalingMode.Off);
@@ -59,6 +59,18 @@ namespace LivinOnSweets.API.Configuration
             // Progress of each update: v1 (the game was built on top of this): 40%, v2: 5%, v3: 0%, v4: 0%
             SetDefault(SweetSetting.GameUpdate, GameUpdateVersion.SugarRush);
             SetDefault(SweetSetting.ResourcePack, GameUpdateVersion.SugarRush.GetDescription()); // Defaults to the default GameUpdate
+        }
+
+        public bool UseVoices(string songId)
+        {
+            // not the best check honestly, i wish it could get better
+            bool isIrodori = string.Equals(songId, "irodori_canvas", StringComparison.OrdinalIgnoreCase);
+            bool isTomodachiOneStep = string.Equals(songId, "tomodachi_onestep", StringComparison.OrdinalIgnoreCase);
+            if (!isIrodori && !isTomodachiOneStep)
+                return false;
+
+            SweetSetting target = isIrodori ? SweetSetting.IrodoriCanvasVoices : SweetSetting.TomodachiOneStepVoices;
+            return Get<bool>(target);
         }
     }
 }

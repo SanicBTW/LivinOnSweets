@@ -8,7 +8,7 @@
         // Graphics
         ShowFpsDisplay,
         IrodoriCanvasMv, // NOT IMPLEMENTED GAMEPLAY NOT DONE / Shows the Irodori Canvas Music Video rather than the default background
-        TomodachiStepMv, // NOT IMPLEMENTED MISSING V3 CONTENT / Shows the Tomodachi Step Music Video
+        TomodachiOneStepMv, // NOT IMPLEMENTED MISSING V3 CONTENT / Shows the Tomodachi Step Music Video
         SongBackgroundParallax, // If the band room should parallax (even if the slightest bg movement disturbs you)
 
         // Gameplay
@@ -22,7 +22,7 @@
         AudioOffset,
         // Map specific, not an easter egg, implemented in vanilla
         IrodoriCanvasVoices, // Can be changed in the song select menu
-        TomodachiStepVoices, // Can be changed in the song select menu
+        TomodachiOneStepVoices, // Can be changed in the song select menu
 
         // Input settings are handled by the framework (mostly mouse ones, keybindings are managed by us)
 
