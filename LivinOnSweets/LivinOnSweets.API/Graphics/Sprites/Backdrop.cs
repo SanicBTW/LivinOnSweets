@@ -1,12 +1,13 @@
 ﻿using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Sprites;
 using osuTK;
 // ReSharper disable MemberCanBePrivate.Global
 
 namespace LivinOnSweets.API.Graphics.Sprites
 {
-    public partial class Backdrop : TiledSprite
+    public partial class Backdrop : Sprite
     {
         // base mult is 10 since it could look really slow
         private const float speed_mult = 10;
@@ -55,16 +56,15 @@ namespace LivinOnSweets.API.Graphics.Sprites
 
             float dt = (float)Time.Elapsed / 1000f;
             scrollOffset += new Vector2(speedX * dt, speedY * dt);
-            scrollOffset.X %= TileTextureRect.Width;
-            scrollOffset.Y %= TileTextureRect.Height;
+            scrollOffset.X %= TextureRectangle.Width;
+            scrollOffset.Y %= TextureRectangle.Height;
 
-            TileTextureRect = new RectangleF(scrollOffset.X, scrollOffset.Y, TileTextureRect.Width, TileTextureRect.Height);
+            TextureRectangle = new RectangleF(scrollOffset.X, scrollOffset.Y, TextureRectangle.Width, TextureRectangle.Height);
         }
 
         protected override void LoadComplete()
         {
-            base.LoadComplete();
-
+            TextureRelativeSizeAxes = Axes.None;
             RelativeSizeAxes = Axes.Both;
             Size = Vector2.One;
 
