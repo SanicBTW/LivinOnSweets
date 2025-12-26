@@ -7,7 +7,7 @@ using osu.Framework.Platform;
 namespace LivinOnSweets.API.Input
 {
     // This class is added on top of the tree hierarchy, in order to pump down key presses effectively
-    public partial class ManiaActionContainer() : KeyBindingContainer<ManiaAction>(matchingMode: KeyCombinationMatchingMode.Modifiers), IHandleGlobalKeyboardInput
+    public partial class ManiaActionContainer() : KeyBindingContainer<ManiaAction>(SimultaneousBindingMode.All, KeyCombinationMatchingMode.Modifiers), IHandleGlobalKeyboardInput
     {
         protected override bool Prioritised => true;
 
