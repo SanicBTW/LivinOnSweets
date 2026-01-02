@@ -162,6 +162,17 @@ namespace LivinOnSweets.API.Skinning
                 PackInfo.Songs.Available.InsertRange(indexOfSpread, fallbackSongs);
             }
 
+            // uhh best of the cases here prob
+            if (PackInfo.Story == null)
+                PackInfo.Story = fallbackInfo.Story;
+            else
+            {
+                // i should implement the spread operator (just like the songs inheritance) but i dont believe me, nor the rest of the people
+                // will really add more chapters like that
+                if (PackInfo.Story.Chapters.Count <= 0)
+                    PackInfo.Story.Chapters = fallbackInfo.Story.Chapters;
+            }
+
         }
 
         public IResourceStore<byte[]> RetrievePackResources()
