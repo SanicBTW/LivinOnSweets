@@ -1,4 +1,5 @@
-﻿using LivinOnSweets.API.Interfaces;
+﻿using JetBrains.Annotations;
+using LivinOnSweets.API.Interfaces;
 using LivinOnSweets.API.Song;
 using LivinOnSweets.ChartFormat;
 using LivinOnSweets.ChartFormat.Adapters;
@@ -14,7 +15,7 @@ namespace LivinOnSweets.API.Skinning
     /// <summary>
     /// An <see cref="ISongStore"/> implementation which relies on a backing <see cref="ResourcePack"/> to list out available songs.
     /// </summary>
-    public class ResourcePackSongStore(ResourcePack pack, Storage storage) : ISongStore
+    public class ResourcePackSongStore(ResourcePack pack, [CanBeNull] Storage storage) : ISongStore
     {
         // since we cannot access the internal resource pack store we make one based on a possible route
         // uhh quick update, after a couple of months i found a huge flaw and decided to expose the internal pack store through a readonly variable and returns the interface to avoid tampering
@@ -60,13 +61,6 @@ namespace LivinOnSweets.API.Skinning
 
         public ChartData GetChart(string songId, string difficulty)
         {
-            // run it before anything else to avoid unnecessary variables
-            if (!ChartPipeline.TryGetAdapter(Format, out IChartAdapter chartAdapter) || chartAdapter == null)
-            {
-                pack.Logger.Add($"Missing {Format} adapter, did it get registered?", LogLevel.Error);
-                return null;
-            }
-
             // this one is hard to consider if it should fallback to the next active pack or not, since a pack can define its own improved charts, its always gonna hit on the first
             // currently with the new change, THIS part should return null and hopefully fallback to the next pack which could lead to the same behaviour really but getStream returns the stream of the current resources OR the fallback so i guess it should be fine?
             SongMetadata metadata = GetMetadata(songId);
@@ -87,7 +81,20 @@ namespace LivinOnSweets.API.Skinning
             if (string.IsNullOrWhiteSpace(chartPath))
                 chartPath = $"{aliasPath}/{difficulty}.toml";
 
-            using Stream chartStream = resources.GetStream(chartPath);
+            // check if it was cached before hand (already converted)
+            Storage cacheStorage = GetCacheStorage();
+            bool cached = cacheStorage?.Exists(chartPath) ?? false;
+            string usableFormat = cached ? DefaultAdapter.ChartFormatName : Format;
+
+            // run it before anything else to avoid unnecessary variables
+            if (!ChartPipeline.TryGetAdapter(usableFormat, out IChartAdapter chartAdapter) || chartAdapter == null)
+            {
+                pack.Logger.Add($"Missing {usableFormat} adapter, did it get registered?", LogLevel.Error);
+                return null;
+            }
+
+            pack.Logger.Add($"can use cache? {cacheStorage != null}, {(cacheStorage != null ? $"was cached? {cached} targetting {usableFormat}" : "")}");
+            using Stream chartStream = cached ? cacheStorage.GetStream(chartPath) : resources.GetStream(chartPath);
             if (chartStream == null)
             {
                 pack.Logger.Add(
@@ -112,18 +119,36 @@ namespace LivinOnSweets.API.Skinning
                 return null;
             }
 
+            // pipe it down!
+            if (cacheStorage != null && !cached)
+            {
+                Dictionary<string, object> tomlData = [];
+                tomlData["metadata"] = chartData.Metadata;
+                tomlData["beat_highlights"] = chartData.BeatHighlights;
+                tomlData["timing_points"] = chartData.TimingPoints;
+                tomlData["scroll_velocities"] = chartData.ScrollVelocities;
+                tomlData["notes"] = chartData.Notes;
+
+                string tomlString = Toml.FromModel(tomlData);
+                // saving it with the same name is evil... breaks the file type but uhh it doesnt matter as long as its readable right?
+                using Stream cacheStream = cacheStorage.GetStream(chartPath, FileAccess.Write);
+                using StreamWriter writer = new StreamWriter(cacheStream);
+                writer.Write(tomlString);
+                writer.Flush();
+            }
+
             return chartData;
         }
 
         // sanco here: i thought about exposing a CACHE folder inside the resource pack folder in case of being external
         // but exposing a variable to the storage cache could be potentially unsafe for storing unwanted files?
-        private Storage cache;
-        public Storage GetCacheStorage()
+        [CanBeNull] private Storage cache;
+        [CanBeNull] public Storage GetCacheStorage()
         {
             // passed storage is the host user storage folder scoped into the resource packs and resource pack id
             // in reality we should only pass down the cache storage to keep everything in a single place
             // but for the sake of making the resource pack the source of everything then we will do that
-            return cache ??= storage.GetStorageForDirectory("cache");
+            return cache ??= storage?.GetStorageForDirectory("cache");
         }
 
         private string getAliasedPath(string songId)
